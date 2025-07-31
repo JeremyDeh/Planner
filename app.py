@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, Markup
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 # --- Pop-up détail ligne planning ---
 from flask import make_response
-
+from markupsafe import Markup
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY
 from neo4j import GraphDatabase
