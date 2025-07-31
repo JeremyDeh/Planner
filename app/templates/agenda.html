@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Agenda</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- CSS -->
+<!-- FullCalendar CSS depuis CDN -->
+ <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
+    <script>
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth'
+        });
+        calendar.render();
+      });
+
+    </script>
+
+</head>
+<body>
+    <style>
+        /* Tooltip personnalisé pour les événements du calendrier */
+        .fc-event-custom-tooltip {
+            position: absolute;
+            z-index: 9999;
+            background: #232946;
+            color: #eebbc3;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 1em;
+            box-shadow: 0 4px 16px rgba(35,41,70,0.18);
+            pointer-events: none;
+            opacity: 0.97;
+            white-space: pre-line;
+            max-width: 320px;
+            transition: opacity 0.15s;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100vh;
+            background: #232946;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding-top: 40px;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+            z-index: 100;
+        }
+        .menu-btn {
+            background: #232946;
+            color: #eebbc3;
+            border: none;
+            padding: 18px 0;
+            margin: 0 20px 18px 20px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .menu-btn:hover, .menu-btn.active {
+            background: #eebbc3;
+            color: #232946;
+            box-shadow: 0 4px 16px rgba(238,187,195,0.12);
+        }
+        .central-panel {
+            margin-left: 220px;
+            padding: 40px 40px 40px 40px;
+            min-height: 100vh;
+            background: #f7f7fa;
+        }
+    </style>
+    <div class="sidebar">
+        <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
+        <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+        <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+        <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
+    </div>
+    <div class="central-panel">
+        <h2>Agenda des rendez-vous</h2>
+              <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; margin-bottom:18px;">
+            &
+            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                {% for nom in RDVTypes %}
+                    <label style="display:block; margin-bottom:4px; cursor:pointer;">
+                        <input type="checkbox" class="rdv-filter" value="{{ nom }}" style="margin-right:6px;">{{ nom }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <button onclick="window.print()" title="Imprimer" style="background: none; border: none; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#232946" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/>
+                    <rect x="6" y="13" width="12" height="7" rx="2"/>
+                    <path d="M6 17h12"/>
+                    <path d="M9 17v2"/>
+                    <path d="M15 17v2"/>
+                    <circle cx="17" cy="7" r="1"/>
+                </svg>
+            </button>
+            <button id="openPopupBtn" title="Ouvrir le formulaire" style="background: #eebbc3; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; color: #232946; font-size: 1.1em; font-weight: 500;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="#232946" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </button>
+        </div>
+        <div id="calendar"></div>
+
+        <script>
+        // Filtrage dynamique des événements selon les cases cochées
+        let allEvents = [];
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+            const rawEvents = {{ events | tojson }};
+            allEvents = rawEvents;
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                slotMinTime: '07:00:00',
+                slotMaxTime: '20:00:00',
+                allDaySlot: false,
+                events: rawEvents,
+                eventDidMount: function (info) {
+                    // Tooltip personnalisé
+                    let tooltip;
+                    const desc = info.event.extendedProps.description;
+                    if (desc) {
+                        info.el.addEventListener('mouseenter', function(e) {
+                            tooltip = document.createElement('div');
+                            tooltip.className = 'fc-event-custom-tooltip';
+                            tooltip.innerText = desc;
+                            document.body.appendChild(tooltip);
+                            const rect = info.el.getBoundingClientRect();
+                            tooltip.style.left = (rect.left + window.scrollX + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+                            tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 8) + 'px';
+                        });
+                        info.el.addEventListener('mousemove', function(e) {
+                            if (tooltip) {
+                                tooltip.style.left = (e.pageX + 12) + 'px';
+                                tooltip.style.top = (e.pageY - tooltip.offsetHeight - 8) + 'px';
+                            }
+                        });
+                        info.el.addEventListener('mouseleave', function() {
+                            if (tooltip) {
+                                tooltip.remove();
+                                tooltip = null;
+                            }
+                        });
+                    }
+                }
+            });
+            calendar.render();
+
+            // Gestion du filtrage
+            document.querySelectorAll('.rdv-filter').forEach(cb => {
+                cb.addEventListener('change', filterEvents);
+            });
+
+            function filterEvents() {
+                const checked = Array.from(document.querySelectorAll('.rdv-filter:checked')).map(cb => cb.value);
+                if (checked.length === 0) {
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(allEvents);
+                    return;
+                }
+                const filtered = allEvents.filter(ev => {
+                    if (!ev.description) return false;
+                    return checked.some(type => ev.description.startsWith(type));
+                });
+                calendar.removeAllEvents();
+                calendar.addEventSource(filtered);
+            }
+        });
+        </script>
+
+        <!-- Pop-up overlay -->
+        <div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:9999; justify-content:center; align-items:center;">
+            <div style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
+                <button onclick="closePopup()" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:1.5em; color:#232946; cursor:pointer;">&times;</button>
+                <div id="popupContent">
+                    <div style="text-align:center; color:#aaa;">Chargement...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+ <script>
+
+  // Gestion du pop-up dynamique
+  function closePopup() {
+    document.getElementById('popupOverlay').style.display = 'none';
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('openPopupBtn').onclick = function() {
+      document.getElementById('popupOverlay').style.display = 'flex';
+      // Charger dynamiquement le contenu du pop-up depuis une route Flask
+      fetch('/popup_content')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('popupContent').innerHTML = html;
+        })
+        .catch(() => {
+          document.getElementById('popupContent').innerHTML = '<div style="color:red;">Erreur de chargement du contenu.</div>';
+        });
+    };
+  });
+</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                slotMinTime: '07:00:00',
+                slotMaxTime: '20:00:00',
+                allDaySlot: false,
+                events: {{ events | tojson }},
+                eventDidMount: function (info) {
+                    // Tooltip personnalisé
+                    let tooltip;
+                    const desc = info.event.extendedProps.description;
+                    if (desc) {
+                        info.el.addEventListener('mouseenter', function(e) {
+                            tooltip = document.createElement('div');
+                            tooltip.className = 'fc-event-custom-tooltip';
+                            tooltip.innerText = desc;
+                            document.body.appendChild(tooltip);
+                            const rect = info.el.getBoundingClientRect();
+                            tooltip.style.left = (rect.left + window.scrollX + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+                            tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 8) + 'px';
+                        });
+                        info.el.addEventListener('mousemove', function(e) {
+                            if (tooltip) {
+                                tooltip.style.left = (e.pageX + 12) + 'px';
+                                tooltip.style.top = (e.pageY - tooltip.offsetHeight - 8) + 'px';
+                            }
+                        });
+                        info.el.addEventListener('mouseleave', function() {
+                            if (tooltip) {
+                                tooltip.remove();
+                                tooltip = null;
+                            }
+                        });
+                    }
+                }
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
