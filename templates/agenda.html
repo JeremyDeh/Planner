@@ -92,7 +92,7 @@
         <h2>Agenda des rendez-vous</h2>
               <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; margin-bottom:18px;">
             
-            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); max-height:120px; overflow-y:auto;">
                 {% for nom in RDVTypes %}
                     <label style="display:block; margin-bottom:4px; cursor:pointer;">
                         <input type="checkbox" class="rdv-filter" value="{{ nom }}" style="margin-right:6px;">{{ nom }}

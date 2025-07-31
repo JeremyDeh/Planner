@@ -55,6 +55,12 @@
             background: #eebbc3;
             color: #232946;
         }
+        /* Lignes passées en mode historique */
+        tr.past-row {
+            background: #e0e0e0 !important;
+            color: #888 !important;
+        }
+        
     </style>
     <meta charset="UTF-8">
     <title>Fiche résident</title>
@@ -284,9 +290,14 @@
                     {% endif %}
                 </div>
                 <div class="fiche-planning">
-                    <h3>Planning du résident</h3>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px;">
+                        <h3 style="margin-bottom:0;">Planning du résident</h3>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
+                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#eebbc3; cursor:pointer;"> Historique
+                        </label>
+                    </div>
                     {% if nodes is defined and nodes|length > 0 %}
-                        <table class="collectif-table">
+                        <table class="collectif-table" id="planningTable">
                             <thead>
                                 <tr>
                                     {% for col in nodes[0].keys() %}
@@ -302,7 +313,7 @@
                                     <td>{{ value }}</td>
                                     {% endfor %}
                                     <td style="text-align:center;">
-                                        <button class="dots-btn" onclick='openRowPopup({{ node | tojson | safe }})' style="background:none; border:none; cursor:pointer; padding:4px;">
+                                        <button class="dots-btn" data-row='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <circle cx="5" cy="12" r="2" fill="#232946"/>
                                                 <circle cx="12" cy="12" r="2" fill="#232946"/>
@@ -314,6 +325,73 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <script>
+                        // Filtrage planning : n'affiche que les lignes dont la date >= aujourd'hui, sauf si historique activé
+                        function isDateInFuture(dateStr) {
+                            // Accepte formats AAAA-MM-JJ ou JJ/MM/AAAA
+                            if (!dateStr) return false;
+                            let d = null;
+                            if (/\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+                                d = new Date(dateStr);
+                            } else if (/\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
+                                const [j, m, a] = dateStr.split('/');
+                                d = new Date(`${a}-${m}-${j}`);
+                            } else {
+                                return true; // si format inconnu, ne pas filtrer
+                            }
+                            const today = new Date();
+                            today.setHours(0,0,0,0);
+                            return d >= today;
+                        }
+                        function filterPlanningRows(showAll) {
+                            const table = document.getElementById('planningTable');
+                            if (!table) return;
+                            const ths = Array.from(table.querySelectorAll('thead th'));
+                            const dateColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('date'));
+                            const rows = table.querySelectorAll('tbody tr');
+                            rows.forEach(row => {
+                                const tds = Array.from(row.children);
+                                const cellDate = dateColIdx !== -1 ? (tds[dateColIdx]?.textContent.trim() || '') : '';
+                                const isFuture = isDateInFuture(cellDate);
+                                if (showAll) {
+                                    row.style.display = '';
+                                    if (!isFuture) {
+                                        row.classList.add('past-row');
+                                    } else {
+                                        row.classList.remove('past-row');
+                                    }
+                                } else {
+                                    row.classList.remove('past-row');
+                                    if (isFuture) {
+                                        row.style.display = '';
+                                    } else {
+                                        row.style.display = 'none';
+                                    }
+                                }
+                            });
+                        }
+                        let historiqueMode = false;
+                        const historiqueCheckbox = document.getElementById('toggleHistoriqueBtn');
+                        historiqueCheckbox.addEventListener('change', function() {
+                            historiqueMode = this.checked;
+                            filterPlanningRows(historiqueMode);
+                        });
+                        window.addEventListener('DOMContentLoaded', function() {
+                            filterPlanningRows(false);
+                            // Gestionnaire pour les boutons ... du tableau
+                            document.querySelectorAll('.dots-btn[data-row]').forEach(btn => {
+                                btn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    try {
+                                        const rowData = JSON.parse(this.getAttribute('data-row'));
+                                        openRowPopup(rowData);
+                                    } catch (err) {
+                                        alert('Erreur lors de l\'ouverture de la fiche : données invalides.');
+                                    }
+                                });
+                            });
+                        });
+                        </script>
                         <!-- Pop-up modale pour la ligne -->
                         <div id="rowPopupOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
                             <div id="rowPopupContent" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">

@@ -68,8 +68,7 @@ th { background: #eebbc3; color: #232946; }
 
         <h2>Emploi du temps collectif</h2>
         <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; margin-bottom:18px;">
-            
-            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px;">
+            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px; max-height:120px; overflow-y:auto;">
                 Rendez-vous :
                 {% for nom in RDVTypes %}
                     <label style="display:block; margin-bottom:4px; cursor:pointer;">
@@ -77,7 +76,7 @@ th { background: #eebbc3; color: #232946; }
                     </label>
                 {% endfor %}
             </div>
-            <div id="etageCheckboxes" style="width:120px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div id="etageCheckboxes" style="width:120px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); max-height:120px; overflow-y:auto;">
                 Etage :
                 <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="1" style="margin-right:6px;">1</label>
                 <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="2" style="margin-right:6px;">2</label>

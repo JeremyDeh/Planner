@@ -1,8 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, Markup
-# --- Pop-up détail ligne planning ---
-from flask import make_response
-
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Markup, make_response
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY
 from neo4j import GraphDatabase
 import pandas as pd
