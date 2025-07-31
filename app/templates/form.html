@@ -52,10 +52,10 @@
             }
         </style>
         <div class="sidebar">
-            <button onclick="window.location.href='{{ url_for('client_file') }}'" class="menu-btn{% if request.path == url_for('client_file') %} active{% endif %}">Fiche résident</button>
-            <button onclick="window.location.href='{{ url_for('form') }}'" class="menu-btn{% if request.path == url_for('form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
-            <button onclick="window.location.href='{{ url_for('emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
-            <button onclick="window.location.href='{{ url_for('agenda') }}'" class="menu-btn{% if request.path == url_for('agenda') %} active{% endif %}">Agenda</button>
+            <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
+            <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+            <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+            <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
         </div>
         <div class="central-panel">
         <h2>Formulaire de prestation</h2>
@@ -506,7 +506,7 @@
 
         function resetForm() {
             document.getElementById("popupConfirmation").style.display = "none";
-            document.querySelector("form").reset();
+            document.querySelector("main.form").reset();
             colonneData = [{ name: '', unit: 'VARCHAR', nombre: '', pk: '' }];
             renderColonnes();
             toggleCSVFields();
