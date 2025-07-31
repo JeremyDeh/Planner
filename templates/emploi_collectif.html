@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Emploi du temps collectif</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100vh;
+            background: #232946;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding-top: 40px;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+            z-index: 100;
+        }
+        .menu-btn {
+            background: #232946;
+            color: #eebbc3;
+            border: none;
+            padding: 18px 0;
+            margin: 0 20px 18px 20px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .menu-btn:hover, .menu-btn.active {
+            background: #eebbc3;
+            color: #232946;
+            box-shadow: 0 4px 16px rgba(238,187,195,0.12);
+        }
+        .central-panel {
+            margin-left: 220px;
+            padding: 40px 40px 40px 40px;
+            min-height: 100vh;
+            background: #f7f7fa;
+        }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+th, td { border: 1px solid #eee; padding: 8px; text-align: left; width: 12%; }
+th { background: #eebbc3; color: #232946; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <button onclick="window.location.href='{{ url_for('client_file') }}'" class="menu-btn{% if request.path == url_for('client_file') %} active{% endif %}">Fiche résident</button>
+        <button onclick="window.location.href='{{ url_for('form') }}'" class="menu-btn{% if request.path == url_for('form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+        <button onclick="window.location.href='{{ url_for('emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+        <button onclick="window.location.href='{{ url_for('agenda') }}'" class="menu-btn{% if request.path == url_for('agenda') %} active{% endif %}">Agenda</button>
+    </div>
+    <div class="central-panel">
+        
+
+
+
+
+        <h2>Emploi du temps collectif</h2>
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; margin-bottom:18px;">
+            
+            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px;">
+                Rendez-vous :
+                {% for nom in RDVTypes %}
+                    <label style="display:block; margin-bottom:4px; cursor:pointer;">
+                        <input type="checkbox" class="rdv-filter" value="{{ nom }}" style="margin-right:6px;">{{ nom }}
+                    </label>
+                {% endfor %}
+            </div>
+            <div id="etageCheckboxes" style="width:120px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                Etage :
+                <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="1" style="margin-right:6px;">1</label>
+                <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="2" style="margin-right:6px;">2</label>
+                <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="3" style="margin-right:6px;">3</label>
+            </div>
+        </div>
+
+            <script>
+            // Filtrage dynamique du tableau selon les cases cochées du filtre sur la colonne "rendez-vous" ET "étage"
+            function filterTableByCheckboxes() {
+                const checkedRDV = Array.from(document.querySelectorAll('.rdv-filter:checked')).map(cb => cb.value.toLowerCase());
+                const checkedEtage = Array.from(document.querySelectorAll('.etage-filter:checked')).map(cb => cb.value);
+                const table = document.querySelector('table');
+                if (!table) return;
+                const rows = table.querySelectorAll('tbody tr');
+                // On cherche l'index de la colonne "rendez-vous" et "etage"
+                const ths = Array.from(table.querySelectorAll('thead th'));
+                let rdvColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('rendez-vous'));
+                let etageColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('etage'));
+                if (rdvColIdx === -1) rdvColIdx = ths.length - 1; // fallback: dernière colonne
+                rows.forEach(row => {
+                    const tds = Array.from(row.children);
+                    const cellRDV = tds[rdvColIdx]?.textContent.toLowerCase() || '';
+                    const cellEtage = etageColIdx !== -1 ? (tds[etageColIdx]?.textContent.trim() || '') : '';
+                    const matchRDV = checkedRDV.length === 0 || checkedRDV.some(val => cellRDV.includes(val));
+                    const matchEtage = checkedEtage.length === 0 || checkedEtage.includes(cellEtage);
+                    if (matchRDV && matchEtage) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+            document.querySelectorAll('.rdv-filter, .etage-filter').forEach(cb => {
+                cb.addEventListener('change', filterTableByCheckboxes);
+            });
+            window.addEventListener('DOMContentLoaded', filterTableByCheckboxes);
+            </script>
+        {% if nodes is defined and nodes|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    {% for col in nodes[0].keys() %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for node in nodes %}
+                <tr>
+                    {% for value in node.values() %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun résultat trouvé.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

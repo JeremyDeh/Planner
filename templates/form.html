@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Formulaire de Contrat Interface</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <style>
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f7f7fa;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: #232946;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+                z-index: 100;
+            }
+            .menu-btn {
+                background: #232946;
+                color: #eebbc3;
+                border: none;
+                padding: 18px 0;
+                margin: 0 20px 18px 20px;
+                border-radius: 8px;
+                font-size: 1.1em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #eebbc3;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(238,187,195,0.12);
+            }
+            .central-panel {
+                margin-left: 220px;
+                padding: 40px 40px 40px 40px;
+                min-height: 100vh;
+                background: #f7f7fa;
+            }
+        </style>
+        <div class="sidebar">
+            <button onclick="window.location.href='{{ url_for('client_file') }}'" class="menu-btn{% if request.path == url_for('client_file') %} active{% endif %}">Fiche résident</button>
+            <button onclick="window.location.href='{{ url_for('form') }}'" class="menu-btn{% if request.path == url_for('form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+            <button onclick="window.location.href='{{ url_for('emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+            <button onclick="window.location.href='{{ url_for('agenda') }}'" class="menu-btn{% if request.path == url_for('agenda') %} active{% endif %}">Agenda</button>
+        </div>
+        <div class="central-panel">
+        <h2>Formulaire de prestation</h2>
+
+        <form method="post" onsubmit="return validerFormulaire();">
+
+            <label><input type="checkbox" name="fichierCSV" id="fichierCSV" onchange="toggleCSVFields()"> Récurrence </label>
+
+            <div id="schemaField">
+                <label>Type de récurrence :
+                    <select name="recurrence" required>
+                        <option value="jour">Tout les jours</option>
+                        <option value="semaine">Toutes les semaines</option>
+                        <option value="mois">Tout les mois</option>
+
+                    </select>
+                </label>
+            </div>
+            
+            
+            <label>Date :
+                <input type="date" name="date_prestation" style="width: 220px;" required title="Choisissez la date de la prestation">
+            </label>
+
+            <div id="dateFinField" style="display:none;">
+                <label>Date de fin :
+                    <input type="date" name="date_fin" style="width: 220px;" title="Choisissez la date de fin">
+                </label>
+            </div>
+            </label>
+
+            <label>Heure du rendez-vous :
+                <input type="time" name="heure_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
+            </label>
+
+            <label>Durée du rendez-vous :
+                <input type="time" name="duree_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
+            </label>
+            
+            <label>Nom du résident :</label>
+            <div style="position:relative;">
+                <input type="text" name="nomPatient" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showPatientList()" oninput="filterPatientList()">
+                <div id="patientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                    {% for nom in residents %}
+                        <div class="patient-item" onclick="selectPatient('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+            <label>Type de rendez-vous :</label>
+            <div style="position:relative;">
+                <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
+                <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                    {% for nom in medecins %}
+                        <div class="medecin-item" onclick="selectMedecin('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <label>Lieu :
+                <input type="text" name="lieu" style="width: 100%;">
+            </label>
+            <script>
+                function showPatientList() {
+                    document.getElementById('patientList').style.display = 'block';
+                }
+                function hidePatientList() {
+                    setTimeout(function() {
+                        document.getElementById('patientList').style.display = 'none';
+                    }, 200);
+                }
+                function selectPatient(nom) {
+                    document.getElementById('nomPatientInput').value = nom;
+                    hidePatientList();
+                }
+                function filterPatientList() {
+                    var input = document.getElementById('nomPatientInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#patientList .patient-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
+
+                function showMedecinList() {
+                    document.getElementById('medecinList').style.display = 'block';
+                }
+                function hideMedecinList() {
+                    setTimeout(function() {
+                        document.getElementById('medecinList').style.display = 'none';
+                    }, 200);
+                }
+                function selectMedecin(nom) {
+                    document.getElementById('nomMedecinInput').value = nom;
+                    hideMedecinList();
+                }
+                function filterMedecinList() {
+                    var input = document.getElementById('nomMedecinInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#medecinList .medecin-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                document.getElementById('nomMedecinInput').addEventListener('blur', hideMedecinList);
+            </script>
+
+
+            <label>Type de transport :
+                <select name="transport" required>
+                    <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
+                    <option value="vsl">VSL</option>
+                    <option value="ambulance">Ambulance</option>
+                    <option value="famille">Famille</option>
+                    <option value="---">Absence de transport</option>
+                </select>
+            </label>
+
+            <label>Commentaire :
+                <input type="text" name="commentaire" style="width: 100%;">
+            </label>
+
+            <div id="dependsContainer" style="display: none;">
+                <h3>Dépendances</h3>
+                <div id="dependsFields"></div>
+                <button type="button" onclick="ajouterDependance()" class="add-btn">+ Ajouter une dépendance</button>
+            </div>
+
+            <div id="csvFields">
+                <label>Type de prise en charge : <input type="text" name="source_system"></label>
+                <label>Autre champs : <input type="text" name="source_file"></label>
+                <label>Encore un autre : <input type="text" name="delete_flag_column"></label>
+                <label>autre info : <input type="text" name="delimiter" value=";" required></label>
+                <label>Derniere info : <input type="text" name="with_header_line" value="1" required></label>
+            </div>
+
+            <h3>Rappels</h3>
+            <div id="colonnesContainer"></div>
+
+            <div style="margin-top: 10px;">
+                <button type="button" onclick="ajouterColonne()" class="add-btn">+ Ajouter une colonne</button>
+            </div>
+
+            <div id="errorMsg" style="color: red; font-weight: bold; display: none; margin-bottom: 10px;"></div>
+            <input type="submit" value="Valider">
+
+            <div id="popupConfirmation" class="popup" style="display: none;">
+                <div class="popup-content">
+                    <h2>✅ Rendez-vous enregistré avec succès</h2>
+                    <button type="button" onclick="resetForm()" class="btn-nouveau">+ Nouveau rendez-vous</button>
+                </div>
+            </div>
+
+        </form>
+        </div>
+
+        <script>
+            let colonneData = [{ name: '', unit: 'Jour', nombre: '', pk: '' }];
+
+            function toggleCSVFields() {
+                const isChecked = document.getElementById('fichierCSV').checked;
+                document.getElementById('csvFields').style.display = isChecked ? 'block' : 'none';
+                document.querySelectorAll('#csvFields input').forEach(input => {
+                    input.required = isChecked;
+                });
+
+                // Masquer le champ "schema" si fichierCSV est coché
+                document.getElementById('schemaField').style.display = isChecked ? 'block' : 'none';
+                document.getElementById('dateFinField').style.display = isChecked ? 'block' : 'none';
+            }
+
+            window.onload = function () {
+                toggleCSVFields();
+                renderColonnes();
+            };
+
+            function ajouterColonne() {
+            // Sauvegarder les champs actuels du DOM
+            const fields = document.querySelectorAll('#colonnesContainer fieldset');
+            colonneData = Array.from(fields).map((fieldset) => {
+                return {
+                    name: fieldset.querySelector('[name$="_name"]')?.value || '',
+                    unit: fieldset.querySelector('[name$="_unit"]')?.value || '',
+                    nombre: fieldset.querySelector('[name$="_nombre"]')?.value || '',
+                    pk: fieldset.querySelector('[name$="_pk"]')?.checked ? 'Y' : ''
+                };
+            });
+
+            // Ajouter une nouvelle colonne vide bien formée
+            colonneData.push({
+                name: '',
+                unit: '',
+                nombre: '',
+                pk: ''
+            });
+
+            renderColonnes();
+        }
+
+
+            function supprimerColonne(index) {
+            console.log("Suppression de la colonne index :", index); // 👈 ligne ajoutée
+
+            const fields = document.querySelectorAll('#colonnesContainer fieldset');
+            colonneData = Array.from(fields).map((fieldset) => {
+                return {
+                    name: fieldset.querySelector('[name$="_name"]')?.value || '',
+                    unit: fieldset.querySelector('[name$="_unit"]')?.value || '',
+                    nombre: fieldset.querySelector('[name$="_nombre"]')?.value || '',
+                    pk: fieldset.querySelector('[name$="_pk"]')?.checked ? 'Y' : ''
+                };
+            });
+
+            colonneData.splice(index, 1);
+            renderColonnes();
+        }
+
+        function renderColonnes() {
+            const container = document.getElementById('colonnesContainer');
+
+            // Sauvegarde de l’élément actif (input) et position du curseur
+            const activeElement = document.activeElement;
+            const selectionStart = activeElement?.selectionStart;
+            const selectionEnd = activeElement?.selectionEnd;
+            const activeName = activeElement?.name;
+
+            // Nettoyage du container
+            container.innerHTML = '';
+
+
+            colonneData.forEach((col, index) => {
+                const fieldset = document.createElement('fieldset');
+
+                fieldset.innerHTML = `
+                    <legend>Rappel ${index + 1}</legend>
+
+                    <div class="reorder-buttons">
+                        <button type="button" onclick="moveUp(${index})" ${index === 0 ? 'disabled' : ''}>⬆️</button>
+                        <button type="button" onclick="moveDown(${index})" ${index === colonneData.length - 1 ? 'disabled' : ''}>⬇️</button>
+                    </div>
+
+                    <div class="ligne-champs">
+                        <label class="col-nom">Raison :
+                            <input type="text" name="col${index + 1}_name" value="${col.name}">
+                        </label>
+                        <label class="col-unit">Unité :
+                            <select name="col${index + 1}_unit">
+                                <option value="jour" ${col.unit === "Jours" ? "selected" : ""}>Jours</option>
+                                <option value="semaine" ${col.unit === "Semaines" ? "selected" : ""}>Semaines</option>
+                                <option value="mois" ${col.unit === "Mois" ? "selected" : ""}>Mois</option>
+                            </select>
+                        </label>
+                        <label class="col-nombre">Nombre :
+                            <input type="text" name="col${index + 1}_nombre" value="${col.nombre}">
+                        </label>
+                    </div>
+
+                    <label>
+                        <input type="checkbox" name="col${index + 1}_pk" value="Y" ${col.pk === 'Y' ? 'checked' : ''}> Obligatoire
+                    </label>
+
+                    <div class="delete-btn-container">
+                        <button type="button" onclick="supprimerColonne(${index})" class="delete-btn">Supprimer</button>
+                    </div>
+                `;
+
+                container.appendChild(fieldset);
+
+                // Gestion dynamique du champ "Nom"
+                const inputNom = fieldset.querySelector(`[name="col${index + 1}_name"]`);
+                inputNom.addEventListener('input', () => {
+                    const value = inputNom.value;
+                    colonneData[index].name = value;
+
+                    const isLast = index === colonneData.length - 1;
+                    const isEmpty = value.trim() === '';
+
+                    if (isLast && !isEmpty) {
+                        colonneData.push({ name: '', unit: 'VARCHAR', nombre: '', pk: '' });
+                        renderColonnes();
+                    } else if (!isLast && isEmpty && isColonneEmpty(index)) {
+                        colonneData.splice(index, 1);
+                        renderColonnes();
+                    }
+                });
+            });
+
+            // 🔙 Restaurer le focus si l’élément est toujours présent
+            if (activeName) {
+                const restoredInput = document.querySelector(`[name="${activeName}"]`);
+                if (restoredInput) {
+                    restoredInput.focus();
+                    if (selectionStart !== null && selectionEnd !== null) {
+                        restoredInput.setSelectionRange(selectionStart, selectionEnd);
+                    }
+                }
+            }
+        }
+
+
+
+        function isColonneEmpty(index) {
+            const fieldset = document.querySelectorAll('#colonnesContainer fieldset')[index];
+            if (!fieldset) return false;
+
+            const name = fieldset.querySelector(`[name="col${index + 1}_name"]`)?.value.trim();
+            const unit = fieldset.querySelector(`[name="col${index + 1}_unit"]`)?.value.trim();
+            const nombre = fieldset.querySelector(`[name="col${index + 1}_nombre"]`)?.value.trim();
+            const pk = fieldset.querySelector(`[name="col${index + 1}_pk"]`)?.checked;
+
+            return name === '' && unit === 'VARCHAR' && nombre === '' && !pk;
+        }
+
+
+
+
+        function validerFormulaire() {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+
+            // 🔄 Mise à jour de colonneData à partir du DOM
+            const fields = document.querySelectorAll('#colonnesContainer fieldset');
+            colonneData = Array.from(fields).map((fieldset, i) => {
+                return {
+                    name: fieldset.querySelector(`[name="col${i + 1}_name"]`)?.value || '',
+                    unit: fieldset.querySelector(`[name="col${i + 1}_unit"]`)?.value || '',
+                    nombre: fieldset.querySelector(`[name="col${i + 1}_nombre"]`)?.value || '',
+                    pk: fieldset.querySelector(`[name="col${i + 1}_pk"]`)?.checked ? 'Y' : ''
+                };
+            });
+
+            if (colonneData.length === 0) {
+                errorMsg.innerText = "Veuillez ajouter au moins une colonne.";
+                errorMsg.style.display = 'block';
+                return false;
+            }
+
+            const fieldsets = document.querySelectorAll('#colonnesContainer fieldset');
+            for (let i = 0; i < fieldsets.length; i++) {
+                const fs = fieldsets[i];
+                const name = fs.querySelector(`[name^="col${i + 1}_name"]`)?.value.trim();
+
+                if (name) {
+                    const unit = fs.querySelector(`[name^="col${i + 1}_unit"]`)?.value.trim();
+                    if (!unit) {
+                        errorMsg.innerText = "Le type est obligatoire pour chaque colonne ayant un nom.";
+                        errorMsg.style.display = 'block';
+                        return false;
+                    }
+                }
+            }
+
+            const hasPrimaryKey = colonneData.some(col => col.pk === 'Y');
+            if (!hasPrimaryKey) {
+                errorMsg.innerText = "Au moins une colonne doit être définie comme clé primaire.";
+                errorMsg.style.display = 'block';
+                return false;
+            }
+
+            return true;
+        }
+
+
+        let dependances = [];
+
+        function toggleCSVFields() {
+            const isChecked = document.getElementById('fichierCSV').checked;
+
+            document.getElementById('csvFields').style.display = isChecked ? 'block' : 'none';
+            document.querySelectorAll('#csvFields input').forEach(input => {
+                input.required = isChecked;
+            });
+
+            document.getElementById('schemaField').style.display = isChecked ? 'block' : 'none';
+            document.getElementById('dateFinField').style.display = isChecked ? 'block' : 'none';
+
+            // Affiche depends_on uniquement si ce n'est PAS un fichier CSV
+            document.getElementById('dependsContainer').style.display = isChecked ? 'none' : 'block';
+        }
+
+        function ajouterDependance() {
+            dependances = Array.from(document.querySelectorAll('input[name="depends_on"]')).map(input => input.value);
+            dependances.push('');
+            renderDependances();
+        }
+
+
+        function supprimerDependance(index) {
+            // Sauvegarder l'état actuel
+            dependances = Array.from(document.querySelectorAll('input[name="depends_on"]')).map(input => input.value);
+
+            // Supprimer l'élément à l'index donné
+            dependances.splice(index, 1);
+
+            // Re-render avec le tableau mis à jour
+            renderDependances();
+        }
+
+
+        function renderDependances() {
+            const container = document.getElementById('dependsFields');
+            container.innerHTML = '';
+
+            dependances.forEach((val, index) => {
+                const div = document.createElement('div');
+                div.className = "dependance-row";
+                div.innerHTML = `
+                    <span class="dependance-label">Truc dépendant ${index + 1} :</span>
+                    <input type="text" name="depends_on" value="${val}" required>
+                    <button type="button" onclick="supprimerDependance(${index})" class="delete-btn">Supprimer</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+
+        document.querySelector("form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            if (!validerFormulaire()) return;
+
+            // Print all form fields
+            const formData = new FormData(this);
+            const entries = Array.from(formData.entries());
+            console.log('Formulaire soumis:');
+            entries.forEach(([key, value]) => {
+                console.log(key + ':', value);
+            });
+
+            const response = await fetch("/", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                document.getElementById("popupConfirmation").style.display = "flex";
+            } else {
+                alert("Erreur lors de la génération du fichier.");
+            }
+        });
+
+        function resetForm() {
+            document.getElementById("popupConfirmation").style.display = "none";
+            document.querySelector("form").reset();
+            colonneData = [{ name: '', unit: 'VARCHAR', nombre: '', pk: '' }];
+            renderColonnes();
+            toggleCSVFields();
+        }
+
+        function moveUp(index) {
+            if (index > 0) {
+                [colonneData[index], colonneData[index - 1]] = [colonneData[index - 1], colonneData[index]];
+                renderColonnes();
+            }
+        }
+
+        function moveDown(index) {
+            if (index < colonneData.length - 1) {
+                [colonneData[index], colonneData[index + 1]] = [colonneData[index + 1], colonneData[index]];
+                renderColonnes();
+            }
+        }
+        </script>
+    </body>
+</html>
