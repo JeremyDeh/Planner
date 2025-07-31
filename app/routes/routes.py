@@ -56,7 +56,6 @@ def client_file():
             try:
                 nom, prenom = name.split(' ')[0], name.split(' ')[1]
             except IndexError:
-                # Gérer le cas où il manque prénom ou nom
                 nom, prenom = '', ''
 
             if nom and prenom:
@@ -108,37 +107,8 @@ def add_resident():
 
 @main_bp.route('/agenda')
 def agenda():
-    with driver.session(database=NEO4J_DB) as session:
-        cypher_query = "MATCH (n:Categorie) RETURN n.metier " \
-                       "ORDER BY n.metier ASC"
-        neo4j_results = session.run(cypher_query)
-        RDVTypes = [x['n.metier'] for x in neo4j_results]
-
-    with driver.session(database=NEO4J_DB) as session:
-        cypher_query = """
-        MATCH (n)-[r]->(m)
-        RETURN n.nom, n.prenom, r.date, m.metier, type(r), r.commentaire
-        ORDER BY r.date ASC
-        """
-        neo4j_results = session.run(cypher_query)
-        node_result = {
-            record['r.date'].isoformat(): [
-                record['n.nom'] + ' ' + record['n.prenom'],
-                record['m.metier'],
-                record['r.commentaire'],
-                record['type(r)']
-            ] for record in neo4j_results
-        }
-
-    events = [
-        {
-            "title": label[0],
-            "start": dt,
-            "description": f"{label[1]} ({label[3]}) : {label[2]}"
-        }
-        for dt, label in node_result.items()
-    ]
-
+    RDVTypes = get_rdv_types(driver, NEO4J_DB)
+    events = get_all_rdv_events(driver, NEO4J_DB)
     return render_template("agenda.html", events=events, RDVTypes=RDVTypes)
 
 
