@@ -1,0 +1,20 @@
+- récurrences sans date de fin (3 à 5 an avec rappel avant la fin pour penser a le reprogrammer)
+- mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
+- Recurrence sans horaire  (tel jour machin a ca, mais il y a pas d'heure, faut que ca soit fait dans la journée)
+- Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre)
+- Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )
+- permettre d'aller rapidiement a une date plus eloignée  (secondaire, pas tres utile selon moi)
+- nouvelle page qui affiche que les RDV du jour mais regroupé par categorie de rendez vous, 
+- 2 types de fiches différentes pour imprimer, une pour les infirimieres avec données completes, et une pour le patient, synthses (Vous avez rendez vous le xxx a telle heure, avec le medecin xxx, pour motif : "type de rdv", (si transport chosiis: Mode de transport : un membre de votre famille vous accompagnerz  ou "Un transport exterieur viendra vous chercher", Lieu du rendez-vous : xxx )
+	pour infirmieres on laisse que le tableau et le truc coloré pour O2, mais dans tableau on garde diabete que si type redndez vous = pedicure
+- creation de rendez vous -> rajouter champs nom de medecin (champs non obligatoire mais tjs présent)
+
+- possibilité d'ajouter un fichier lors de création du rendez-vous (voir plus tard, selon moi pas critique)
+- possibilité d'updater le rendez-vous pour modifier une info (et pour rajouter des fichiers a posteriori, mais pas critique pour moi)
+- possibilité d'updater la fiche patient a posteriori
+- lors de création de fiche patient ajouter mode de déplacement (seul, canne, déambulateur, fauteil roulant, alité)
+- mode de déplacement doit apparaitre sur le rendez vous, mais possibilité de le modifier sur fiche patient (doit impacter les rendez vous deja pris si on update la fiche patient)
+- possibilité de mettre ponctuellement oxygen = oui meme si patient a O2=Non
+- indicateur si rdv complet  : booleen choisi par l'utilisateur pour dire s'il manque des trucs sur la fiche
+
+- Ajouter bloc note, doit etre dans l'agenda  (rdv sans horaire, associé au "Service")

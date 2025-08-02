@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Formulaire de Contrat Interface</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <style>
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f7f7fa;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: #232946;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+                z-index: 100;
+            }
+            .menu-btn {
+                background: #232946;
+                color: #eebbc3;
+                border: none;
+                padding: 18px 0;
+                margin: 0 20px 18px 20px;
+                border-radius: 8px;
+                font-size: 1.1em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #eebbc3;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(238,187,195,0.12);
+            }
+            .central-panel {
+                margin-left: 220px;
+                padding: 40px 40px 40px 40px;
+                min-height: 100vh;
+                background: #f7f7fa;
+            }
+        </style>
+        <div class="sidebar">
+            <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
+            <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
+            <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+            <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+            <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
+        </div>
+        <div class="central-panel">
+        <h2>Ordre du jour</h2>
+
+        <!-- Layout principal avec cardbox métiers et cardbox formulaire note à droite -->
+        <div style="display:flex; flex-direction:row; align-items:flex-start;">
+            <div style="flex:1; margin-right:360px; max-width:calc(100vw - 600px);">
+                {# Cardbox pour chaque métier distinct #}
+                {% if rdv is defined and rdv.shape[0] > 0 %}
+                    {% set metiers = rdv['metier'].unique() %}
+                    <div style="display:flex; flex-wrap:wrap; gap:24px;">
+                        {% for metier in metiers %}
+                            <div style="background:#eebbc3; color:#232946; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); padding:24px; min-width:220px; min-height:260px; margin-bottom:16px;">
+                                <h3 style="margin-top:0;">{{ metier }}</h3>
+                                <ul style="list-style:none; padding-left:0; margin-top:12px;">
+                                    {% for _, row in rdv.iterrows() %}
+                                        {% if row['metier'] == metier %}
+                                            {% set date_str = row['date']|string %}
+                                            {% set heure = date_str.split('T')[1] if 'T' in date_str else date_str %}
+                                            {% set heure = heure[:5] %}
+                                            <li style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                                                <strong>{{ heure }}</strong>
+                                                <strong>{{ row['nom'] }} {{ row['prenom'] }}</strong> <br>
+                                                <span style="padding-left:3em;">Lieu : {{ row['lieu'] }}</span> <br>
+                                                <span style="padding-left:3em;">Note : {{ row['commentaire'] }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {# Cardbox spéciale pour le DataFrame 'notes' #}
+                {% if notes is defined and notes.shape[0] > 0 %}
+                    <div style="display:flex; flex-wrap:wrap; gap:24px;">
+                        <div style="background:#232946; color:#eebbc3; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.12); padding:24px; min-width:220px; margin-bottom:16px;">
+                            <h3 style="margin-top:0; color:#eebbc3;">Notes</h3>
+                            <!-- Taille minimale identique à celle des autres cardbox -->
+                            <style>
+                                .cardbox-notes { min-height: 260px; }
+                            </style>
+                            <ul class="cardbox-notes" style="list-style:none; padding-left:0; margin-top:12px;">
+                                {% for _, row in notes.iterrows() %}
+                                    {% set date_str_notes = row['date']|string %}
+                                    {% set heure_notes = date_str_notes.split('T')[1] if 'T' in date_str_notes else date_str_notes %}
+                                    {% set heure_notes = heure_notes[:5] %}
+                                    <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04); color:#232946;">
+                                        <strong>{{ heure_notes }}</strong><br>
+                                        <span>{{ row['commentaire'] if 'commentaire' in row else row }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <!-- Cardbox formulaire ajout de note à droite -->
+            <div style="width:320px; min-width:320px; position:fixed; top:110px; right:40px; z-index:300;">
+                <div style="background:#eebbc3; color:#232946; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.12); padding:24px; min-height:260px;">
+                    <h3 style="margin-top:0;">Ajouter une note</h3>
+                    <form method="POST" action="{{ url_for('main.journee') }}">
+                        <label for="note" style="font-weight:500;">Note :</label><br>
+                        <textarea id="note" name="note" rows="13" style="width:100%; border-radius:6px; border:1px solid #ccc; margin-bottom:12px;"></textarea><br>
+
+                        <label for="date_note" style="font-weight:500;">Date :</label><br>
+                        <input type="date" id="date_note" name="date_note" style="width:100%; border-radius:6px; border:1px solid #ccc; margin-bottom:12px;"><br>
+
+                        <label for="heure_note" style="font-weight:500;">Heure :</label><br>
+                        <input type="time" id="heure_note" name="heure_note" style="width:100%; border-radius:6px; border:1px solid #ccc; margin-bottom:18px;"><br>
+
+                        <button type="submit" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;">Valider</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        
+
+    </body>
+</html>
