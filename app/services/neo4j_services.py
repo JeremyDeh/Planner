@@ -30,7 +30,51 @@ def get_residents():
                 residents.append(nom)
     return residents
 
+def get_rendez_vous_jour(driver, NEO4J_DB):
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+                        MATCH (n:Resident)-[r]->(m)
+                        WHERE date(r.date) = date()
+                        RETURN n.nom AS nom, n.prenom AS prenom, r.date AS date, r.lieu AS lieu, m.metier AS metier, r.commentaire AS commentaire
+                        ORDER BY m.metier, n.nom, n.prenom
+                        """
+        neo4j_results = session.run(cypher_query)
+        data = [record.data() for record in neo4j_results]
+    df_rdv = pd.DataFrame(data)
 
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+                        MATCH (n:Service)-[r]->(m)
+                        WHERE date(r.date) = date()
+                        RETURN r.date AS date, r.commentaire AS commentaire, m.metier AS metier
+                        ORDER BY m.metier
+                        """
+        neo4j_results = session.run(cypher_query)
+        data = [record.data() for record in neo4j_results]
+    df_service = pd.DataFrame(data)
+
+    
+    return df_rdv,df_service
+
+
+def ajout_note(note, date_note, heure_note,metier='Autre'):
+    """
+    Ajoute une note à la base de données Neo4j.
+
+    Args:
+        note (str): Le contenu de la note.
+        date_note (str): La date de la note au format 'YYYY-MM-DD'.
+        heure_note (str): L'heure de la note au format 'HH:MM'.
+    """
+    date_heure = datetime.fromisoformat(f"{date_note}T{heure_note}")
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        Match (n:Service {nom:'Infirmieres'})
+        match (m:Categorie{metier:$metier})
+        CREATE (n)-[r:Note {date:datetime($date),commentaire:$contenu}]->(m)
+        """
+        session.run(cypher_query, date=date_heure, contenu=note,metier=metier)
+        
 def get_medecins():
 
     """

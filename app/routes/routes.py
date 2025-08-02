@@ -18,6 +18,8 @@ from app.services import (
     get_rdv_types,
     get_all_rdv_events,
     add_resident_to_db,
+    get_rendez_vous_jour,
+    ajout_note,
 )
 
 NEO4J_URI = "bolt://localhost:7687"
@@ -41,6 +43,24 @@ def form():
         medecins = get_medecins()
         return render_template("form.html", residents=residents,
                                medecins=medecins)
+
+
+@main_bp.route('/journee', methods=['GET', 'POST'])
+def journee():
+
+    if request.method == 'POST':
+        note = request.form.get('note', '').strip()
+        date_note = request.form.get('date_note')
+        heure_note = request.form.get('heure_note')
+        print(note, date_note, heure_note)
+        ajout_note(note, date_note, heure_note)
+    
+    rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
+    return render_template(
+        'recap_jour.html',
+        rdv=rendez_vous,
+        notes=notes
+    )
 
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
