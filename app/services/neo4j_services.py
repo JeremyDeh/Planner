@@ -71,7 +71,7 @@ def ajout_note(note, date_note, heure_note,metier='Autre'):
         cypher_query = """
         Match (n:Service {nom:'Infirmieres'})
         match (m:Categorie{metier:$metier})
-        CREATE (n)-[r:Note {date:datetime($date),commentaire:$contenu}]->(m)
+        CREATE (n)-[r:Note {date:datetime($date),commentaire:$contenu, create_date:datetime()}]->(m)
         """
         session.run(cypher_query, date=date_heure, contenu=note,metier=metier)
 
@@ -124,6 +124,7 @@ def extract_form_data(form):
     nom, prenom = nomPatient.split(' ')[0], nomPatient.split(' ')[1]
 
     metier = form.get('nomMedecin', '')
+    service = form.get('nomService', '')
     lieu = form.get('lieu')
     commentaire = form.get('commentaire', '')
     transport = form.get('transport')
@@ -166,7 +167,8 @@ def extract_form_data(form):
         'commentaire': commentaire,
         'transport': transport,
         'date_rdv_list': date_rdv_list,
-        'colonnes_table': colonnes_table
+        'colonnes_table': colonnes_table,
+        'service': service,
     }
 
 
@@ -198,7 +200,9 @@ def insert_rendez_vous(data):
             CREATE (n)-[r:Rdv {date:$date_str,
                                transport:$transport,
                                lieu:$lieu,
-                               commentaire:$commentaire
+                               commentaire:$commentaire,
+                               responsable:$responsable,
+                               create_date:datetime()
                         }]->(m)
             """
             session.run(
@@ -211,9 +215,26 @@ def insert_rendez_vous(data):
                 commentaire=data['commentaire'],
                 metier=data['metier'],
                 transport=data['transport'],
-                lieu=data['lieu']
+                lieu=data['lieu'],
+                responsable=data['service']
             )
 
+def get_service():
+    """
+    Récupère la liste des services (médecins) depuis la base Neo4j.
+
+    Returns:
+        list[str]: Liste des noms de services (médecins).
+    """
+    service = []
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = "MATCH (n:Service) RETURN n.nom ORDER BY n.nom"
+        neo4j_results = session.run(cypher_query)
+        for record in neo4j_results:
+            nom = record['n.nom']
+            if nom:
+                service.append(nom)
+    return service
 
 def create_rappels(data):
     """
@@ -244,7 +265,8 @@ def create_rappels(data):
                                 rdv:$type_rdv,
                                 lieu:$lieu,
                                 transport:$transport,
-                                commentaire:$commentaire
+                                commentaire:$commentaire,
+                                create_date:datetime()
                             }]->(m)
                 """
                 session.run(
@@ -375,7 +397,7 @@ def get_all_rdv_events(driver, db_name):
 
 
 def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
-                       oxygen, diabete, chambre):
+                       oxygen, diabete, chambre,deplacement):
     """
     Crée un nouveau résident dans la base Neo4j avec les propriétés fournies.
     """
@@ -389,6 +411,7 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
                 sexe: $sexe,
                 etage: $etage,
                 chambre: $chambre,
+                deplacement: $deplacement,
                 oxygen: $oxygen,
                 diabete: $diabete
             })
@@ -399,6 +422,7 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
             sexe=sexe,
             etage=etage,
             chambre=chambre,
+            deplacement=deplacement,
             oxygen=oxygen,
             diabete=diabete
         )

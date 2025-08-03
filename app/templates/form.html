@@ -113,18 +113,48 @@
             </div>
 
 
-            <label>Type de rendez-vous :</label>
-            <div style="position:relative;">
-                <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
-                <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
-                    {% for nom in medecins %}
-                        <div class="medecin-item" onclick="selectMedecin('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
-                    {% endfor %}
+            <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 12px;">
+                <div style="flex:1; min-width:220px;">
+                    <label>Type de rendez-vous :</label>
+                    <div style="position:relative;">
+                        <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
+                        <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                            {% for nom in medecins %}
+                                <div class="medecin-item" onclick="selectMedecin('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div style="flex:1; min-width:220px;">
+                    <label>Nom du médecin (optionnel) :</label>
+                    <input type="text" name="identiteMedecin" >
                 </div>
             </div>
             <label>Lieu :
                 <input type="text" name="lieu" style="width: 100%;">
             </label>
+            
+
+
+            <label>Type de transport :
+                <select name="transport" required>
+                    <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
+                    <option value="vsl">VSL</option>
+                    <option value="ambulance">Ambulance</option>
+                    <option value="famille">Famille</option>
+                    <option value="---">Absence de transport</option>
+                </select>
+            </label>
+
+             <label>Personnes en charge dans le service :</label>
+            <div style="position:relative;">
+                <input type="text" name="nomService" id="nomServiceInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showServiceList()" oninput="filterServiceList()">
+                <div id="serviceList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                    {% for nom in service %}
+                        <div class="service-item" onclick="selectService('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                    {% endfor %}
+                </div>
+            </div>
             <script>
                 function showPatientList() {
                     document.getElementById('patientList').style.display = 'block';
@@ -175,19 +205,32 @@
                     });
                 }
                 document.getElementById('nomMedecinInput').addEventListener('blur', hideMedecinList);
+                
+                function showServiceList() {
+                    document.getElementById('serviceList').style.display = 'block';
+                }
+                function hideServiceList() {
+                    setTimeout(function() {
+                        document.getElementById('serviceList').style.display = 'none';
+                    }, 200);
+                }
+                function selectService(nom) {
+                    document.getElementById('nomServiceInput').value = nom;
+                    hideServiceList();
+                }
+                function filterServiceList() {
+                    var input = document.getElementById('nomServiceInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#serviceList .service-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                document.getElementById('nomServiceInput').addEventListener('blur', hideServiceList);
             </script>
-
-
-            <label>Type de transport :
-                <select name="transport" required>
-                    <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
-                    <option value="vsl">VSL</option>
-                    <option value="ambulance">Ambulance</option>
-                    <option value="famille">Famille</option>
-                    <option value="---">Absence de transport</option>
-                </select>
-            </label>
-
             <label>Commentaire :
                 <input type="text" name="commentaire" style="width: 100%;">
             </label>
@@ -202,8 +245,8 @@
                 <label>Type de prise en charge : <input type="text" name="source_system"></label>
                 <label>Autre champs : <input type="text" name="source_file"></label>
                 <label>Encore un autre : <input type="text" name="delete_flag_column"></label>
-                <label>autre info : <input type="text" name="delimiter" value=";" required></label>
-                <label>Derniere info : <input type="text" name="with_header_line" value="1" required></label>
+                <label>autre info : <input type="text" name="delimiter" value=";" ></label>
+                <label>Derniere info : <input type="text" name="with_header_line" value="1" ></label>
             </div>
 
             <h3>Rappels</h3>

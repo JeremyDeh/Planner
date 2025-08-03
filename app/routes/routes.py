@@ -13,6 +13,7 @@ from app.services import (
     create_rappels,
     get_residents,
     get_medecins,
+    get_service,
     get_resident_properties,
     get_rendez_vous,
     get_rdv_types,
@@ -41,8 +42,8 @@ def form():
     else:
         residents = get_residents()
         medecins = get_medecins()
-        return render_template("form.html", residents=residents,
-                               medecins=medecins)
+        service = get_service()
+        return render_template("form.html", residents=residents, medecins=medecins, service=service)
 
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
@@ -121,10 +122,11 @@ def add_resident():
     oxygen = request.form.get('O2', '0')
     diabete = request.form.get('diabete', '0')
     chambre = request.form.get('chambre')
+    deplacement = request.form.get('deplacement', 'Seul')
 
     try:
         add_resident_to_db(driver, NEO4J_DB, nom, prenom, commentaire,
-                           sexe, etage, oxygen, diabete, chambre)
+                           sexe, etage, oxygen, diabete, chambre,deplacement)
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
