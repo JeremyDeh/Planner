@@ -74,7 +74,7 @@ def ajout_note(note, date_note, heure_note,metier='Autre'):
         CREATE (n)-[r:Note {date:datetime($date),commentaire:$contenu}]->(m)
         """
         session.run(cypher_query, date=date_heure, contenu=note,metier=metier)
-        
+
 def get_medecins():
 
     """
@@ -352,7 +352,7 @@ def get_all_rdv_events(driver, db_name):
     """
     with driver.session(database=db_name) as session:
         cypher_query = """
-        MATCH (n)-[r]->(m)
+        MATCH (n:Resident)-[r]->(m)
         RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, m.metier,
         r.commentaire, r.rdv
         ORDER BY r.date ASC

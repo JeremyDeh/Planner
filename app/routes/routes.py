@@ -103,8 +103,12 @@ def client_file():
 def emploi_collectif():
     rdv_types = get_rdv_types(driver, NEO4J_DB)
     events = get_all_rdv_events(driver, NEO4J_DB)
+    events2= [ {"title": x["Nom"], "start" : x["Date"], "description":f"{x['Rendez-vous']} ({x['Type_Evt']}) : {x['Note']}", "Etage":x['Etage']} for x in events]
+
+    print("######")
+    print(events2)
     return render_template('emploi_collectif.html', nodes=events,
-                           RDVTypes=rdv_types)
+                           RDVTypes=rdv_types,events=events2)
 
 
 @main_bp.route('/add_resident', methods=['POST'])
@@ -136,7 +140,7 @@ def agenda():
 
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-        MATCH (n)-[r]->(m)
+        MATCH (n:Resident)-[r]->(m)
         RETURN n.nom, n.prenom, r.date, m.metier, type(r), r.commentaire
         ORDER BY r.date ASC
         """
