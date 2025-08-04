@@ -1,18 +1,20 @@
 + nouvelle page qui affiche que les RDV du jour mais regroupé par categorie de rendez vous   ----- Done
++ Ajouter bloc note, doit etre dans la page du jour  (rdv sans horaire, associé au "Service") ----- Done
 + creation de rendez vous -> rajouter champs nom de medecin (champs non obligatoire mais tjs présent) ----- Done
 + switcher agenda/planning avec un bouton sur la meme page ----- Done
-+ Ajouter bloc note, doit etre dans la page du jour  (rdv sans horaire, associé au "Service") ----- Done
 + Ajouter les differents corps de metiers interne (Service) dans la base  ----- Done
 + affecter chaque rendez vous a un corps de mértier lors du remplissage formulaire ----- Done
 + lors de création de fiche patient ajouter mode de déplacement (seul, canne, déambulateur, fauteil roulant, alité) ----- Done
 + virer le fait qu'au moins un rappel soit obligatoire ----- Done
 + rendez-vous sans horaire  (tel jour machin a ca, mais il y a pas d'heure, faut que ca soit fait dans la journée) ----- Done
 
+- Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )
+  (commencé, fonctions dans utils_date mais pas encore utilisé)
+
 - récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer)
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
 
 - Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre
-- Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )
 - 2 types de fiches différentes pour imprimer, une pour les infirimieres avec données completes, et une pour le patient, synthses : Vous avez rendez vous le xxx a telle heure, avec le medecin xxx, pour motif : "type de rdv", (si transport chosiis: Mode de transport : un membre de votre famille vous accompagnerz  ou "Un transport exterieur viendra vous chercher", Lieu du rendez-vous : xxx )
 	pour infirmieres on laisse que le tableau et le truc coloré pour O2, mais dans tableau on garde diabete que si type redndez vous = pedicure
 - possibilité d'updater le rendez-vous pour modifier une info (et pour rajouter des fichiers a posteriori, mais pas critique pour moi)
