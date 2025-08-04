@@ -1,7 +1,8 @@
 from neo4j import GraphDatabase
 import os
 from datetime import datetime, timedelta, date
-from app.services.utils_date import generate_dates
+from app.services.utils_date import (generate_dates,
+                                     generate_smart_weekday_recurrence)
 import pandas as pd
 
 NEO4J_URI = "bolt://localhost:7687"
@@ -137,7 +138,15 @@ def extract_form_data(form):
         date_fin = form.get('date_fin', '')
         rdv_fin = datetime.fromisoformat(date_fin + 'T' + heure_rdv + ':00')
         type_recurrence = form.get('recurrence')
-        date_rdv_list = generate_dates(rdv_debut, rdv_fin, type_recurrence)
+        print(type_recurrence)
+
+        if type_recurrence == 'mois':
+            date_rdv_list = generate_smart_weekday_recurrence(rdv_debut,
+                                                              rdv_fin)
+        else:
+            date_rdv_list = generate_dates(rdv_debut,
+                                           rdv_fin,
+                                           type_recurrence)
     else:
         date_rdv_list = [rdv_debut]
 

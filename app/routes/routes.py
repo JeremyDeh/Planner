@@ -78,6 +78,7 @@ def client_file():
             try:
                 nom, prenom = name.split(' ')[0], name.split(' ')[1]
             except IndexError:
+                # Gérer le cas où il manque prénom ou nom
                 nom, prenom = '', ''
 
             if nom and prenom:
