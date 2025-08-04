@@ -67,7 +67,7 @@
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Formulaire de rendez-vous</span>
         </div>
 
-        <form method="post" onsubmit="return validerFormulaire();">
+        <form id="monForm" method="post" onsubmit="return validerFormulaire();">
 
             <label><input type="checkbox" name="fichierCSV" id="fichierCSV" onchange="toggleCSVFields()"> Récurrence </label>
 
@@ -257,9 +257,9 @@
             </div>
 
             <div id="errorMsg" style="color: red; font-weight: bold; display: none; margin-bottom: 10px;"></div>
-            <input type="submit" value="Valider">
+            <input type="submit" value="Valider"> 
 
-            <div id="popupConfirmation" class="popup" style="display: none;">
+            <div id="popupConfirmation" class="popup noselect" style="display: none;", onclick="resetForm()">
                 <div class="popup-content">
                     <h2>✅ Rendez-vous enregistré avec succès</h2>
                     <button type="button" onclick="resetForm()" class="btn-nouveau">+ Nouveau rendez-vous</button>
@@ -550,12 +550,43 @@
         });
 
         function resetForm() {
+            console.log("LA");
             document.getElementById("popupConfirmation").style.display = "none";
-            document.querySelector("main.form").reset();
+            console.log("ICI");
             colonneData = [{ name: '', unit: 'VARCHAR', nombre: '', pk: '' }];
             renderColonnes();
             toggleCSVFields();
+            console.log("resetForm called");
+            scrollToTop(1000);
+            setTimeout(() => {
+            location.reload(true)
+            }, 800);
         }
+        
+        function scrollToTop(duration) {
+        const start = window.pageYOffset;
+        const startTime = performance.now();
+
+        function scroll() {
+            const now = performance.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1); // de 0 à 1
+
+            // Ease out cubic pour un effet smooth
+            const ease = 1 - Math.pow(1 - progress, 3);
+
+            window.scrollTo(0, start * (1 - ease));
+
+            if (progress < 1) {
+            requestAnimationFrame(scroll);
+            }
+        }
+
+        requestAnimationFrame(scroll);
+        }
+
+// Usage : remonter sur 3 secondes (3000 ms)
+scrollToTop(3000);
 
         function moveUp(index) {
             if (index > 0) {
@@ -570,6 +601,21 @@
                 renderColonnes();
             }
         }
+
+        function showPopup() {
+  const popup = document.getElementById("popupConfirmation");
+  popup.style.display = "block";
+
+  // Attendre que le DOM soit prêt et ajouter un listener global
+  setTimeout(() => {
+    document.addEventListener("click", handleOutsideClick);
+  }, 0);
+}
+
+function handleOutsideClick() {
+  resetForm(); // Ce que tu veux faire au clic hors popup
+  document.removeEventListener("click", handleOutsideClick);
+}
         </script>
     </body>
 </html>
