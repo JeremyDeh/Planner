@@ -64,6 +64,18 @@ def journee():
         notes=notes
     )
 
+@main_bp.route('/enregistre_selles', methods=['GET','POST'])
+def enregistre_selles():
+    if request.method == 'POST':
+        data = request.get_json()
+        print("Données reçues:", data)
+
+        enregistrer_valeur_selles(data) # on n'enregistre pas les données "Absence"
+        maj_last_check_selles(data) # sert a faire la distinction entre une absence de donnée parce que le mec a pas fait de la journée, et l'absence de donnée parce que les personnes ont oublié de remplir
+
+        # Traitez les données ici, par exemple, en les enregistrant dans la base de données
+        return jsonify({'status': 'success', 'message': 'Données enregistrées avec succès'})
+    return render_template('enregistre_selles.html')
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
 def client_file():

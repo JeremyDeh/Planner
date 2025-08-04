@@ -427,3 +427,8 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
             oxygen=oxygen,
             diabete=diabete
         )
+
+def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence"
+    data=data['selles']
+def maj_last_check_selles(data) :
+    data=data['selles']
