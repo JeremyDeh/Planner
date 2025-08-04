@@ -5,11 +5,12 @@
 + Ajouter les differents corps de metiers interne (Service) dans la base  ----- Done
 + affecter chaque rendez vous a un corps de mértier lors du remplissage formulaire ----- Done
 + lors de création de fiche patient ajouter mode de déplacement (seul, canne, déambulateur, fauteil roulant, alité) ----- Done
-
++ virer le fait qu'au moins un rappel soit obligatoire ----- Done
++ rendez-vous sans horaire  (tel jour machin a ca, mais il y a pas d'heure, faut que ca soit fait dans la journée) ----- Done
 
 - récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer)
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
-- Recurrence sans horaire  (tel jour machin a ca, mais il y a pas d'heure, faut que ca soit fait dans la journée)
+
 - Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre
 - Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )
 - 2 types de fiches différentes pour imprimer, une pour les infirimieres avec données completes, et une pour le patient, synthses : Vous avez rendez vous le xxx a telle heure, avec le medecin xxx, pour motif : "type de rdv", (si transport chosiis: Mode de transport : un membre de votre famille vous accompagnerz  ou "Un transport exterieur viendra vous chercher", Lieu du rendez-vous : xxx )

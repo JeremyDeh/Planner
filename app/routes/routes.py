@@ -57,6 +57,7 @@ def journee():
         ajout_note(note, date_note, heure_note)
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
+    print("Rendez-vous du jour:", rendez_vous)
     return render_template(
         'recap_jour.html',
         rdv=rendez_vous,
@@ -106,8 +107,7 @@ def emploi_collectif():
     events = get_all_rdv_events(driver, NEO4J_DB)
     events2= [ {"title": x["Nom"], "start" : x["Date"], "description":f"{x['Rendez-vous']} ({x['Type_Evt']}) : {x['Note']}", "Etage":x['Etage']} for x in events]
 
-    print("######")
-    print(events2)
+
     return render_template('emploi_collectif.html', nodes=events,
                            RDVTypes=rdv_types,events=events2)
 

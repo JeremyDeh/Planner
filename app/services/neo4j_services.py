@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from app.services.utils_date import generate_dates
 import pandas as pd
 
@@ -131,7 +131,7 @@ def extract_form_data(form):
     date_rdv = form.get('date_prestation', '')
     heure_rdv = form.get('heure_prestation', '')
 
-    rdv_debut = datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00')
+    rdv_debut = datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00') if heure_rdv != '' else date.fromisoformat(date_rdv)
 
     if recurrence == 'on':
         date_fin = form.get('date_fin', '')
@@ -377,15 +377,16 @@ def get_all_rdv_events(driver, db_name):
         MATCH (n:Resident)-[r]->(m)
         RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, m.metier,
         r.commentaire, r.rdv
-        ORDER BY r.date ASC
+        ORDER BY toString(r.date) ASC
         """
+        ## on doit order by toString() car sans le cast, il differencie les dates et les datetime etfait son tr séparémment
         results = session.run(cypher_query)
         events = [
             {
                 'Nom': record['n.nom'] + ' ' + record['n.prenom'],
                 'Etage': record['n.etage'],
                 'Chambre': record['n.chambre'],
-                'Date': record['r.date'].strftime('%Y-%m-%d %H:%M'),
+                'Date': record['r.date'].strftime('%Y-%m-%d %H:%M') if 'T' in str(record['r.date']) else record['r.date'].strftime('%Y-%m-%d'),
                 'Rendez-vous': record['m.metier'] if record['type(r)'] == 'Rdv'
                 else record['type(r)'] + ' : ' + record['r.rdv'],
                 'Note': record['r.commentaire'],

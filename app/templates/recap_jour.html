@@ -90,7 +90,8 @@
                                     {% for _, row in rdv.iterrows() %}
                                         {% if row['metier'] == metier %}
                                             {% set date_str = row['date']|string %}
-                                            {% set heure = date_str.split('T')[1] if 'T' in date_str else date_str %}
+                                            {% set heure = date_str.split('T')[1] if 'T' in date_str else '--:--' %}
+                                            <script>console.log("heure:", "{{metier}} : {{ heure }}");</script>
                                             {% set heure = heure[:5] %}
                                             <li style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
                                                 <span style="display:inline-block; background:#232946; color:#eebbc3; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure }}</span>

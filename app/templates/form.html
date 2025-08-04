@@ -95,7 +95,7 @@
             </label>
 
             <label>Heure du rendez-vous :
-                <input type="time" name="heure_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
+                <input type="time" name="heure_prestation" style="width: 150px;"  title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
 
             <label>Durée du rendez-vous :
@@ -465,12 +465,7 @@
                 }
             }
 
-            const hasPrimaryKey = colonneData.some(col => col.pk === 'Y');
-            if (!hasPrimaryKey) {
-                errorMsg.innerText = "Au moins une colonne doit être définie comme clé primaire.";
-                errorMsg.style.display = 'block';
-                return false;
-            }
+           
 
             return true;
         }
