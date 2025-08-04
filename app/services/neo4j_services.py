@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from app.services.utils_date import generate_dates
 import pandas as pd
 
@@ -30,6 +30,50 @@ def get_residents():
                 residents.append(nom)
     return residents
 
+def get_rendez_vous_jour(driver, NEO4J_DB):
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+                        MATCH (n:Resident)-[r]->(m)
+                        WHERE date(r.date) = date()
+                        RETURN n.nom AS nom, n.prenom AS prenom, r.date AS date, r.lieu AS lieu, m.metier AS metier, r.commentaire AS commentaire
+                        ORDER BY m.metier, n.nom, n.prenom
+                        """
+        neo4j_results = session.run(cypher_query)
+        data = [record.data() for record in neo4j_results]
+    df_rdv = pd.DataFrame(data)
+
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+                        MATCH (n:Service)-[r]->(m)
+                        WHERE date(r.date) = date()
+                        RETURN r.date AS date, r.commentaire AS commentaire, m.metier AS metier
+                        ORDER BY m.metier
+                        """
+        neo4j_results = session.run(cypher_query)
+        data = [record.data() for record in neo4j_results]
+    df_service = pd.DataFrame(data)
+
+    
+    return df_rdv,df_service
+
+
+def ajout_note(note, date_note, heure_note,metier='Autre'):
+    """
+    Ajoute une note à la base de données Neo4j.
+
+    Args:
+        note (str): Le contenu de la note.
+        date_note (str): La date de la note au format 'YYYY-MM-DD'.
+        heure_note (str): L'heure de la note au format 'HH:MM'.
+    """
+    date_heure = datetime.fromisoformat(f"{date_note}T{heure_note}")
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        Match (n:Service {nom:'Infirmieres'})
+        match (m:Categorie{metier:$metier})
+        CREATE (n)-[r:Note {date:datetime($date),commentaire:$contenu, create_date:datetime()}]->(m)
+        """
+        session.run(cypher_query, date=date_heure, contenu=note,metier=metier)
 
 def get_medecins():
 
@@ -80,13 +124,14 @@ def extract_form_data(form):
     nom, prenom = nomPatient.split(' ')[0], nomPatient.split(' ')[1]
 
     metier = form.get('nomMedecin', '')
+    service = form.get('nomService', '')
     lieu = form.get('lieu')
     commentaire = form.get('commentaire', '')
     transport = form.get('transport')
     date_rdv = form.get('date_prestation', '')
     heure_rdv = form.get('heure_prestation', '')
 
-    rdv_debut = datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00')
+    rdv_debut = datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00') if heure_rdv != '' else date.fromisoformat(date_rdv)
 
     if recurrence == 'on':
         date_fin = form.get('date_fin', '')
@@ -122,7 +167,8 @@ def extract_form_data(form):
         'commentaire': commentaire,
         'transport': transport,
         'date_rdv_list': date_rdv_list,
-        'colonnes_table': colonnes_table
+        'colonnes_table': colonnes_table,
+        'service': service,
     }
 
 
@@ -154,7 +200,9 @@ def insert_rendez_vous(data):
             CREATE (n)-[r:Rdv {date:$date_str,
                                transport:$transport,
                                lieu:$lieu,
-                               commentaire:$commentaire
+                               commentaire:$commentaire,
+                               responsable:$responsable,
+                               create_date:datetime()
                         }]->(m)
             """
             session.run(
@@ -167,9 +215,26 @@ def insert_rendez_vous(data):
                 commentaire=data['commentaire'],
                 metier=data['metier'],
                 transport=data['transport'],
-                lieu=data['lieu']
+                lieu=data['lieu'],
+                responsable=data['service']
             )
 
+def get_service():
+    """
+    Récupère la liste des services (médecins) depuis la base Neo4j.
+
+    Returns:
+        list[str]: Liste des noms de services (médecins).
+    """
+    service = []
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = "MATCH (n:Service) RETURN n.nom ORDER BY n.nom"
+        neo4j_results = session.run(cypher_query)
+        for record in neo4j_results:
+            nom = record['n.nom']
+            if nom:
+                service.append(nom)
+    return service
 
 def create_rappels(data):
     """
@@ -200,7 +265,8 @@ def create_rappels(data):
                                 rdv:$type_rdv,
                                 lieu:$lieu,
                                 transport:$transport,
-                                commentaire:$commentaire
+                                commentaire:$commentaire,
+                                create_date:datetime()
                             }]->(m)
                 """
                 session.run(
@@ -307,6 +373,7 @@ def get_all_rdv_events(driver, db_name):
             RETURN n.nom, n.prenom, r.date, m.metier, type(r), r.commentaire
             ORDER BY r.date ASC
         """
+        ## on doit order by toString() car sans le cast, il differencie les dates et les datetime etfait son tr séparémment
         results = session.run(cypher_query)
         node_result = {
             record['r.date'].isoformat(): [
@@ -329,7 +396,7 @@ def get_all_rdv_events(driver, db_name):
 
 
 def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
-                       oxygen, diabete, chambre):
+                       oxygen, diabete, chambre,deplacement):
     """
     Crée un nouveau résident dans la base Neo4j avec les propriétés fournies.
     """
@@ -343,6 +410,7 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
                 sexe: $sexe,
                 etage: $etage,
                 chambre: $chambre,
+                deplacement: $deplacement,
                 oxygen: $oxygen,
                 diabete: $diabete
             })
@@ -353,6 +421,7 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
             sexe=sexe,
             etage=etage,
             chambre=chambre,
+            deplacement=deplacement,
             oxygen=oxygen,
             diabete=diabete
         )

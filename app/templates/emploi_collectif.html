@@ -4,50 +4,130 @@
     <meta charset="UTF-8">
     <title>Emploi du temps collectif</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- CSS -->
+    <!-- FullCalendar CSS depuis CDN -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
+        <script>
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth'
+        });
+        calendar.render();
+      });
+
+    </script>
     <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            vertical-align: middle;
+            }
+
+        .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        }
+
+        .slider {
+        position: absolute;
+        cursor: pointer;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        }
+
+        .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        }
+
+        input:checked + .slider {
+        background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+        transform: translateX(22px);
+        }
+        .fc-event-custom-tooltip {
+            position: absolute;
+            z-index: 9999;
+            background: #232946;
+            color: #eebbc3;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 1em;
+            box-shadow: 0 4px 16px rgba(35,41,70,0.18);
+            pointer-events: none;
+            opacity: 0.97;
+            white-space: pre-line;
+            max-width: 320px;
+            transition: opacity 0.15s;
+        }
         body {
             margin: 0;
             font-family: 'Segoe UI', Arial, sans-serif;
             background: #f7f7fa;
         }
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200px;
-            height: 100vh;
-            background: #232946;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            padding-top: 40px;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
-            z-index: 100;
-        }
-        .menu-btn {
-            background: #232946;
-            color: #eebbc3;
-            border: none;
-            padding: 18px 0;
-            margin: 0 20px 18px 20px;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        .menu-btn:hover, .menu-btn.active {
-            background: #eebbc3;
-            color: #232946;
-            box-shadow: 0 4px 16px rgba(238,187,195,0.12);
-        }
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+                border-radius: 0 24px 24px 0;
+                z-index: 100;
+            }
+            .menu-btn {
+                background: rgba(255,255,255,0.08);
+                color: #fff;
+                border: none;
+                padding: 16px 0;
+                margin: 0 18px 16px 18px;
+                border-radius: 10px;
+                font-size: 1.08em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+                letter-spacing: 1px;
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #fff;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+                transform: scale(1.04);
+            }
         .central-panel {
             margin-left: 220px;
             padding: 40px 40px 40px 40px;
+            padding-top: 100px;
             min-height: 100vh;
             background: #f7f7fa;
+        
         }
+        
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
 th, td { border: 1px solid #eee; padding: 8px; text-align: left; width: 12%; }
 th { background: #eebbc3; color: #232946; }
@@ -55,21 +135,19 @@ th { background: #eebbc3; color: #232946; }
 </head>
 <body>
     <div class="sidebar">
+        <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
         <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
         <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
         <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
         <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
     </div>
     <div class="central-panel">
-        
-
-
-
-
-        <h2>Emploi du temps collectif</h2>
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/table.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Liste des rendez-vous</span>
+        </div>
         <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; margin-bottom:18px;">
-            
-            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px;">
+            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px; max-height:120px; overflow-y:auto;">
                 Rendez-vous :
                 {% for nom in RDVTypes %}
                     <label style="display:block; margin-bottom:4px; cursor:pointer;">
@@ -77,7 +155,7 @@ th { background: #eebbc3; color: #232946; }
                     </label>
                 {% endfor %}
             </div>
-            <div id="etageCheckboxes" style="width:120px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div id="etageCheckboxes" style="width:120px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); max-height:120px; overflow-y:auto;">
                 Etage :
                 <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="1" style="margin-right:6px;">1</label>
                 <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="2" style="margin-right:6px;">2</label>
@@ -116,28 +194,145 @@ th { background: #eebbc3; color: #232946; }
             });
             window.addEventListener('DOMContentLoaded', filterTableByCheckboxes);
             </script>
-        {% if nodes is defined and nodes|length > 0 %}
-        <table>
-            <thead>
-                <tr>
-                    {% for col in nodes[0].keys() %}
-                    <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for node in nodes %}
-                <tr>
-                    {% for value in node.values() %}
-                    <td>{{ value }}</td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>Aucun résultat trouvé.</p>
-        {% endif %}
+            
+            <label class="switch">
+            <input type="checkbox" id="toggle-view" onchange="toggleView(this)">
+            <span class="slider"></span>
+            </label>
+            <span id="toggle-label">Changer de vue</span>
+            {% if nodes is defined and nodes|length > 0 %}
+                <div id="table-container" style="display: block;">
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for col in nodes[0].keys() %}
+                                <th>{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for node in nodes %}
+                            <tr>
+                                {% for value in node.values() %}
+                                <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>Aucun résultat trouvé.</p>
+                {% endif %}
+
+        <div id="calendar" style="display: block;"></div>
+    
     </div>
+    <script>
+    function toggleView(button) {
+        const table = document.getElementById("table-container");
+        const calendar = document.getElementById("calendar");
+
+        if (table.style.display === "none") {
+            table.style.display = "block";
+            calendar.style.display = "none";
+            button.textContent = "Afficher le calendrier";
+        } else {
+            table.style.display = "none";
+            calendar.style.display = "block";
+            button.textContent = "Afficher la table";
+        }
+    }
+</script>
+    <script>
+        // Filtrage dynamique des événements selon les cases cochées
+        let allEvents = [];
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+            const rawEvents = {{ events | tojson }};
+            allEvents = rawEvents;
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                slotMinTime: '07:00:00',
+                slotMaxTime: '23:50:00',
+                allDaySlot: false,
+                events: rawEvents,
+                eventDidMount: function (info) {
+                    // Tooltip personnalisé pour afficher le champ description
+                    let tooltip;
+                    const desc = info.event.extendedProps.description;
+                    if (desc) {
+                        info.el.addEventListener('mouseenter', function(e) {
+                            tooltip = document.createElement('div');
+                            tooltip.className = 'fc-event-custom-tooltip';
+                            tooltip.innerText = desc;
+                            document.body.appendChild(tooltip);
+                            const rect = info.el.getBoundingClientRect();
+                            tooltip.style.position = 'absolute';
+                            tooltip.style.background = '#232946';
+                            tooltip.style.color = '#fff';
+                            tooltip.style.padding = '8px 14px';
+                            tooltip.style.borderRadius = '8px';
+                            tooltip.style.fontSize = '1em';
+                            tooltip.style.boxShadow = '0 2px 8px rgba(35,41,70,0.18)';
+                            tooltip.style.zIndex = '9999';
+                            tooltip.style.pointerEvents = 'none';
+                            tooltip.style.left = (rect.left + window.scrollX + rect.width/2 - 80) + 'px';
+                            tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 12) + 'px';
+                        });
+                        info.el.addEventListener('mousemove', function(e) {
+                            if (tooltip) {
+                                tooltip.style.left = (e.pageX + 12) + 'px';
+                                tooltip.style.top = (e.pageY - tooltip.offsetHeight - 12) + 'px';
+                            }
+                        });
+                        info.el.addEventListener('mouseleave', function() {
+                            if (tooltip) {
+                                tooltip.remove();
+                                tooltip = null;
+                            }
+                        });
+                    }
+                }
+            });
+            calendar.render();
+
+            // Gestion du filtrage
+            document.querySelectorAll('.rdv-filter, .etage-filter').forEach(cb => {
+                cb.addEventListener('change', filterEvents);
+            });
+
+            function filterEvents() {
+                const checkedRDV = Array.from(document.querySelectorAll('.rdv-filter:checked')).map(cb => cb.value);
+                const checkedEtage = Array.from(document.querySelectorAll('.etage-filter:checked')).map(cb => cb.value);
+
+                let filtered = allEvents;
+
+                // Filtrage par type de RDV (dans description)
+                if (checkedRDV.length > 0) {
+                    
+                    filtered = filtered.filter(ev => {
+                        console.log("description de l'événement :", ev.description);
+                        if (!ev.description) return false;
+                        return checkedRDV.some(type => ev.description.startsWith(type));
+                    });
+                }
+
+                // Filtrage par étage
+                if (checkedEtage.length > 0) {
+                    filtered = filtered.filter(ev => {
+                        console.log("Etage de l'événement :", ev.Etage);
+                        return checkedEtage.includes((ev.Etage ?? '').toString());
+                    });
+                }
+
+                calendar.removeAllEvents();
+                calendar.addEventSource(filtered);
+            }
+        });
+        </script>
+      
+
 </body>
 </html>

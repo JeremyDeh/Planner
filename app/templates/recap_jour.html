@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Formulaire de Contrat Interface</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <style>
+            .cardbox-modern {
+                transition: box-shadow 0.2s, transform 0.2s;
+            }
+            .cardbox-modern:hover {
+                box-shadow: 0 12px 32px rgba(35,41,70,0.18);
+                transform: scale(1.04);
+                z-index: 2;
+            }
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f7f7fa;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+                border-radius: 0 24px 24px 0;
+                z-index: 100;
+            }
+            .menu-btn {
+                background: rgba(255,255,255,0.08);
+                color: #fff;
+                border: none;
+                padding: 16px 0;
+                margin: 0 18px 16px 18px;
+                border-radius: 10px;
+                font-size: 1.08em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+                letter-spacing: 1px;
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #fff;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+                transform: scale(1.04);
+            }
+            .central-panel {
+                margin-left: 220px;
+                padding: 40px 40px 40px 40px;
+                min-height: 100vh;
+                background: #f7f7fa;
+            }
+        </style>
+        <div class="sidebar">
+            <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
+            <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
+            <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+            <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+            <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
+        </div>
+        <div class="central-panel">
+        <!-- Bannière moderne en haut -->
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Ordre du jour</span>
+        </div>
+
+        <!-- Layout principal avec cardbox métiers et cardbox formulaire note à droite -->
+        <div style="display:flex; flex-direction:row; align-items:flex-start; padding-top:100px;">
+            <div style="flex:1; margin-right:360px; max-width:calc(100vw - 600px);">
+                {# Cardbox pour chaque métier distinct #}
+                {% if rdv is defined and rdv.shape[0] > 0 %}
+                    {% set metiers = rdv['metier'].unique() %}
+                    <div style="display:flex; flex-wrap:wrap; gap:24px;">
+                        {% for metier in metiers %}
+                            <div class="cardbox-modern" style="background:#f7f7fa; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:260px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0;">
+                                <h3 style="margin-top:0;">{{ metier }}</h3>
+                                <ul style="list-style:none; padding-left:0; margin-top:12px;">
+                                    {% for _, row in rdv.iterrows() %}
+                                        {% if row['metier'] == metier %}
+                                            {% set date_str = row['date']|string %}
+                                            {% set heure = date_str.split('T')[1] if 'T' in date_str else '--:--' %}
+                                            <script>console.log("heure:", "{{metier}} : {{ heure }}");</script>
+                                            {% set heure = heure[:5] %}
+                                            <li style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                                                <span style="display:inline-block; background:#232946; color:#eebbc3; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure }}</span>
+                                                <span style="font-weight:600; margin-left:8px;">{{ row['nom'] }} {{ row['prenom'] }}</span> <br>
+                                                <span style="padding-left:2em; color:#232946; font-size:0.98em;">Lieu : {{ row['lieu'] }}</span> <br>
+                                                <span style="padding-left:2em; color:#6c6c80; font-size:0.95em;">Note : {{ row['commentaire'] }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+            </div>
+            <!-- Cardbox formulaire ajout de note à droite -->
+            <div style="width:320px; min-width:320px; position:fixed; top:80px; right:40px; z-index:300;">
+                <div class="cardbox-modern" style="background:#f7f7fa; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-height:260px; width:320px; border:1px solid #e0e0e0;">
+                    <h3 style="margin-top:0; letter-spacing:1px; font-size:1.2em;">Ajouter une note</h3>
+                    <form method="POST" action="{{ url_for('main.journee') }}">
+                        <label for="note" style="font-weight:500; margin-bottom:2px; display:block;">Note :</label>
+                        <textarea id="note" name="note" rows="8" style="width:100%; border-radius:6px; border:1px solid #ccc; margin-bottom:8px;"></textarea>
+
+
+                        <div style="display:flex; gap:16px; margin-bottom:12px;">
+                            <div style="flex:1;">
+                                <label for="date_note" style="font-weight:500; margin-bottom:2px; display:block;">Date :</label>
+                                <input type="date" id="date_note" name="date_note" style="width:100%; border-radius:6px; border:1px solid #ccc;">
+                            </div>
+                            <div style="flex:1;">
+                                <label for="heure_note" style="font-weight:500; margin-bottom:2px; display:block;">Heure :</label>
+                                <input type="time" id="heure_note" name="heure_note" style="width:100%; border-radius:6px; border:1px solid #ccc;">
+                            </div>
+                        </div>
+
+                        <button type="submit" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;">Valider</button>
+                    </form>
+                </div>
+                {% if notes is defined and notes.shape[0] > 0 %}
+                <div class="cardbox-modern" style="background:#fff; color:#232946; border-radius:12px; box-shadow:0 2px 8px rgba(35,41,70,0.08); padding:24px; min-height:260px; width:320px; margin-top:24px; border:1px solid #e0e0e0; max-height:400px; overflow-y:auto;">
+                    <h3 style="margin-top:0; color:#eebbc3; letter-spacing:1px; font-size:1.2em;">Notes</h3>
+                    <ul class="cardbox-notes" style="list-style:none; padding-left:0; margin-top:12px;">
+                        {% for _, row in notes.iterrows() %}
+                            {% set date_str_notes = row['date']|string %}
+                            {% set heure_notes = date_str_notes.split('T')[1] if 'T' in date_str_notes else date_str_notes %}
+                            {% set heure_notes = heure_notes[:5] %}
+                            <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04); color:#232946;">
+                                <span style="display:inline-block; background:#eebbc3; color:#232946; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure_notes }}</span><br>
+                                <span style="color:#5c5859; font-weight:600;">{{ row['commentaire'] if 'commentaire' in row else row }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        
+
+    </body>
+</html>

@@ -13,11 +13,14 @@ from app.services import (
     create_rappels,
     get_residents,
     get_medecins,
+    get_service,
     get_resident_properties,
     get_rendez_vous,
     get_rdv_types,
     get_all_rdv_events,
     add_resident_to_db,
+    get_rendez_vous_jour,
+    ajout_note,
 )
 
 NEO4J_URI = "bolt://localhost:7687"
@@ -39,8 +42,27 @@ def form():
     else:
         residents = get_residents()
         medecins = get_medecins()
-        return render_template("form.html", residents=residents,
-                               medecins=medecins)
+        service = get_service()
+        return render_template("form.html", residents=residents, medecins=medecins, service=service)
+
+
+@main_bp.route('/journee', methods=['GET', 'POST'])
+def journee():
+
+    if request.method == 'POST':
+        note = request.form.get('note', '').strip()
+        date_note = request.form.get('date_note')
+        heure_note = request.form.get('heure_note')
+        print(note, date_note, heure_note)
+        ajout_note(note, date_note, heure_note)
+    
+    rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
+    print("Rendez-vous du jour:", rendez_vous)
+    return render_template(
+        'recap_jour.html',
+        rdv=rendez_vous,
+        notes=notes
+    )
 
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
@@ -82,8 +104,11 @@ def client_file():
 def emploi_collectif():
     rdv_types = get_rdv_types(driver, NEO4J_DB)
     events = get_all_rdv_events(driver, NEO4J_DB)
+    events2= [ {"title": x["Nom"], "start" : x["Date"], "description":f"{x['Rendez-vous']} ({x['Type_Evt']}) : {x['Note']}", "Etage":x['Etage']} for x in events]
+
+
     return render_template('emploi_collectif.html', nodes=events,
-                           RDVTypes=rdv_types)
+                           RDVTypes=rdv_types,events=events2)
 
 
 @main_bp.route('/add_resident', methods=['POST'])
@@ -96,10 +121,11 @@ def add_resident():
     oxygen = request.form.get('O2', '0')
     diabete = request.form.get('diabete', '0')
     chambre = request.form.get('chambre')
+    deplacement = request.form.get('deplacement', 'Seul')
 
     try:
         add_resident_to_db(driver, NEO4J_DB, nom, prenom, commentaire,
-                           sexe, etage, oxygen, diabete, chambre)
+                           sexe, etage, oxygen, diabete, chambre,deplacement)
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -107,8 +133,37 @@ def add_resident():
 
 @main_bp.route('/agenda')
 def agenda():
-    RDVTypes = get_rdv_types(driver, NEO4J_DB)
-    events = get_all_rdv_events(driver, NEO4J_DB)
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = "MATCH (n:Categorie) RETURN n.metier " \
+                       "ORDER BY n.metier ASC"
+        neo4j_results = session.run(cypher_query)
+        RDVTypes = [x['n.metier'] for x in neo4j_results]
+
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        MATCH (n:Resident)-[r]->(m)
+        RETURN n.nom, n.prenom, r.date, m.metier, type(r), r.commentaire
+        ORDER BY r.date ASC
+        """
+        neo4j_results = session.run(cypher_query)
+        node_result = {
+            record['r.date'].isoformat(): [
+                record['n.nom'] + ' ' + record['n.prenom'],
+                record['m.metier'],
+                record['r.commentaire'],
+                record['type(r)']
+            ] for record in neo4j_results
+        }
+
+    events = [
+        {
+            "title": label[0],
+            "start": dt,
+            "description": f"{label[1]} ({label[3]}) : {label[2]}"
+        }
+        for dt, label in node_result.items()
+    ]
+
     return render_template("agenda.html", events=events, RDVTypes=RDVTypes)
 
 

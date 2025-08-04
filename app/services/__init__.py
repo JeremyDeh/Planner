@@ -9,6 +9,9 @@ from .neo4j_services import (
     get_rdv_types,
     get_all_rdv_events,
     add_resident_to_db,
+    get_rendez_vous_jour,
+    ajout_note,
+    get_service,
 )
 
 __all__ = [
@@ -22,4 +25,7 @@ __all__ = [
     'get_rdv_types',
     'get_all_rdv_events',
     'add_resident_to_db',
+    'get_rendez_vous_jour',
+    'ajout_note',
+    'get_service'
 ]

@@ -18,31 +18,34 @@
                 left: 0;
                 width: 200px;
                 height: 100vh;
-                background: #232946;
+                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
                 display: flex;
                 flex-direction: column;
                 align-items: stretch;
                 padding-top: 40px;
-                box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+                border-radius: 0 24px 24px 0;
                 z-index: 100;
             }
             .menu-btn {
-                background: #232946;
-                color: #eebbc3;
+                background: rgba(255,255,255,0.08);
+                color: #fff;
                 border: none;
-                padding: 18px 0;
-                margin: 0 20px 18px 20px;
-                border-radius: 8px;
-                font-size: 1.1em;
+                padding: 16px 0;
+                margin: 0 18px 16px 18px;
+                border-radius: 10px;
+                font-size: 1.08em;
                 font-weight: 500;
                 cursor: pointer;
-                transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+                letter-spacing: 1px;
             }
             .menu-btn:hover, .menu-btn.active {
-                background: #eebbc3;
+                background: #fff;
                 color: #232946;
-                box-shadow: 0 4px 16px rgba(238,187,195,0.12);
+                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+                transform: scale(1.04);
             }
             .central-panel {
                 margin-left: 220px;
@@ -52,13 +55,17 @@
             }
         </style>
         <div class="sidebar">
+            <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
             <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
             <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
             <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
             <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
         </div>
-        <div class="central-panel">
-        <h2>Formulaire de prestation</h2>
+        <div class="central-panel" style="padding-top:100px;">
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar--v2.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Formulaire de rendez-vous</span>
+        </div>
 
         <form method="post" onsubmit="return validerFormulaire();">
 
@@ -88,7 +95,7 @@
             </label>
 
             <label>Heure du rendez-vous :
-                <input type="time" name="heure_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
+                <input type="time" name="heure_prestation" style="width: 150px;"  title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
 
             <label>Durée du rendez-vous :
@@ -106,18 +113,48 @@
             </div>
 
 
-            <label>Type de rendez-vous :</label>
-            <div style="position:relative;">
-                <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
-                <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
-                    {% for nom in medecins %}
-                        <div class="medecin-item" onclick="selectMedecin('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
-                    {% endfor %}
+            <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 12px;">
+                <div style="flex:1; min-width:220px;">
+                    <label>Type de rendez-vous :</label>
+                    <div style="position:relative;">
+                        <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
+                        <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                            {% for nom in medecins %}
+                                <div class="medecin-item" onclick="selectMedecin('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div style="flex:1; min-width:220px;">
+                    <label>Nom du médecin (optionnel) :</label>
+                    <input type="text" name="identiteMedecin" >
                 </div>
             </div>
             <label>Lieu :
                 <input type="text" name="lieu" style="width: 100%;">
             </label>
+            
+
+
+            <label>Type de transport :
+                <select name="transport" required>
+                    <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
+                    <option value="vsl">VSL</option>
+                    <option value="ambulance">Ambulance</option>
+                    <option value="famille">Famille</option>
+                    <option value="---">Absence de transport</option>
+                </select>
+            </label>
+
+             <label>Personnes en charge dans le service :</label>
+            <div style="position:relative;">
+                <input type="text" name="nomService" id="nomServiceInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showServiceList()" oninput="filterServiceList()">
+                <div id="serviceList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                    {% for nom in service %}
+                        <div class="service-item" onclick="selectService('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                    {% endfor %}
+                </div>
+            </div>
             <script>
                 function showPatientList() {
                     document.getElementById('patientList').style.display = 'block';
@@ -168,19 +205,32 @@
                     });
                 }
                 document.getElementById('nomMedecinInput').addEventListener('blur', hideMedecinList);
+                
+                function showServiceList() {
+                    document.getElementById('serviceList').style.display = 'block';
+                }
+                function hideServiceList() {
+                    setTimeout(function() {
+                        document.getElementById('serviceList').style.display = 'none';
+                    }, 200);
+                }
+                function selectService(nom) {
+                    document.getElementById('nomServiceInput').value = nom;
+                    hideServiceList();
+                }
+                function filterServiceList() {
+                    var input = document.getElementById('nomServiceInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#serviceList .service-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                document.getElementById('nomServiceInput').addEventListener('blur', hideServiceList);
             </script>
-
-
-            <label>Type de transport :
-                <select name="transport" required>
-                    <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
-                    <option value="vsl">VSL</option>
-                    <option value="ambulance">Ambulance</option>
-                    <option value="famille">Famille</option>
-                    <option value="---">Absence de transport</option>
-                </select>
-            </label>
-
             <label>Commentaire :
                 <input type="text" name="commentaire" style="width: 100%;">
             </label>
@@ -195,8 +245,8 @@
                 <label>Type de prise en charge : <input type="text" name="source_system"></label>
                 <label>Autre champs : <input type="text" name="source_file"></label>
                 <label>Encore un autre : <input type="text" name="delete_flag_column"></label>
-                <label>autre info : <input type="text" name="delimiter" value=";" required></label>
-                <label>Derniere info : <input type="text" name="with_header_line" value="1" required></label>
+                <label>autre info : <input type="text" name="delimiter" value=";" ></label>
+                <label>Derniere info : <input type="text" name="with_header_line" value="1" ></label>
             </div>
 
             <h3>Rappels</h3>
@@ -415,12 +465,7 @@
                 }
             }
 
-            const hasPrimaryKey = colonneData.some(col => col.pk === 'Y');
-            if (!hasPrimaryKey) {
-                errorMsg.innerText = "Au moins une colonne doit être définie comme clé primaire.";
-                errorMsg.style.display = 'block';
-                return false;
-            }
+           
 
             return true;
         }

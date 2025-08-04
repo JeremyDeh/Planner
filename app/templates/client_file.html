@@ -55,6 +55,12 @@
             background: #eebbc3;
             color: #232946;
         }
+        /* Lignes passées en mode historique */
+        tr.past-row {
+            background: #e0e0e0 !important;
+            color: #888 !important;
+        }
+        
     </style>
     <meta charset="UTF-8">
     <title>Fiche résident</title>
@@ -74,37 +80,40 @@
             background: #f7f7fa;
         }
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200px;
-            height: 100vh;
-            background: #232946;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            padding-top: 40px;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
-            z-index: 100;
-        }
-        .menu-btn {
-            background: #232946;
-            color: #eebbc3;
-            border: none;
-            padding: 18px 0;
-            margin: 0 20px 18px 20px;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        .menu-btn:hover, .menu-btn.active {
-            background: #eebbc3;
-            color: #232946;
-            box-shadow: 0 4px 16px rgba(238,187,195,0.12);
-        }
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+                border-radius: 0 24px 24px 0;
+                z-index: 100;
+            }
+            .menu-btn {
+                background: rgba(255,255,255,0.08);
+                color: #fff;
+                border: none;
+                padding: 16px 0;
+                margin: 0 18px 16px 18px;
+                border-radius: 10px;
+                font-size: 1.08em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+                letter-spacing: 1px;
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #fff;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+                transform: scale(1.04);
+            }  
         .central-panel {
             margin-left: 220px;
             padding: 40px 40px 40px 40px;
@@ -113,14 +122,19 @@
         }
     </style>
     <div class="sidebar">
+        <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
         <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
         <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
         <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
         <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
     </div>
+
     </div>
-    <div class="central-panel">
-        <h2>Recherche de résident</h2>
+    <div class="central-panel" style="padding-top:100px;">
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Fiche résidents</span>
+        </div>
         <button id="openPopupBtn" style="margin-bottom: 18px; background: #eebbc3; color: #232946; border: 2px solid #232946; border-radius: 8px; padding: 6px 10px; min-width: 48px; width: 54px; height: 44px; font-size: 1em; cursor: pointer; display: flex; align-items: center; gap: 0; justify-content: center; box-shadow: 0 2px 8px rgba(35,41,70,0.08); transition: border 0.2s, box-shadow 0.2s;">
             <svg width="25" height="25" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="11" r="11" fill="#232946"/><path d="M11 6v10M6 11h10" stroke="#eebbc3" stroke-width="2" stroke-linecap="round"/></svg>
             <svg width="30" height="30" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="8" r="4" fill="#232946" stroke="#eebbc3" stroke-width="1.5"/><path d="M4 18c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#232946" stroke-width="1.5" fill="#eebbc3"/></svg>
@@ -149,6 +163,15 @@
                     </label>
                     <label>Chambre : <input type="text" name="chambre" required></label><br>
                     </div>
+                    <label>Mode de déplacement :
+                        <select name="deplacement" required>
+                            <option value="Seul">Seul</option>
+                            <option value="Canne">Canne</option>
+                            <option value="Deambulateur">Déambulateur</option>
+                            <option value="Fauteil">Fauteil roulant</option>
+                            <option value="Lit">Alité</option>
+                        </select>
+                    </label>
                     <div style="display: flex; gap: 18px; margin-bottom: 8px;">
                         <label style="margin-bottom:0;">O2 : <input type="checkbox" name="O2" value="1"></label>
                         <label style="margin-bottom:0;">Diabète : <input type="checkbox" name="diabete" value="1"></label>
@@ -284,9 +307,14 @@
                     {% endif %}
                 </div>
                 <div class="fiche-planning">
-                    <h3>Planning du résident</h3>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px;">
+                        <h3 style="margin-bottom:0;">Planning du résident</h3>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
+                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#eebbc3; cursor:pointer;"> Historique
+                        </label>
+                    </div>
                     {% if nodes is defined and nodes|length > 0 %}
-                        <table class="collectif-table">
+                        <table class="collectif-table" id="planningTable">
                             <thead>
                                 <tr>
                                     {% for col in nodes[0].keys() %}
@@ -302,7 +330,7 @@
                                     <td>{{ value }}</td>
                                     {% endfor %}
                                     <td style="text-align:center;">
-                                        <button class="dots-btn" onclick='openRowPopup({{ node | tojson | safe }})' style="background:none; border:none; cursor:pointer; padding:4px;">
+                                        <button class="dots-btn" data-row='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <circle cx="5" cy="12" r="2" fill="#232946"/>
                                                 <circle cx="12" cy="12" r="2" fill="#232946"/>
@@ -314,6 +342,73 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <script>
+                        // Filtrage planning : n'affiche que les lignes dont la date >= aujourd'hui, sauf si historique activé
+                        function isDateInFuture(dateStr) {
+                            // Accepte formats AAAA-MM-JJ ou JJ/MM/AAAA
+                            if (!dateStr) return false;
+                            let d = null;
+                            if (/\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+                                d = new Date(dateStr);
+                            } else if (/\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
+                                const [j, m, a] = dateStr.split('/');
+                                d = new Date(`${a}-${m}-${j}`);
+                            } else {
+                                return true; // si format inconnu, ne pas filtrer
+                            }
+                            const today = new Date();
+                            today.setHours(0,0,0,0);
+                            return d >= today;
+                        }
+                        function filterPlanningRows(showAll) {
+                            const table = document.getElementById('planningTable');
+                            if (!table) return;
+                            const ths = Array.from(table.querySelectorAll('thead th'));
+                            const dateColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('date'));
+                            const rows = table.querySelectorAll('tbody tr');
+                            rows.forEach(row => {
+                                const tds = Array.from(row.children);
+                                const cellDate = dateColIdx !== -1 ? (tds[dateColIdx]?.textContent.trim() || '') : '';
+                                const isFuture = isDateInFuture(cellDate);
+                                if (showAll) {
+                                    row.style.display = '';
+                                    if (!isFuture) {
+                                        row.classList.add('past-row');
+                                    } else {
+                                        row.classList.remove('past-row');
+                                    }
+                                } else {
+                                    row.classList.remove('past-row');
+                                    if (isFuture) {
+                                        row.style.display = '';
+                                    } else {
+                                        row.style.display = 'none';
+                                    }
+                                }
+                            });
+                        }
+                        let historiqueMode = false;
+                        const historiqueCheckbox = document.getElementById('toggleHistoriqueBtn');
+                        historiqueCheckbox.addEventListener('change', function() {
+                            historiqueMode = this.checked;
+                            filterPlanningRows(historiqueMode);
+                        });
+                        window.addEventListener('DOMContentLoaded', function() {
+                            filterPlanningRows(false);
+                            // Gestionnaire pour les boutons ... du tableau
+                            document.querySelectorAll('.dots-btn[data-row]').forEach(btn => {
+                                btn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    try {
+                                        const rowData = JSON.parse(this.getAttribute('data-row'));
+                                        openRowPopup(rowData);
+                                    } catch (err) {
+                                        alert('Erreur lors de l\'ouverture de la fiche : données invalides.');
+                                    }
+                                });
+                            });
+                        });
+                        </script>
                         <!-- Pop-up modale pour la ligne -->
                         <div id="rowPopupOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
                             <div id="rowPopupContent" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
