@@ -17,6 +17,7 @@ from .neo4j_services import (
     maj_last_check_selles,
     selles_non_enregistrees,
     get_selles_du_jour,
+    get_residents_chambre,
 )
 
 __all__ = [
@@ -38,4 +39,5 @@ __all__ = [
     'maj_last_check_selles',
     'selles_non_enregistrees',
     'get_selles_du_jour',
+    'get_residents_chambre',
 ]
