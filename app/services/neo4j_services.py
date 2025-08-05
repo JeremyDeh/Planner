@@ -460,13 +460,13 @@ def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence
             """
             UNWIND $data AS row
             MATCH (n:Resident {nom: row.nom, prenom: row.prenom})
-            CREATE (m:Selles {
+            MERGE (m:Selles {
                 date: date(),
                 moment_date: row.moment,
                 caracteristique: row.caracteristique,
                 commentaire: row.note
             })
-            CREATE (m)-[:Par]->(n)
+            MERGE (m)-[:Par]->(n)
             """,
             data=data_f
         )
@@ -514,7 +514,7 @@ def get_selles_du_jour():
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
             MATCH (m:Selles)-[r:Par]->(n:Resident)
-            WHERE r.date = date()
+            WHERE m.date = date()
             RETURN n.nom AS nom, n.prenom AS prenom, m.moment_date AS moment,
                    m.caracteristique AS caracteristique, m.commentaire AS commentaire
             ORDER BY n.nom, n.prenom, m.moment_date

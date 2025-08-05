@@ -72,13 +72,8 @@ def journee():
 
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
 def enregistre_selles():
-    print('### je suis arrivé la')
-    selles_du_jour = get_selles_du_jour()
-    df_selles_du_jour = pd.DataFrame(selles_du_jour)
-    residents = get_residents()
-    print('### df ###')
-    print(df_selles_du_jour)
     if request.method == 'POST':
+        print('### je suis arrivé la')
         data = request.get_json()
         print("Données reçues:", data)
 
@@ -87,6 +82,12 @@ def enregistre_selles():
 
         # Traitez les données ici, par exemple, en les enregistrant dans la base de données
         return jsonify({'status': 'success', 'message': 'Données enregistrées avec succès'})
+    
+    selles_du_jour = get_selles_du_jour()
+    df_selles_du_jour = pd.DataFrame(selles_du_jour)
+    residents = get_residents()
+    print('### df ###')
+    print(df_selles_du_jour)
     # Si la méthode est GET, return HTML table (for AJAX) or nothing
     table_html = '''
     <div style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px 32px 24px 32px; min-width:420px; min-height:220px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
@@ -104,49 +105,73 @@ def enregistre_selles():
             </thead>
             <tbody>
     '''
+    def options_html(selected_value):
+        options = ['--', 'Normale', 'Liquide', 'Mou', 'Absence']
+        return '\n'.join([
+            f'<option value="{opt}"{" selected" if opt == selected_value else ""}>{opt}</option>'
+            for opt in options
+    ])
     for nom in residents:
+        nom_split = nom.split(' ')
+        nom_famille = nom_split[0]
+        prenom = nom_split[1] if len(nom_split) > 1 else ""
+
+        def get_val(moment):
+            val = df_selles_du_jour.loc[
+                (df_selles_du_jour['nom'] == nom_famille) &
+                (df_selles_du_jour['prenom'] == prenom) &
+                (df_selles_du_jour['moment'] == moment),
+                'caracteristique'
+            ].values
+            if len(val) > 0 :
+                return val[0]
+            elif nom not in selles_non_enregistrees() :
+                return 'Absence'
+            else :
+                return"--"
+
+        valeur_nuit = get_val('nuit')
+        valeur_matin = get_val('matin')
+        valeur_soir = get_val('soir')
+        commentaire = df_selles_du_jour.loc[
+            (df_selles_du_jour['nom'] == nom_famille) &
+            (df_selles_du_jour['prenom'] == prenom),
+            'commentaire'
+        ].values
+        commentaire = commentaire[0] if len(commentaire) > 0 else ""
+        safe_nom = nom.replace(" ", "_")
+
         table_html += f'''
-                <tr>
-                    <td style=\"padding:8px; font-weight:600; color:#232946;\">{nom}</td>
-                    <td style=\"padding:8px;\">
-                        <select>
-                            <option value=\"--\">--</option>
-                            <option value=\"Normale\">Normal</option>
-                            <option value=\"Liquide\">Liquide</option>
-                            <option value=\"Mou\">Mou</option>
-                            <option value=\"Absence\">Absence</option>
-                        </select>
-                    </td>
-                    <td style=\"padding:8px;\">
-                        <select>
-                            <option value=\"--\">--</option>
-                            <option value=\"Normale\">Normal</option>
-                            <option value=\"Liquide\">Liquide</option>
-                            <option value=\"Mou\">Mou</option>
-                            <option value=\"Absence\">Absence</option>
-                        </select>
-                    </td>
-                    <td style=\"padding:8px;\">
-                        <select>
-                            <option value=\"--\">--</option>
-                            <option value=\"Normale\">Normal</option>
-                            <option value=\"Liquide\">Liquide</option>
-                            <option value=\"Mou\">Mou</option>
-                            <option value=\"Absence\">Absence</option>
-                        </select>
-                    </td>
-                    <td style=\"padding:8px;\">
-                        <input type=\"text\" placeholder=\"Note...\" style=\"width:100%; border-radius:6px; border:1px solid #ccc; padding:6px;\">
-                    </td>
-                </tr>
+        <tr>
+            <td style="padding:8px; font-weight:600; color:#232946;">{nom}</td>
+            <td style="padding:8px;">
+                <select id="{safe_nom}-nuit-select">
+                    {options_html(valeur_nuit)}
+                </select>
+            </td>
+            <td style="padding:8px;">
+                <select id="{safe_nom}-matin-select">
+                    {options_html(valeur_matin)}
+                </select>
+            </td>
+            <td style="padding:8px;">
+                <select id="{safe_nom}-soir-select">
+                    {options_html(valeur_soir)}
+                </select>
+            </td>
+            <td style="padding:8px;">
+                <input type="text" value="{commentaire}" placeholder="Note..." style="width:100%; border-radius:6px; border:1px solid #ccc; padding:6px;">
+            </td>
+        </tr>
         '''
     table_html += '''
             </tbody>
         </table>
         <div style=\"text-align:right; margin-top:18px;\">
-            <button id=\"validerSellesBtn\" style=\"background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;\" onclick=\"validerSelles()\">Valider</button>
+            <button id=\"validerSellesBtn\" style=\"background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;\" onclick=\"enregistre_selles()\">Valider</button>
         </div>
     </div>
+    
     '''
     # Only return table for AJAX requests
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
