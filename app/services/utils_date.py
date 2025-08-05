@@ -1,6 +1,7 @@
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, time
 import calendar
+
 
 def generate_dates(start, end, frequency):
     """
@@ -24,14 +25,16 @@ def generate_dates(start, end, frequency):
     return list(rrule(freq_map[frequency], dtstart=start, until=end))
 
 
-
 def is_last_weekday_of_month(d):
-    """Retourne True si la date `d` est le dernier jour de semaine de ce type dans son mois"""
+    """Retourne True si la date `d` est le dernier jour de semaine
+     de ce type dans son mois"""
     next_week = d + timedelta(days=7)
     return next_week.month != d.month and next_week.weekday() == d.weekday()
 
+
 def get_nth_weekday_of_month(year, month, weekday, n):
-    """Retourne la date du n-ième `weekday` dans un mois donné (si elle existe)"""
+    """Retourne la date du n-ième `weekday` dans un
+    mois donné (si elle existe)"""
     count = 0
     for day in range(1, calendar.monthrange(year, month)[1] + 1):
         current = date(year, month, day)
@@ -40,6 +43,7 @@ def get_nth_weekday_of_month(year, month, weekday, n):
             if count == n:
                 return current
     return None
+
 
 def get_last_weekday_of_month(year, month, weekday):
     """Retourne la date du dernier `weekday` dans un mois donné"""
@@ -50,26 +54,92 @@ def get_last_weekday_of_month(year, month, weekday):
             return current
     return None
 
+
 def get_weekday_occurrence(d):
-    """Retourne combien de fois ce jour de semaine est déjà apparu dans le mois"""
+    """Retourne combien de fois ce jour de
+    semaine est déjà apparu dans le mois"""
     return ((d.day - 1) // 7) + 1
 
-def generate_smart_weekday_recurrence(start_date, months=12):
-    weekday = start_date.weekday()  # 0=lundi, ..., 6=dimanche
-    recurrence = []
+
+from datetime import datetime
+
+def generate_smart_weekday_recurrence(start_date, end_date):
+    """
+    Génére une récurrence mensuelle intelligente (ex: 2e mardi de chaque mois)
+    entre `start_date` et `end_date`, en conservant uniquement l'heure et les minutes.
+
+    Args:
+        start_date (datetime): Date/heure de début.
+        end_date (datetime): Date/heure de fin.
+
+    Returns:
+        list[datetime]: Liste des datetimes générés.
+    """
+    weekday = start_date.weekday()
     is_last = is_last_weekday_of_month(start_date)
     nth = get_weekday_occurrence(start_date)
 
-    for i in range(months):
-        target_month = (start_date.month + i - 1) % 12 + 1
-        target_year = start_date.year + (start_date.month + i - 1) // 12
+    recurrence = []
+
+    current_year = start_date.year
+    current_month = start_date.month
+
+    # Extraire heure et minute depuis start_date
+    hour = start_date.hour
+    minute = start_date.minute
+
+    while True:
+        if datetime(current_year, current_month, 1) > end_date:
+            break
 
         if is_last:
-            recur_date = get_last_weekday_of_month(target_year, target_month, weekday)
+            base_date = get_last_weekday_of_month(current_year,
+                                                  current_month, weekday)
         else:
-            recur_date = get_nth_weekday_of_month(target_year, target_month, weekday, nth)
+            base_date = get_nth_weekday_of_month(current_year, 
+                                                 current_month, weekday, nth)
 
-        if recur_date:
-            recurrence.append(recur_date)
+        if base_date:
+            date_part = base_date.isoformat()  # Ex: '2025-08-20'
+            time_part = f"{hour:02}:{minute:02}"
+            recur_date = datetime.fromisoformat(f"{date_part}T{time_part}")
+
+            if start_date <= recur_date <= end_date:
+                recurrence.append(recur_date)
+
+        current_month += 1
+        if current_month > 12:
+            current_month = 1
+            current_year += 1
+
+    return recurrence
+
+
+
+def generate_day_recurrence(start_date, end_date, weekday):
+    """
+
+    A COMPLETER FAUT AJOPTUER DES TRUCS DANS LE XML
+    Génère toutes les dates correspondant à un jour de semaine fixe
+    (comme tous les lundis) entre deux dates.
+
+    Args:
+        start_date (date): Date de début.
+        end_date (date): Date de fin.
+        weekday (int): Jour de semaine (0=lundi, ..., 6=dimanche)
+
+    Returns:
+        list[date]: Liste des dates correspondant à ce jour.
+    """
+    # Décale jusqu'au premier jour correspondant
+    delta_days = (weekday - start_date.weekday()) % 7
+    first_match = start_date + timedelta(days=delta_days)
+
+    current = first_match
+    recurrence = []
+
+    while current <= end_date:
+        recurrence.append(current)
+        current += timedelta(weeks=1)
 
     return recurrence

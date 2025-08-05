@@ -12,6 +12,11 @@ from .neo4j_services import (
     get_rendez_vous_jour,
     ajout_note,
     get_service,
+    generate_smart_weekday_recurrence,
+    enregistrer_valeur_selles,
+    maj_last_check_selles,
+    selles_non_enregistrees,
+    get_selles_du_jour,
 )
 
 __all__ = [
@@ -27,5 +32,10 @@ __all__ = [
     'add_resident_to_db',
     'get_rendez_vous_jour',
     'ajout_note',
-    'get_service'
+    'get_service',
+    'generate_smart_weekday_recurrence',
+    'enregistrer_valeur_selles',
+    'maj_last_check_selles',
+    'selles_non_enregistrees',
+    'get_selles_du_jour',
 ]

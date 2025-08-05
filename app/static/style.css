@@ -178,3 +178,10 @@ form select {
     padding: 4px 8px;
     cursor: pointer;
 }
+
+.noselect {
+  user-select: none;
+  -webkit-user-select: none; /* Pour Safari */
+  -moz-user-select: none;    /* Pour Firefox */
+  -ms-user-select: none;     /* Pour IE/Edge */
+}
