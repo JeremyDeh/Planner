@@ -348,6 +348,7 @@ def get_rendez_vous(driver, db_name, nom, prenom):
         ]
 
 
+
 def get_rdv_types(driver, db_name):
     """
     Récupère la liste des types de rendez-vous (métiers).
@@ -359,10 +360,15 @@ def get_rdv_types(driver, db_name):
     Returns:
         list[str]: Liste des métiers.
     """
-    with driver.session(database=NEO4J_DB) as session:
-        cypher_query = "MATCH (n:Categorie) RETURN n.metier ORDER BY n.metier ASC"
+    rdv_types = []
+    with driver.session(database=db_name) as session:
+        cypher_query = "MATCH (n:Categorie) RETURN n.metier"
         results = session.run(cypher_query)
-        return [record['n.metier'] for record in results]
+        for record in results:
+            metier = record['n.metier']
+            if metier:
+                rdv_types.append(metier)
+    return rdv_types
 
 
 def get_all_rdv_events(driver, db_name):
@@ -376,31 +382,28 @@ def get_all_rdv_events(driver, db_name):
     Returns:
         list[dict]: Liste de dictionnaires représentant chaque événement.
     """
-    with driver.session(database=NEO4J_DB) as session:
+    with driver.session(database=db_name) as session:
         cypher_query = """
-            MATCH (n)-[r]->(m)
-            RETURN n.nom, n.prenom, r.date, m.metier, type(r), r.commentaire
-            ORDER BY r.date ASC
+        MATCH (n:Resident)-[r]->(m)
+        RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, m.metier,
+        r.commentaire, r.rdv
+        ORDER BY toString(r.date) ASC
         """
         ## on doit order by toString() car sans le cast, il differencie les dates et les datetime etfait son tr séparémment
         results = session.run(cypher_query)
-        node_result = {
-            record['r.date'].isoformat(): [
-                f"{record['n.nom']} {record['n.prenom']}",
-                record['m.metier'],
-                record['r.commentaire'],
-                record['type(r)']
-            ] for record in results
-        }
-
-    events = [
-        {
-            "title": label[0],
-            "start": dt,
-            "description": f"{label[1]} ({label[3]}) : {label[2]}"
-        }
-        for dt, label in node_result.items()
-    ]
+        events = [
+            {
+                'Nom': record['n.nom'] + ' ' + record['n.prenom'],
+                'Etage': record['n.etage'],
+                'Chambre': record['n.chambre'],
+                'Date': record['r.date'].strftime('%Y-%m-%d %H:%M') if 'T' in str(record['r.date']) else record['r.date'].strftime('%Y-%m-%d'),
+                'Rendez-vous': record['m.metier'] if record['type(r)'] == 'Rdv'
+                else record['type(r)'] + ' : ' + record['r.rdv'],
+                'Note': record['r.commentaire'],
+                'Type_Evt': record['type(r)']
+            }
+            for record in results
+        ]
     return events
 
 
