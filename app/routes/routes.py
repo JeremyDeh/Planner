@@ -21,6 +21,11 @@ from app.services import (
     add_resident_to_db,
     get_rendez_vous_jour,
     ajout_note,
+    enregistrer_valeur_selles,
+    maj_last_check_selles,
+    selles_non_enregistrees,
+    get_selles_du_jour,
+
 )
 
 NEO4J_URI = "bolt://localhost:7687"
@@ -48,24 +53,31 @@ def form():
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
 def journee():
-
+    manquants=selles_non_enregistrees()
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
         date_note = request.form.get('date_note')
         heure_note = request.form.get('heure_note')
         print(note, date_note, heure_note)
         ajout_note(note, date_note, heure_note)
+        
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
-    print("Rendez-vous du jour:", rendez_vous)
     return render_template(
         'recap_jour.html',
         rdv=rendez_vous,
-        notes=notes
+        notes=notes,
+        manquants=manquants
     )
 
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
 def enregistre_selles():
+    print('### je suis arrivé la')
+    selles_du_jour = get_selles_du_jour()
+    df_selles_du_jour = pd.DataFrame(selles_du_jour)
+    residents = get_residents()
+    print('### df ###')
+    print(df_selles_du_jour)
     if request.method == 'POST':
         data = request.get_json()
         print("Données reçues:", data)
@@ -75,7 +87,72 @@ def enregistre_selles():
 
         # Traitez les données ici, par exemple, en les enregistrant dans la base de données
         return jsonify({'status': 'success', 'message': 'Données enregistrées avec succès'})
-    return render_template('enregistre_selles.html')
+    # Si la méthode est GET, return HTML table (for AJAX) or nothing
+    table_html = '''
+    <div style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px 32px 24px 32px; min-width:420px; min-height:220px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
+        <button onclick=\"closeSellesPopup()\" style=\"position:absolute; top:18px; right:18px; background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:6px 16px; font-size:1em; font-weight:600; cursor:pointer;\">Fermer</button>
+        <h2 style=\"margin-top:0; color:#232946;\">Selles</h2>
+        <table style=\"width:100%; border-collapse:collapse; margin-top:18px;\">
+            <thead>
+                <tr>
+                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Nom</th>
+                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Nuit</th>
+                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Matin</th>
+                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Soir</th>
+                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Note</th>
+                </tr>
+            </thead>
+            <tbody>
+    '''
+    for nom in residents:
+        table_html += f'''
+                <tr>
+                    <td style=\"padding:8px; font-weight:600; color:#232946;\">{nom}</td>
+                    <td style=\"padding:8px;\">
+                        <select>
+                            <option value=\"--\">--</option>
+                            <option value=\"Normale\">Normal</option>
+                            <option value=\"Liquide\">Liquide</option>
+                            <option value=\"Mou\">Mou</option>
+                            <option value=\"Absence\">Absence</option>
+                        </select>
+                    </td>
+                    <td style=\"padding:8px;\">
+                        <select>
+                            <option value=\"--\">--</option>
+                            <option value=\"Normale\">Normal</option>
+                            <option value=\"Liquide\">Liquide</option>
+                            <option value=\"Mou\">Mou</option>
+                            <option value=\"Absence\">Absence</option>
+                        </select>
+                    </td>
+                    <td style=\"padding:8px;\">
+                        <select>
+                            <option value=\"--\">--</option>
+                            <option value=\"Normale\">Normal</option>
+                            <option value=\"Liquide\">Liquide</option>
+                            <option value=\"Mou\">Mou</option>
+                            <option value=\"Absence\">Absence</option>
+                        </select>
+                    </td>
+                    <td style=\"padding:8px;\">
+                        <input type=\"text\" placeholder=\"Note...\" style=\"width:100%; border-radius:6px; border:1px solid #ccc; padding:6px;\">
+                    </td>
+                </tr>
+        '''
+    table_html += '''
+            </tbody>
+        </table>
+        <div style=\"text-align:right; margin-top:18px;\">
+            <button id=\"validerSellesBtn\" style=\"background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;\" onclick=\"validerSelles()\">Valider</button>
+        </div>
+    </div>
+    '''
+    # Only return table for AJAX requests
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return table_html
+    # Otherwise, return nothing (or a simple message)
+    return ''
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
 def client_file():

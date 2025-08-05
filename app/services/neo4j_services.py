@@ -409,7 +409,7 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
     """
     Crée un nouveau résident dans la base Neo4j avec les propriétés fournies.
     """
-    with driver.session(database=db_name) as session:
+    with driver.session(database=NEO4J_DB) as session:
         session.run(
             """
             CREATE (n:Resident {
@@ -437,5 +437,92 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
 
 def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence"
     data=data['selles']
+    data_f = []
+    for x in data:
+        print('x : ',x)
+        nom_complet = x["nom"]
+        nom, prenom = nom_complet.split(" ", 1)
+        for moment in ["nuit", "matin", "soir"]:
+            if x[moment] != "--" and  x[moment] != "Absence" :
+                data_f.append({
+                    "nom": nom,
+                    "prenom": prenom,
+                    "moment": moment,
+                    "caracteristique": x[moment],
+                    "note": x.get("note", "")
+                }) 
+
+    with driver.session(database=NEO4J_DB) as session:
+        session.run(
+            """
+            UNWIND $data AS row
+            MATCH (n:Resident {nom: row.nom, prenom: row.prenom})
+            CREATE (m:Selles {
+                date: date(),
+                moment_date: row.moment,
+                caracteristique: row.caracteristique,
+                commentaire: row.note
+            })
+            CREATE (m)-[:Par]->(n)
+            """,
+            data=data_f
+        )
 def maj_last_check_selles(data) :
     data=data['selles']
+    noms_complet= [x["nom"] for x in data if any(val != "--" for val in (x["matin"], x["nuit"], x["soir"]))]
+
+    data_f = []
+    for x in noms_complet:  # original_data contient les noms complets
+        nom,prenom = x.split(" ")
+        data_f.append({"nom": nom, "prenom": prenom})
+
+    with driver.session(database=NEO4J_DB) as session:
+        session.run(
+            """
+            UNWIND $data AS row
+            MATCH (n:Resident {nom: row.nom, prenom: row.prenom})
+            SET n.derniere_verif_selles = date()
+            """,
+            data=data_f
+        )# derniere_verif_selles correspond a la derniere fois qu'on a mis a jour les selles pour la personne, mais il peut ne pas y avoir de selles enregistrées si on a verifié mais qu'elle n'a pas été a la selle ce jour, cela sert juste a verifer les oubli d'enregistrement de la part des personnes en charge
+def selles_non_enregistrees():
+    """
+    Récupère la liste des résidents pour lesquels les selles n'ont pas été
+    enregistrées aujourd'hui.
+
+    Returns:
+        list[str]: Liste des noms complets des résidents sans enregistrement de selles.
+    """
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH (n:Resident)
+            WHERE n.derniere_verif_selles is null OR n.derniere_verif_selles < date()
+            RETURN n.nom + ' ' + n.prenom AS nom_complet
+        """
+        results = session.run(cypher_query)
+        return [record['nom_complet'] for record in results]
+def get_selles_du_jour():
+    """
+    Récupère les enregistrements de selles pour la journée en cours.
+
+    Returns:
+        list[dict]: Liste de dictionnaires contenant les informations des selles.
+    """
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH (m:Selles)-[r:Par]->(n:Resident)
+            WHERE r.date = date()
+            RETURN n.nom AS nom, n.prenom AS prenom, m.moment_date AS moment,
+                   m.caracteristique AS caracteristique, m.commentaire AS commentaire
+            ORDER BY n.nom, n.prenom, m.moment_date
+        """
+        results = session.run(cypher_query)
+        return [
+            {
+                'nom': record['nom'],
+                'prenom': record['prenom'],
+                'moment': record['moment'],
+                'caracteristique': record['caracteristique'],
+                'commentaire': record['commentaire']
+            } for record in results
+        ]

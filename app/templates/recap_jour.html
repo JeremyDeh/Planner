@@ -91,7 +91,6 @@
                                         {% if row['metier'] == metier %}
                                             {% set date_str = row['date']|string %}
                                             {% set heure = date_str.split('T')[1] if 'T' in date_str else '--:--' %}
-                                            <script>console.log("heure:", "{{metier}} : {{ heure }}");</script>
                                             {% set heure = heure[:5] %}
                                             <li style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
                                                 <span style="display:inline-block; background:#232946; color:#eebbc3; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure }}</span>
@@ -107,97 +106,34 @@
                         <!-- Nouvelle cardbox Selles -->
                         <div class="cardbox-modern" style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:120px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0; cursor:pointer;" onclick="openSellesPopup()">
                             <h3 style="margin-top:0; color:#eebbc3; cursor:pointer;">Selles</h3>
-                            <p style="color:#6c6c80; font-size:0.98em;">Enregistrer les informations de selles pour chaque résident.</p>
+                            <p style="color:#6c6c80; font-size:0.98em;">Personnes dont l'enregistrement des selles est manquant pour la journée :</p>
+                            {% for manquant in manquants %}
+                            <strong>{{ manquant }}</strong></br>
+                            {% endfor %}
+
                         </div>
                     </div>
                 {% endif %}
         <!-- Popup Selles -->
         <div id="sellesPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
-            <div style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px 32px 24px 32px; min-width:420px; min-height:220px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
-                <button onclick="closeSellesPopup()" style="position:absolute; top:18px; right:18px; background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:6px 16px; font-size:1em; font-weight:600; cursor:pointer;">Fermer</button>
-                <h2 style="margin-top:0; color:#232946;">Selles</h2>
-                <table style="width:100%; border-collapse:collapse; margin-top:18px;">
-                    <thead>
-                        <tr>
-                            <th style="background:#eebbc3; color:#232946; padding:8px;">Nom</th>
-                            <th style="background:#eebbc3; color:#232946; padding:8px;">Nuit</th>
-                            <th style="background:#eebbc3; color:#232946; padding:8px;">Matin</th>
-                            <th style="background:#eebbc3; color:#232946; padding:8px;">Soir</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        
-                        {% for nom in ['Jean-Louis','Margarette','Pierre-Jean-Marc'] %}
-                        <tr>
-                            <td style="padding:8px; font-weight:600; color:#232946;">{{ nom }}</td>
-                            <td style="padding:8px;">
-                                <select>
-                                    <option value="">--</option>
-                                    <option value="Normale">Normal</option>
-                                    <option value="Constipé(e)">Liquide</option>
-                                    <option value="Diarrhée">Mou</option>
-                                    <option value="Absence">Absence</option>
-                                </select>
-                            </td>
-                            <td style="padding:8px;">
-                                <select>
-                                    <option value="">--</option>
-                                    <option value="Normale">Normal</option>
-                                    <option value="Constipé(e)">Liquide</option>
-                                    <option value="Diarrhée">Mou</option>
-                                    <option value="Absence">Absence</option>
-                                </select>
-                            </td>
-                            <td style="padding:8px;">
-                                <select>
-                                    <option value="">--</option>
-                                    <option value="Normale">Normal</option>
-                                    <option value="Constipé(e)">Liquide</option>
-                                    <option value="Diarrhée">Mou</option>
-                                    <option value="Absence">Absence</option>
-                                </select>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <div style="text-align:right; margin-top:18px;">
-                    <button id="validerSellesBtn" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;" onclick="validerSelles()">Valider</button>
-                </div>
-            </div>
+            <div id="sellesPopupContent"></div>
         </div>
         <script>
-        function openSellesPopup() {
+function openSellesPopup() {
+    // Fetch the table HTML from Flask and show popup
+    fetch("{{ url_for('main.enregistre_selles') }}", {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('sellesPopupContent').innerHTML = html;
             document.getElementById('sellesPopup').style.display = 'flex';
-        }
-        function closeSellesPopup() {
-            document.getElementById('sellesPopup').style.display = 'none';
-        }
-        function validerSelles() {
-            const rows = document.querySelectorAll('#sellesPopup table tbody tr');
-            const data = [];
-            rows.forEach(row => {
-                const nom = row.children[0].textContent.trim();
-                const nuit = row.children[1].querySelector('select').value;
-                const matin = row.children[2].querySelector('select').value;
-                const soir = row.children[3].querySelector('select').value;
-                data.push({ nom, nuit, matin, soir });
-            });
-            fetch("{{ url_for('main.enregistre_selles') }}", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ selles: data })
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Selles enregistrées !');
-                    closeSellesPopup();
-                } else {
-                    alert('Erreur lors de l\'enregistrement.');
-                }
-            })
-            .catch(() => alert('Erreur réseau.'));
-        }
+        })
+        .catch(() => alert('Erreur lors du chargement des résidents.'));
+}
+function closeSellesPopup() {
+    document.getElementById('sellesPopup').style.display = 'none';
+}
         </script>
                 
             </div>
