@@ -12,6 +12,7 @@ from app.services import (
     insert_rendez_vous,
     create_rappels,
     get_residents,
+    get_residents_chambre,
     get_medecins,
     get_service,
     get_resident_properties,
@@ -45,7 +46,7 @@ def form():
         create_rappels(form_data)
         return "Fichier Excel généré :"
     else:
-        residents = get_residents()
+        residents = get_residents_chambre()
         medecins = get_medecins()
         service = get_service()
         return render_template("form.html", residents=residents, medecins=medecins, service=service)
@@ -73,107 +74,106 @@ def journee():
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
 def enregistre_selles():
     if request.method == 'POST':
-        print('### je suis arrivé la')
         data = request.get_json()
-        print("Données reçues:", data)
+        #print("### Données reçues :", data)
 
-        enregistrer_valeur_selles(data) # on n'enregistre pas les données "Absence"
-        maj_last_check_selles(data) # sert a faire la distinction entre une absence de donnée parce que le mec a pas fait de la journée, et l'absence de donnée parce que les personnes ont oublié de remplir
+        enregistrer_valeur_selles(data)
+        maj_last_check_selles(data)
 
-        # Traitez les données ici, par exemple, en les enregistrant dans la base de données
         return jsonify({'status': 'success', 'message': 'Données enregistrées avec succès'})
-    
-    selles_du_jour = get_selles_du_jour()
-    df_selles_du_jour = pd.DataFrame(selles_du_jour)
+
+    # Sinon, méthode GET → on renvoie le tableau HTML
+    df_selles_du_jour = pd.DataFrame(get_selles_du_jour())
+    if df_selles_du_jour.shape == (0,0):
+        print('il est broke ton df')
+        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'moment', 'caracteristique', 'commentaire'])
+    else :
+        print('df ok')
+        for col in ['nuit', 'matin', 'soir']:
+            df_none = df_selles_du_jour[df_selles_du_jour[col].isna()].copy()
+
+            # On modifie leur 'caracteristique'
+            df_none["caracteristique"] = "--"
+            df_none["moment"] = col
+
+            # On concatène les lignes originales avec les nouvelles
+            df_selles_du_jour = pd.concat([df_selles_du_jour, df_none], ignore_index=True)
+            print("nouveau df")
+            print(df_selles_du_jour)
     residents = get_residents()
-    print('### df ###')
-    print(df_selles_du_jour)
-    # Si la méthode est GET, return HTML table (for AJAX) or nothing
-    table_html = '''
-    <div style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px 32px 24px 32px; min-width:420px; min-height:220px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
-        <button onclick=\"closeSellesPopup()\" style=\"position:absolute; top:18px; right:18px; background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:6px 16px; font-size:1em; font-weight:600; cursor:pointer;\">Fermer</button>
-        <h2 style=\"margin-top:0; color:#232946;\">Selles</h2>
-        <table style=\"width:100%; border-collapse:collapse; margin-top:18px;\">
-            <thead>
-                <tr>
-                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Nom</th>
-                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Nuit</th>
-                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Matin</th>
-                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Soir</th>
-                    <th style=\"background:#eebbc3; color:#232946; padding:8px;\">Note</th>
-                </tr>
-            </thead>
-            <tbody>
-    '''
+
     def options_html(selected_value):
         options = ['--', 'Normale', 'Liquide', 'Mou', 'Absence']
         return '\n'.join([
             f'<option value="{opt}"{" selected" if opt == selected_value else ""}>{opt}</option>'
             for opt in options
-    ])
+        ])
+
+    def get_val(nom_famille, prenom, moment):
+        print(df_selles_du_jour)
+        val = df_selles_du_jour.loc[
+            (df_selles_du_jour['nom'] == nom_famille) &
+            (df_selles_du_jour['prenom'] == prenom) &
+            (df_selles_du_jour['moment'] == moment),
+            'caracteristique'
+        ].values
+        if len(val) > 0:
+            return val[0]
+        elif f"{nom_famille} {prenom}" not in selles_non_enregistrees():
+            return 'Absence'
+        else:
+            return "--"
+
+    table_html = '''
+    <div id="sellesPopupContentInner" style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
+        <button onclick="closeSellesPopup()" style="position:absolute; top:18px; right:18px;">Fermer</button>
+        <h2>Selles</h2>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+    '''
+
     for nom in residents:
-        nom_split = nom.split(' ')
-        nom_famille = nom_split[0]
-        prenom = nom_split[1] if len(nom_split) > 1 else ""
+        parts = nom.split(' ')
+        nom_famille = parts[0]
+        prenom = parts[1] if len(parts) > 1 else ""
 
-        def get_val(moment):
-            val = df_selles_du_jour.loc[
-                (df_selles_du_jour['nom'] == nom_famille) &
-                (df_selles_du_jour['prenom'] == prenom) &
-                (df_selles_du_jour['moment'] == moment),
-                'caracteristique'
-            ].values
-            if len(val) > 0 :
-                return val[0]
-            elif nom not in selles_non_enregistrees() :
-                return 'Absence'
-            else :
-                return"--"
+        valeur_nuit = get_val(nom_famille, prenom, 'nuit')
+        valeur_matin = get_val(nom_famille, prenom, 'matin')
+        valeur_soir = get_val(nom_famille, prenom, 'soir')
 
-        valeur_nuit = get_val('nuit')
-        valeur_matin = get_val('matin')
-        valeur_soir = get_val('soir')
         commentaire = df_selles_du_jour.loc[
             (df_selles_du_jour['nom'] == nom_famille) &
             (df_selles_du_jour['prenom'] == prenom),
             'commentaire'
         ].values
         commentaire = commentaire[0] if len(commentaire) > 0 else ""
+
         safe_nom = nom.replace(" ", "_")
 
         table_html += f'''
         <tr>
-            <td style="padding:8px; font-weight:600; color:#232946;">{nom}</td>
-            <td style="padding:8px;">
-                <select id="{safe_nom}-nuit-select">
-                    {options_html(valeur_nuit)}
-                </select>
-            </td>
-            <td style="padding:8px;">
-                <select id="{safe_nom}-matin-select">
-                    {options_html(valeur_matin)}
-                </select>
-            </td>
-            <td style="padding:8px;">
-                <select id="{safe_nom}-soir-select">
-                    {options_html(valeur_soir)}
-                </select>
-            </td>
-            <td style="padding:8px;">
-                <input type="text" value="{commentaire}" placeholder="Note..." style="width:100%; border-radius:6px; border:1px solid #ccc; padding:6px;">
-            </td>
+            <td>{nom}</td>
+            <td><select id="{safe_nom}-nuit-select">{options_html(valeur_nuit)}</select></td>
+            <td><select id="{safe_nom}-matin-select">{options_html(valeur_matin)}</select></td>
+            <td><select id="{safe_nom}-soir-select">{options_html(valeur_soir)}</select></td>
+            <td><input type="text" value="{commentaire}" placeholder="Note..."></td>
         </tr>
         '''
+
     table_html += '''
             </tbody>
         </table>
-        <div style=\"text-align:right; margin-top:18px;\">
-            <button id=\"validerSellesBtn\" style=\"background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;\" onclick=\"enregistre_selles()\">Valider</button>
+        <div style="text-align:right; margin-top:18px;">
+            <button id="validerSellesBtn" onclick="enregistre_selles()">Valider</button>
         </div>
     </div>
-    
     '''
-    # Only return table for AJAX requests
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return table_html
     # Otherwise, return nothing (or a simple message)
@@ -181,7 +181,7 @@ def enregistre_selles():
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
 def client_file():
-    residents = get_residents()
+    residents = get_residents_chambre()
     name = ''
     results = None
     node_result = []
@@ -190,7 +190,10 @@ def client_file():
         name = request.form.get('nomPatientEDT', '').strip()
         if name:
             try:
-                nom, prenom = name.split(' ')[0], name.split(' ')[1]
+                if '(' in name:
+                    nom, prenom = name.split(' ')[0], name.split(' ')[1].split('(')[0].strip()
+                else:
+                    nom, prenom = name.split(' ')[0], name.split(' ')[1]
             except IndexError:
                 # Gérer le cas où il manque prénom ou nom
                 nom, prenom = '', ''
@@ -237,10 +240,11 @@ def add_resident():
     diabete = request.form.get('diabete', '0')
     chambre = request.form.get('chambre')
     deplacement = request.form.get('deplacement', 'Seul')
+    naissance= request.form.get('date_naissance')
 
     try:
         add_resident_to_db(driver, NEO4J_DB, nom, prenom, commentaire,
-                           sexe, etage, oxygen, diabete, chambre,deplacement)
+                           sexe, etage, oxygen, diabete, chambre,deplacement,naissance)
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

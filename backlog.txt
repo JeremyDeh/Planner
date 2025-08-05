@@ -7,6 +7,11 @@
 + lors de création de fiche patient ajouter mode de déplacement (seul, canne, déambulateur, fauteil roulant, alité) ----- Done
 + virer le fait qu'au moins un rappel soit obligatoire ----- Done
 + rendez-vous sans horaire  (tel jour machin a ca, mais il y a pas d'heure, faut que ca soit fait dans la journée) ----- Done
++ ajuoter le champs date de naissance a la création d'un nouveau résident ----- Done
++ créer un clé primaire basée sur nom + prenom + datenaissance  ----- Done
++ forcer le nom en majuscule et le prenom avec premiere lettre maj seulement, lorsqu'on créé un nouveau résident
++ creer un champs "nom affichage"
+- quand on affiche les résidents dans les menus déroulant, ajouter le numero de chambre pour quand il y a deux personnes avec le meme nom et prenom
 
 - Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )
   (commencé, fonctions dans utils_date mais pas encore utilisé)

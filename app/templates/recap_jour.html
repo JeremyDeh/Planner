@@ -104,14 +104,25 @@
                             </div>
                         {% endfor %}
                         <!-- Nouvelle cardbox Selles -->
-                        <div class="cardbox-modern" style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:120px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0; cursor:pointer;" onclick="openSellesPopup()">
-                            <h3 style="margin-top:0; color:#eebbc3; cursor:pointer;">Selles</h3>
+                        <!-- TA DIV CLIQUABLE (existe déjà) -->
+                        <div class="cardbox-modern"
+                            style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:120px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0; cursor:pointer;"
+                            onclick="openSellesPopup()">
+                            <h3 style="margin-top:0; color:#eebbc3;">Selles</h3>
                             <p style="color:#6c6c80; font-size:0.98em;">Personnes dont l'enregistrement des selles est manquant pour la journée :</p>
                             {% for manquant in manquants %}
-                            <strong>{{ manquant }}</strong></br>
+                                <strong>{{ manquant }}</strong><br>
                             {% endfor %}
-
                         </div>
+
+                        <!-- LA DIV POPUP (initialement cachée) -->
+                        <div id="sellesPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:1000;">
+                            <div id="sellesPopupContent" style="background:#fff; border-radius:18px; padding:0; max-width:90vw; max-height:90vh; overflow:auto;"></div>
+                        </div>
+
+                        <!-- Ton JS -->
+                        <script src="{{ url_for('static', filename='js/selles.js') }}"></script>
+
                     </div>
                 {% endif %}
         <!-- Popup Selles -->
@@ -158,23 +169,7 @@
         </script>
         </div>
         </div>
-        <script>
-function openSellesPopup() {
-    // Fetch the table HTML from Flask and show popup
-    fetch("{{ url_for('main.enregistre_selles') }}", {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('sellesPopupContent').innerHTML = html;
-            document.getElementById('sellesPopup').style.display = 'flex';
-        })
-        .catch(() => alert('Erreur lors du chargement des résidents.'));
-}
-function closeSellesPopup() {
-    document.getElementById('sellesPopup').style.display = 'none';
-}
-        </script>
+        
                 
             </div>
             <!-- Cardbox formulaire ajout de note à droite -->

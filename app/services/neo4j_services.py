@@ -22,11 +22,30 @@ def get_residents():
     """
     residents = []
     with driver.session(database=NEO4J_DB) as session:
-        cypher_query = "MATCH (n:Resident) RETURN n.nom, n.prenom " \
-                       "ORDER BY n.nom, n.prenom"
+        cypher_query = """MATCH (n:Resident) RETURN n.nom, n.prenom 
+                       ORDER BY n.nom, n.prenom"""
         neo4j_results = session.run(cypher_query)
         for record in neo4j_results:
             nom = record['n.nom'] + ' ' + record['n.prenom']
+            if nom:
+                residents.append(nom)
+    return residents
+
+def get_residents_chambre():
+    """
+    Récupère la liste des noms complets des résidents depuis la base Neo4j.
+
+    Returns:
+        list[str]: Liste des noms complets des résidents,
+        triés par nom puis prénom.
+    """
+    residents = []
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """MATCH (n:Resident) RETURN n.nom, n.prenom, n.chambre
+                       ORDER BY n.nom, n.prenom, n.chambre"""
+        neo4j_results = session.run(cypher_query)
+        for record in neo4j_results:
+            nom = record['n.nom'] + ' ' + record['n.prenom'] + ' (' + str(record['n.chambre']) + ')'
             if nom:
                 residents.append(nom)
     return residents
@@ -408,7 +427,7 @@ def get_all_rdv_events(driver, db_name):
 
 
 def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
-                       oxygen, diabete, chambre,deplacement):
+                       oxygen, diabete, chambre,deplacement,naissance):
     """
     Crée un nouveau résident dans la base Neo4j avec les propriétés fournies.
     """
@@ -424,7 +443,10 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
                 chambre: $chambre,
                 deplacement: $deplacement,
                 oxygen: $oxygen,
-                diabete: $diabete
+                diabete: $diabete,
+                naissance: date($naissance)
+                pk= toUpper($nom.replace(' ','_')) + '_' + toUpper($prenom.replace(' ','_')) + '_' + toString($naissance)
+                nom_affichage: toUpper($nom) + ' ' + $prenom.capitalize()
             })
             """,
             nom=nom,
@@ -435,24 +457,25 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
             chambre=chambre,
             deplacement=deplacement,
             oxygen=oxygen,
-            diabete=diabete
+            diabete=diabete,
+            naissance=naissance
         )
 
 def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence"
-    data=data['selles']
+    print('data : ',data)
+ 
     data_f = []
-    for x in data:
-        print('x : ',x)
-        nom_complet = x["nom"]
+    for nom_complet in data.keys():
+        
         nom, prenom = nom_complet.split(" ", 1)
         for moment in ["nuit", "matin", "soir"]:
-            if x[moment] != "--" and  x[moment] != "Absence" :
+            if data[nom_complet][moment] != "--" and  data[nom_complet][moment] != "Absence" :
                 data_f.append({
                     "nom": nom,
                     "prenom": prenom,
                     "moment": moment,
-                    "caracteristique": x[moment],
-                    "note": x.get("note", "")
+                    "caracteristique": data[nom_complet][moment],
+                    "note": data[nom_complet].get("note", "")
                 }) 
 
     with driver.session(database=NEO4J_DB) as session:
@@ -471,20 +494,31 @@ def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence
             data=data_f
         )
 def maj_last_check_selles(data) :
-    data=data['selles']
-    noms_complet= [x["nom"] for x in data if any(val != "--" for val in (x["matin"], x["nuit"], x["soir"]))]
+    print(data)
 
     data_f = []
-    for x in noms_complet:  # original_data contient les noms complets
-        nom,prenom = x.split(" ")
-        data_f.append({"nom": nom, "prenom": prenom})
-
+    for noms_complet in data.keys():  # original_data contient les noms complets
+        nom,prenom = noms_complet.split(" ")
+        data_f.append({"nom": nom, "prenom": prenom, "liste":['nuit' if data[noms_complet]['nuit']!='--' else None,'matin' if data[noms_complet]['matin']!='--' else None,'soir' if data[noms_complet]['soir']!='--' else None ]}) if any([valeur !='--' for valeur in (data[noms_complet]['nuit'],data[noms_complet]['matin'],data[noms_complet]['soir']) ]) else None
+        print('data_f : ',data_f)
     with driver.session(database=NEO4J_DB) as session:
         session.run(
             """
             UNWIND $data AS row
             MATCH (n:Resident {nom: row.nom, prenom: row.prenom})
             SET n.derniere_verif_selles = date()
+            SET n.derniere_verif_selles_nuit = CASE 
+                WHEN 'nuit' in row.liste  THEN date()
+                ELSE n.derniere_verif_selles_nuit
+            END,
+            n.derniere_verif_selles_matin = CASE
+                WHEN 'matin' in row.liste THEN date()
+                ELSE n.derniere_verif_selles_matin
+            END,
+            n.derniere_verif_selles_soir = CASE
+                WHEN 'soir' in row.liste THEN date()
+                ELSE n.derniere_verif_selles_soir
+            END
             """,
             data=data_f
         )# derniere_verif_selles correspond a la derniere fois qu'on a mis a jour les selles pour la personne, mais il peut ne pas y avoir de selles enregistrées si on a verifié mais qu'elle n'a pas été a la selle ce jour, cela sert juste a verifer les oubli d'enregistrement de la part des personnes en charge
@@ -516,7 +550,7 @@ def get_selles_du_jour():
             MATCH (m:Selles)-[r:Par]->(n:Resident)
             WHERE m.date = date()
             RETURN n.nom AS nom, n.prenom AS prenom, m.moment_date AS moment,
-                   m.caracteristique AS caracteristique, m.commentaire AS commentaire
+                   m.caracteristique AS caracteristique, m.commentaire AS commentaire, n.derniere_verif_selles_nuit, n.derniere_verif_selles_matin, n.derniere_verif_selles_soir
             ORDER BY n.nom, n.prenom, m.moment_date
         """
         results = session.run(cypher_query)
@@ -526,6 +560,9 @@ def get_selles_du_jour():
                 'prenom': record['prenom'],
                 'moment': record['moment'],
                 'caracteristique': record['caracteristique'],
-                'commentaire': record['commentaire']
+                'commentaire': record['commentaire'],
+                'nuit': record['n.derniere_verif_selles_nuit'],
+                'matin': record['n.derniere_verif_selles_matin'],
+                'soir': record['n.derniere_verif_selles_soir']
             } for record in results
         ]
