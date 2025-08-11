@@ -26,6 +26,7 @@ from app.services import (
     maj_last_check_selles,
     selles_non_enregistrees,
     get_selles_du_jour,
+    get_plusieurs_jours_selles
 
 )
 
@@ -46,15 +47,17 @@ def form():
         create_rappels(form_data)
         return "Fichier Excel généré :"
     else:
-        residents = get_residents_chambre()
+        pks,residents = get_residents_chambre()
         medecins = get_medecins()
         service = get_service()
-        return render_template("form.html", residents=residents, medecins=medecins, service=service)
+        return render_template("form.html", residents=residents, medecins=medecins, service=service,pks=pks)
 
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
 def journee():
     manquants=selles_non_enregistrees()
+    plusieurs_jours= get_plusieurs_jours_selles()
+    print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
         date_note = request.form.get('date_note')
@@ -68,7 +71,8 @@ def journee():
         'recap_jour.html',
         rdv=rendez_vous,
         notes=notes,
-        manquants=manquants
+        manquants=manquants,
+        plusieurs_jours=plusieurs_jours
     )
 
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
@@ -84,6 +88,12 @@ def enregistre_selles():
 
     # Sinon, méthode GET → on renvoie le tableau HTML
     df_selles_du_jour = pd.DataFrame(get_selles_du_jour())
+    aujourdhui = pd.Timestamp.today().normalize()  # sans l'heure
+    cols_dates = ['nuit', 'matin', 'soir']  # tes colonnes de dates
+    df_selles_du_jour[cols_dates] = df_selles_du_jour[cols_dates].where(
+        df_selles_du_jour[cols_dates] == aujourdhui, 
+        None
+    )
     if df_selles_du_jour.shape == (0,0):
         print('il est broke ton df')
         df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'moment', 'caracteristique', 'commentaire'])
@@ -181,40 +191,30 @@ def enregistre_selles():
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
 def client_file():
-    residents = get_residents_chambre()
+    pks,residents = get_residents_chambre()
     name = ''
     results = None
     node_result = []
 
     if request.method == 'POST':
-        name = request.form.get('nomPatientEDT', '').strip()
-        if name:
-            try:
-                if '(' in name:
-                    nom, prenom = name.split(' ')[0], name.split(' ')[1].split('(')[0].strip()
-                else:
-                    nom, prenom = name.split(' ')[0], name.split(' ')[1]
-            except IndexError:
-                # Gérer le cas où il manque prénom ou nom
-                nom, prenom = '', ''
-
-            if nom and prenom:
-                results = get_resident_properties(driver, NEO4J_DB,
-                                                  nom, prenom)
-                node_result = get_rendez_vous(driver, NEO4J_DB, nom, prenom)
-            else:
-                results = pd.DataFrame()
-                node_result = []
+        pk = request.form.get('nomPatientEDT', '').strip()
+        if pk:
+            
+            results = get_resident_properties(driver, NEO4J_DB,
+                                                  pk)
+            node_result = get_rendez_vous(driver, NEO4J_DB, pk)
         else:
             results = pd.DataFrame()
             node_result = []
+
 
     return render_template(
         'client_file.html',
         name=name,
         results=results,
         residents=residents,
-        nodes=node_result
+        nodes=node_result,
+        pks=pks
     )
 
 

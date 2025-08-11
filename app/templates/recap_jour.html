@@ -104,15 +104,109 @@
                             </div>
                         {% endfor %}
                         <!-- Nouvelle cardbox Selles -->
-                        <!-- TA DIV CLIQUABLE (existe déjà) -->
                         <div class="cardbox-modern"
-                            style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:120px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0; cursor:pointer;"
-                            onclick="openSellesPopup()">
-                            <h3 style="margin-top:0; color:#eebbc3;">Selles</h3>
-                            <p style="color:#6c6c80; font-size:0.98em;">Personnes dont l'enregistrement des selles est manquant pour la journée :</p>
-                            {% for manquant in manquants %}
-                                <strong>{{ manquant }}</strong><br>
-                            {% endfor %}
+                            style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:32px 32px 28px 32px; min-width:260px; min-height:140px; width:370px; margin-bottom:24px; border:1px solid #e0e0e0; position:relative;">
+                            <h3 style="margin-top:0; color:#eebbc3; cursor:pointer;" onclick="openSellesPopup()">Selles</h3>
+                            <!-- Slider switch -->
+                            <div style="position:absolute; top:18px; right:18px; z-index:2; display:flex; align-items:center;">
+                                <span id="sliderLabelAuj" style="font-size:0.92em; color:#232946; margin-right:8px; font-weight:600;">Aujourd'hui</span>
+                                <span id="sliderLabelDerniers" style="font-size:0.92em; color:#232946; margin-right:8px; font-weight:600; display:none;">Derniers jours</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="sellesSliderSwitch">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <style>
+                            .switch {
+                              position: relative;
+                              display: inline-block;
+                              width: 44px;
+                              height: 24px;
+                            }
+                            .switch input {display:none;}
+                            .slider {
+                              position: absolute;
+                              cursor: pointer;
+                              top: 0; left: 0; right: 0; bottom: 0;
+                              background-color: #eebbc3;
+                              transition: .4s;
+                              border-radius: 24px;
+                            }
+                            .slider:before {
+                              position: absolute;
+                              content: "";
+                              height: 18px;
+                              width: 18px;
+                              left: 3px;
+                              bottom: 3px;
+                              background-color: #fff;
+                              transition: .4s;
+                              border-radius: 50%;
+                              box-shadow: 0 2px 6px rgba(35,41,70,0.10);
+                            }
+                            input:checked + .slider {
+                              background-color: #232946;
+                            }
+                            input:checked + .slider:before {
+                              transform: translateX(20px);
+                            }
+                            </style>
+                            <div id="sellesContentNormal">
+                                <p style="color:#6c6c80; font-size:0.98em;">Résidents dont l'enregistrement des selles est manquant pour la journée :</p>
+                                {% for manquant in manquants %}
+                                    <strong>{{ manquant }}</strong><br>
+                                {% endfor %}
+                            </div>
+                            <div id="sellesContentDerniersJours" style="display:none;">
+                                <p style="color:#6c6c80; font-size:0.98em;">Résidents qui n'ont pas été à la selle ces derniers jours</p>
+                                {% if plusieurs_jours is defined and plusieurs_jours.shape[0] > 0 %}
+                                    <div style="overflow-x:auto;">
+                                        <table style="width:100%; border-collapse:collapse; font-size:0.97em;">
+                                            <thead>
+                                                <tr style="background:#f7f7fa; color:#232946;">
+                                                    {% for col in plusieurs_jours.columns %}
+                                                        <th style="padding:6px 10px; border-bottom:1px solid #e0e0e0;">{{ col }}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for _, row in plusieurs_jours.iterrows() %}
+                                                    <tr>
+                                                        {% for col in plusieurs_jours.columns %}
+                                                            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">{{ row[col] }}</td>
+                                                        {% endfor %}
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p style="color:#b0b0b0;">Aucune donnée pour les derniers jours.</p>
+                                {% endif %}
+                            </div>
+                            <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var sliderSwitch = document.getElementById('sellesSliderSwitch');
+                                var normalDiv = document.getElementById('sellesContentNormal');
+                                var derniersDiv = document.getElementById('sellesContentDerniersJours');
+                                var labelAuj = document.getElementById('sliderLabelAuj');
+                                var labelDerniers = document.getElementById('sliderLabelDerniers');
+                                sliderSwitch.addEventListener('click', function(event) {
+                                    event.stopPropagation();
+                                    if(sliderSwitch.checked) {
+                                        normalDiv.style.display = 'none';
+                                        derniersDiv.style.display = '';
+                                        labelAuj.style.display = 'none';
+                                        labelDerniers.style.display = '';
+                                    } else {
+                                        normalDiv.style.display = '';
+                                        derniersDiv.style.display = 'none';
+                                        labelAuj.style.display = '';
+                                        labelDerniers.style.display = 'none';
+                                    }
+                                });
+                            });
+                            </script>
                         </div>
 
                         <!-- LA DIV POPUP (initialement cachée) -->

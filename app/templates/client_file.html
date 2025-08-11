@@ -218,14 +218,21 @@
     
             <form method="post" action="{{ url_for('main.client_file') }}" style="margin-top:18px;">
                 <label>Nom du résident :</label>
+                
                 <div style="position:relative;">
-                    <input type="text" name="nomPatientEDT" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showPatientList()" oninput="filterPatientList()">
-                    <div id="patientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
-                        {% for nom in residents %}
-                            <div class="patient-item" onclick="selectPatient('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
-                        {% endfor %}
+                <input type="text" name="nomPatientEDT_affichage" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required
+                onfocus="showPatientList()" oninput="filterPatientList()">
+                <input type="hidden" name="nomPatientEDT" id="nomPatientHidden"> <!-- ici la pk envoyée -->
+
+                <div id="patientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                {% for nom in residents %}
+                    <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;" 
+                        onclick="selectPatient(this)">
+                    {{ nom }}
                     </div>
+                {% endfor %}
                 </div>
+            </div>
 
                 <button type="submit" id="validerBtn" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:8px 18px; font-size:1em; cursor:pointer;">Valider</button>
             </form>
@@ -239,19 +246,24 @@
                         document.getElementById('patientList').style.display = 'none';
                     }, 200);
                 }
-                function selectPatient(nom) {
-                    document.getElementById('nomPatientInput').value = nom;
+                function selectPatient(element) {
+                    // Mettre le nom dans le champ texte visible
+                    document.getElementById('nomPatientInput').value = element.textContent.trim();
+
+                    // Mettre la pk dans le champ hidden
+                    document.getElementById('nomPatientHidden').value = element.getAttribute('data-pk');
+
                     hidePatientList();
                 }
                 function filterPatientList() {
                     var input = document.getElementById('nomPatientInput').value.toLowerCase();
                     var items = document.querySelectorAll('#patientList .patient-item');
                     items.forEach(function(item) {
-                        if (item.textContent.toLowerCase().includes(input)) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
+                    if (item.textContent.toLowerCase().includes(input)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
                     });
                 }
                 document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
@@ -297,11 +309,22 @@
                                     Diabète : <b>{{ 'Oui' if row['diabete']=='1' else 'Non' }}</b>
                                 </div>
                             {% endif %}
-                            {% for col in results.columns if col not in ['nom','prenom','sexe','etage','oxygen','diabete','chambre'] %}
-                                <div style="margin-bottom: 8px; color: #232946; width: 100%; text-align: center;">
-                                    <span style="font-weight: 500;">{{ col|capitalize }} :</span> {{ row[col] }}
+                            {% if 'commentaire' in row %}
+                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                    Note : <b>{{ row['commentaire'] }}</b>
                                 </div>
-                            {% endfor %}
+                            {% endif %}
+                            {% if 'naissance' in row %}
+                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                    Date de naissance : <b>{{ row['naissance'] }}</b>
+                                </div>
+                            {% endif %}
+                            {% if 'deplacement' in row %}
+                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                    Déplacement : <b>{{ row['deplacement'] }}</b>
+                                </div>
+                            {% endif %}
+                            
                         </div>
                     {% else %}
                         <p>Aucune information trouvée pour ce résident.</p>

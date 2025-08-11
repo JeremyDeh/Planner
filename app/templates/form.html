@@ -104,13 +104,27 @@
             
             <label>Nom du résident :</label>
             <div style="position:relative;">
-                <input type="text" name="nomPatient" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showPatientList()" oninput="filterPatientList()">
-                <div id="patientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
-                    {% for nom in residents %}
-                        <div class="patient-item" onclick="selectPatient('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
-                    {% endfor %}
-                </div>
+            <!-- Champ texte affiché à l'utilisateur -->
+            <input type="text" name="nomPatient_affichage" id="nomPatientInput" 
+                autocomplete="off" placeholder="Commencez à taper..." required 
+                onfocus="showPatientList()" oninput="filterPatientList()">
+
+            <!-- Champ caché pour envoyer la PK au backend -->
+            <input type="hidden" name="nomPatient" id="nomPatientHidden">
+
+            <div id="patientList" style="display:none; position:absolute; left:0; right:0; 
+                                        background:#fff; border:1px solid #ccc; 
+                                        max-height:200px; overflow-y:auto; z-index:10;">
+                {% for nom in residents %}
+                    <div class="patient-item" 
+                        data-pk="{{ pks[loop.index0] }}" 
+                        style="padding:8px; cursor:pointer;" 
+                        onclick="selectPatient(this)">
+                        {{ nom }}
+                    </div>
+                {% endfor %}
             </div>
+        </div>
 
 
             <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 12px;">
@@ -159,15 +173,23 @@
                 function showPatientList() {
                     document.getElementById('patientList').style.display = 'block';
                 }
+
                 function hidePatientList() {
                     setTimeout(function() {
                         document.getElementById('patientList').style.display = 'none';
                     }, 200);
                 }
-                function selectPatient(nom) {
-                    document.getElementById('nomPatientInput').value = nom;
+
+                function selectPatient(element) {
+                    // Nom affiché dans le champ texte
+                    document.getElementById('nomPatientInput').value = element.textContent.trim();
+
+                    // PK envoyée dans le champ hidden
+                    document.getElementById('nomPatientHidden').value = element.getAttribute('data-pk');
+
                     hidePatientList();
                 }
+
                 function filterPatientList() {
                     var input = document.getElementById('nomPatientInput').value.toLowerCase();
                     var items = document.querySelectorAll('#patientList .patient-item');
@@ -179,6 +201,7 @@
                         }
                     });
                 }
+
                 document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
 
                 function showMedecinList() {
