@@ -55,7 +55,7 @@ def form():
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
 def journee():
-    manquants=selles_non_enregistrees()
+    manquants= [record['nom'] for record in selles_non_enregistrees()]
     plusieurs_jours= get_plusieurs_jours_selles()
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
@@ -124,7 +124,7 @@ def enregistre_selles():
         print(f"### Valeur pour {nom_famille} {prenom} ({pk}) - {moment}: {val}")
         if len(val) > 0:
             return val[0]
-        elif f"{pk}" not in selles_non_enregistrees():
+        elif f"{pk}" not in [record['pk'] for record in selles_non_enregistrees()]:
             print("pk : ",pk)
             print("val : \n",val)
             print("df : \n",df_selles_du_jour)
@@ -139,7 +139,7 @@ def enregistre_selles():
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th><th>pk</th>
+                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th><th style="display:none;">pk</th>
                 </tr>
             </thead>
             <tbody>
@@ -169,7 +169,7 @@ def enregistre_selles():
             <td><select id="{safe_nom}-matin-select">{options_html(valeur_matin)}</select></td>
             <td><select id="{safe_nom}-soir-select">{options_html(valeur_soir)}</select></td>
             <td><input type="text" value="{commentaire}" placeholder="Note..."></td>
-            <td>{pk}</td>
+            <td style="display:none;">{pk}</td>
             
         </tr>
         '''
