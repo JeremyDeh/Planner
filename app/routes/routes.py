@@ -1,3 +1,4 @@
+
 from neo4j import GraphDatabase
 import os
 import pandas as pd
@@ -26,7 +27,8 @@ from app.services import (
     maj_last_check_selles,
     selles_non_enregistrees,
     get_selles_du_jour,
-    get_plusieurs_jours_selles
+    get_plusieurs_jours_selles,
+    get_infos_rdv
 
 )
 
@@ -36,7 +38,43 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASS")
 NEO4J_DB = "neo4j"
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+
 main_bp = Blueprint('main', __name__)
+
+# Nouvelle route pour la popup ALT
+@main_bp.route('/popup_row_alt', methods=['POST'])
+def popup_row_alt():
+    """
+    Génère le contenu HTML pour la nouvelle popup personnalisée (colonne alt).
+    """
+    data = request.get_json(force=True)
+    html = '<h3 style="margin-top:0; color:#eebbc3;">Informations complémentaires (ALT)</h3>'
+    html += '<table style="width:100%; border-collapse:collapse;">'
+    if data.get('oxygen') == 'Oui':
+        oxygen_html = (
+            '<p style="color: red; font-weight: bold;">'
+            'Attention : Oxygène requis</p>'
+        )
+    else:
+        oxygen_html = (
+            '<p style="color: green; font-weight: bold;">'
+            'Pas d\'oxygène requis</p>'
+        )
+    html += oxygen_html
+    for key, value in data.items():
+        key_td = (
+            "<td style='font-weight:600; color:#eebbc3; padding:6px 10px; border-bottom:1px solid #eee;'>"
+            f"{key}</td>"
+        )
+        value_td = (
+            "<td style='padding:6px 10px; border-bottom:1px solid #eee;'>"
+            f"{value}</td>"
+        )
+        row = f"<tr>{key_td}{value_td}</tr>"
+        html += row
+    html += '</table>'
+    html += '<div style="margin-top:18px; color:#232946;">Ceci est une popup personnalisée pour la colonne ALT.</div>'
+    return make_response(html)
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
@@ -55,12 +93,14 @@ def form():
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
 def journee():
-    manquants= [record['nom'] for record in selles_non_enregistrees()]
+    manquants=selles_non_enregistrees()
     plusieurs_jours= get_plusieurs_jours_selles()
+    print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
         date_note = request.form.get('date_note')
         heure_note = request.form.get('heure_note')
+        print(note, date_note, heure_note)
         ajout_note(note, date_note, heure_note)
         
     
@@ -78,6 +118,7 @@ def enregistre_selles():
     if request.method == 'POST':
         data = request.get_json()
         #print("### Données reçues :", data)
+
         enregistrer_valeur_selles(data)
         maj_last_check_selles(data)
 
@@ -85,16 +126,15 @@ def enregistre_selles():
 
     # Sinon, méthode GET → on renvoie le tableau HTML
     df_selles_du_jour = pd.DataFrame(get_selles_du_jour())
-    print("initialisation df_selles\n", df_selles_du_jour)
     aujourdhui = pd.Timestamp.today().normalize()  # sans l'heure
     cols_dates = ['nuit', 'matin', 'soir']  # tes colonnes de dates
-    try:
-        df_selles_du_jour[cols_dates] = df_selles_du_jour[cols_dates].where(df_selles_du_jour[cols_dates] == aujourdhui, None)
-    except :
-        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','soir'])
-    if df_selles_du_jour.empty:
+    df_selles_du_jour[cols_dates] = df_selles_du_jour[cols_dates].where(
+        df_selles_du_jour[cols_dates] == aujourdhui, 
+        None
+    )
+    if df_selles_du_jour.shape == (0,0):
         print('il est broke ton df')
-        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','soir'])
+        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'moment', 'caracteristique', 'commentaire'])
     else :
         print('df ok')
         for col in ['nuit', 'matin', 'soir']:
@@ -106,7 +146,9 @@ def enregistre_selles():
 
             # On concatène les lignes originales avec les nouvelles
             df_selles_du_jour = pd.concat([df_selles_du_jour, df_none], ignore_index=True)
-    noms,prenoms,pks = get_residents()
+            print("nouveau df")
+            print(df_selles_du_jour)
+    residents = get_residents()
 
     def options_html(selected_value):
         options = ['--', 'Normale', 'Liquide', 'Mou', 'Absence']
@@ -115,19 +157,17 @@ def enregistre_selles():
             for opt in options
         ])
 
-    def get_val(nom_famille, prenom, pk, moment):
+    def get_val(nom_famille, prenom, moment):
+        print(df_selles_du_jour)
         val = df_selles_du_jour.loc[
-            (df_selles_du_jour['pk'] == pk) &
+            (df_selles_du_jour['nom'] == nom_famille) &
+            (df_selles_du_jour['prenom'] == prenom) &
             (df_selles_du_jour['moment'] == moment),
             'caracteristique'
         ].values
-        print(f"### Valeur pour {nom_famille} {prenom} ({pk}) - {moment}: {val}")
         if len(val) > 0:
             return val[0]
-        elif f"{pk}" not in [record['pk'] for record in selles_non_enregistrees()]:
-            print("pk : ",pk)
-            print("val : \n",val)
-            print("df : \n",df_selles_du_jour)
+        elif f"{nom_famille} {prenom}" not in selles_non_enregistrees():
             return 'Absence'
         else:
             return "--"
@@ -139,38 +179,37 @@ def enregistre_selles():
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th><th style="display:none;">pk</th>
+                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th>
                 </tr>
             </thead>
             <tbody>
     '''
 
-    for nom,prenom,pk in zip(noms,prenoms,pks):
+    for nom in residents:
+        parts = nom.split(' ')
+        nom_famille = parts[0]
+        prenom = parts[1] if len(parts) > 1 else ""
 
-
-        valeur_nuit = get_val(nom, prenom, pk, 'nuit')
-        valeur_matin = get_val(nom, prenom, pk, 'matin')
-        valeur_soir = get_val(nom, prenom, pk, 'soir')
+        valeur_nuit = get_val(nom_famille, prenom, 'nuit')
+        valeur_matin = get_val(nom_famille, prenom, 'matin')
+        valeur_soir = get_val(nom_famille, prenom, 'soir')
 
         commentaire = df_selles_du_jour.loc[
-            (df_selles_du_jour['nom'] == nom) &
+            (df_selles_du_jour['nom'] == nom_famille) &
             (df_selles_du_jour['prenom'] == prenom),
             'commentaire'
         ].values
         commentaire = commentaire[0] if len(commentaire) > 0 else ""
-        commentaire =commentaire if commentaire !=None else ""
-        nom_complet = f"{nom.replace(' ', '-')} {prenom.replace(' ', '-')}"
-        safe_nom = pk.replace(' ', '_')
+
+        safe_nom = nom.replace(" ", "_")
 
         table_html += f'''
         <tr>
-            <td>{nom_complet}</td>
+            <td>{nom}</td>
             <td><select id="{safe_nom}-nuit-select">{options_html(valeur_nuit)}</select></td>
             <td><select id="{safe_nom}-matin-select">{options_html(valeur_matin)}</select></td>
             <td><select id="{safe_nom}-soir-select">{options_html(valeur_soir)}</select></td>
             <td><input type="text" value="{commentaire}" placeholder="Note..."></td>
-            <td style="display:none;">{pk}</td>
-            
         </tr>
         '''
 
@@ -309,35 +348,26 @@ def popup_row():
     date_parts = data["Date"].split(" ")
     nom_reserv = data["nom_resident"]
     rdv = data["Rendez-vous"]
-
-    intro = (f'{nom_reserv} a rendez-vous le {date_parts[0]} à {date_parts[1]}'
-             f'pour un rendez-vous "{rdv}" ')
+    transport = data["Transport"]
+    infos = get_infos_rdv(data["Date"].replace(' ','T'), nom_reserv, rdv)
+    print('infos : ', infos)
+    medecin=infos[0].get('medecin', '') if infos[0].get('medecin', '') != None else ''
+    html += f"<strong>{nom_reserv}</strong><br>"
+    intro= f"""Vous avez rendez vous  "{rdv}" prévu le {date_parts[0]} a {date_parts[1]}, """
+    if medecin != '':
+        intro += f"avec : {medecin}, "
     html += intro
-
-    if data.get('oxygen') == 'Oui':
-        oxygen_html = (
-            '<p style="color: red; font-weight: bold;">'
-            'Attention : Oxygène requis</p>'
-        )
+    if transport != '---':
+        transport_html = f"""<p style="color: #232946; font-weight: bold;">Un transport est prévu pour vous emmener à ce rendez vous : {transport}</p>"""
+        html += transport_html
     else:
-        oxygen_html = (
-            '<p style="color: green; font-weight: bold;">'
-            'Pas d\'oxygène requis</p>'
-        )
-    html += oxygen_html
+        transport_html = f"""<p style="color: #232946; font-weight: bold;">Aucun transport n'est prévu pour ce rendez-vous.</p>"""
+        html += transport_html
+    if len(infos) > 0:
+        lieu= infos[0].get('lieu', 'Non spécifié')
+        lieu_html = f"""<p style="color: #232946; font-weight: bold;">Lieu du rendez-vous : {lieu}</p>"""
+        html += lieu_html
 
-    for key, value in data.items():
-        key_td = (
-            "<td style='font-weight:600; color:#232946; padding:6px 10px;"
-            " border-bottom:1px solid #eee;'>"
-            f"{key}</td>"
-        )
-        value_td = (
-            "<td style='padding:6px 10px; border-bottom:1px solid #eee;'>"
-            f"{value}</td>"
-        )
-        row = f"<tr>{key_td}{value_td}</tr>"
-        html += row
 
     html += '</table>'
     return make_response(html)

@@ -124,7 +124,7 @@
     <div class="sidebar">
         <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
         <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
-        <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+        <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == 'main.form' or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
         <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
         <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
     </div>
@@ -220,12 +220,14 @@
                 <label>Nom du résident :</label>
                 
                 <div style="position:relative;">
-                <input type="text" name="nomPatientEDT_affichage" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required>
+                <input type="text" name="nomPatientEDT_affichage" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required
+                onfocus="showPatientList()" oninput="filterPatientList()">
                 <input type="hidden" name="nomPatientEDT" id="nomPatientHidden"> <!-- ici la pk envoyée -->
 
                 <div id="patientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
                 {% for nom in residents %}
-                    <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;" >
+                    <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;" 
+                        onclick="selectPatient(this)">
                     {{ nom }}
                     </div>
                 {% endfor %}
@@ -314,7 +316,8 @@
                                     {% for col in nodes[0].keys() %}
                                     <th>{{ col }}</th>
                                     {% endfor %}
-                                    <th></th>
+                                    <th>F.R.</th>
+                                    <th>F.I.</th> <!-- Nouvelle colonne pour le second bouton -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -329,6 +332,15 @@
                                                 <circle cx="5" cy="12" r="2" fill="#232946"/>
                                                 <circle cx="12" cy="12" r="2" fill="#232946"/>
                                                 <circle cx="19" cy="12" r="2" fill="#232946"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <button class="dots-btn-alt" data-row-alt='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="5" cy="12" r="2" fill="#eebbc3"/>
+                                                <circle cx="12" cy="12" r="2" fill="#eebbc3"/>
+                                                <circle cx="19" cy="12" r="2" fill="#eebbc3"/>
                                             </svg>
                                         </button>
                                     </td>
@@ -401,6 +413,18 @@
                                     }
                                 });
                             });
+                            // Gestionnaire pour les nouveaux boutons ...
+                            document.querySelectorAll('.dots-btn-alt[data-row-alt]').forEach(btn => {
+                                btn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    try {
+                                        const rowData = JSON.parse(this.getAttribute('data-row-alt'));
+                                        openRowPopupAlt(rowData);
+                                    } catch (err) {
+                                        alert('Erreur lors de l\'ouverture de la fiche (alt) : données invalides.');
+                                    }
+                                });
+                            });
                         });
                         </script>
                         <!-- Pop-up modale pour la ligne -->
@@ -461,6 +485,66 @@
                         }
                         function closeRowPopup() {
                             document.getElementById('rowPopupOverlay').style.display = 'none';
+                        }
+                        </script>
+                        <!-- Pop-up modale pour la nouvelle colonne -->
+                        <div id="rowPopupOverlayAlt" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
+                            <div id="rowPopupInnerAlt" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
+                                
+                                <!-- Bouton fixe -->
+                                <button onclick="closeRowPopupAlt()" 
+                                        style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:2em; color:#232946; cursor:pointer; line-height:1; z-index:999999;">
+                                    &times;
+                                </button>
+                                
+                                <!-- Zone de contenu dynamique -->
+                                <div id="rowPopupContentAlt" style="margin-top:18px;">
+                                    Chargement...
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                        function openRowPopupAlt(rowData) {
+                            // Récupère le nom, oxygen et diabete affichés sur la fiche-carte
+                            let nomResident = '';
+                            let oxygen = '';
+                            let diabete = '';
+                            const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
+                            if (carte) {
+                                const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
+                                if (titre) nomResident = titre.textContent.trim();
+                                // Oxygen
+                                const oxyDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('O₂'));
+                                if (oxyDiv) {
+                                    const match = oxyDiv.textContent.match(/O₂\s*:\s*(Oui|Non)/i);
+                                    if (match) oxygen = match[1];
+                                }
+                                // Diabete
+                                const diabDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('Diabète'));
+                                if (diabDiv) {
+                                    const match = diabDiv.textContent.match(/Diabète\s*:\s*(Oui|Non)/i);
+                                    if (match) diabete = match[1];
+                                }
+                            }
+                            // Ajoute nom, oxygen, diabete à l'objet envoyé
+                            const dataToSend = Object.assign({}, rowData, { nom_resident: nomResident, oxygen: oxygen, diabete: diabete });
+                            const popup = document.getElementById('rowPopupOverlayAlt');
+                            const content = document.getElementById('rowPopupContentAlt'); // zone dynamique
+                            content.innerHTML = 'Chargement...';
+                            popup.style.display = 'flex';
+                            fetch('/popup_row_alt', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(dataToSend)
+                            })
+                            .then(r => r.text())
+                            .then(html => { content.innerHTML = html; })
+                            .catch(() => { content.innerHTML = '<div style="color:red;">Erreur de chargement.</div>'; });
+                        }
+
+                        function closeRowPopupAlt() {
+                            document.getElementById('rowPopupOverlayAlt').style.display = 'none';
                         }
                         </script>
                     {% else %}

@@ -31,7 +31,7 @@ def init_db(driver):
 UNWIND ['Dentiste', 'Imagerie','Esthéticienne','Cardiologie','Coiffeur','Pédicure','Famille','Autre' ,'Ophtalmologie','Audioprothésiste','Télémédecine','Urologie','Pneumologie','Dermatologie','Consultation mémoire','Chirurgie','Kinésithérapie','Ergothérapie','Rhumatologie','Urgence','Gastrologie/Entérologie','Animation','PASA','Endoscopie','Neurologie','Gynécologie','Oncologie','Néphrologie','Orthopédie','Ambulatoire','Endocrinologie','Diabétologie','Optique','Médecine'] AS catego
 CREATE (:Categorie {metier: catego});
         """)
-        with driver.session() as session:
+    with driver.session() as session:
         session.run("""
 UNWIND ['Infirmières', 'IDE','AS','Ergo','Kiné','Secrétaire médicale'] AS catego
 CREATE (:Service {nom: catego});

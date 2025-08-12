@@ -153,6 +153,7 @@ def extract_form_data(form):
     transport = form.get('transport')
     date_rdv = form.get('date_prestation', '')
     heure_rdv = form.get('heure_prestation', '')
+    medecin = form.get('identiteMedecin', '')
 
     rdv_debut = datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00') if heure_rdv != '' else date.fromisoformat(date_rdv)
 
@@ -198,7 +199,8 @@ def extract_form_data(form):
         'date_rdv_list': date_rdv_list,
         'colonnes_table': colonnes_table,
         'service': service,
-        'pk': pk
+        'pk': pk,
+        'medecin': medecin
     }
 
 
@@ -232,6 +234,7 @@ def insert_rendez_vous(data):
                                lieu:$lieu,
                                commentaire:$commentaire,
                                responsable:$responsable,
+                               medecin:$medecin,
                                create_date:datetime()
                         }]->(m)
             """
@@ -245,7 +248,8 @@ def insert_rendez_vous(data):
                 transport=data['transport'],
                 lieu=data['lieu'],
                 responsable=data['service'],
-                pk= data['pk']
+                pk= data['pk'],
+                medecin= data['medecin']
             )
 
 def get_service():
@@ -603,3 +607,18 @@ def get_plusieurs_jours_selles():
             df['Date'] = df['Date'].fillna("--")
             df['Jours'] = df['Jours'].astype('Int32') 
         return  df #df.fillna("--")
+def get_infos_rdv(date, nom_full, rdv,pk=''):
+    nom=nom_full.split(" ")[0]
+    prenom =nom_full.split(" ")[1]
+    date=date+':00'
+    print('get_infos_rdv : ',date, nom, prenom, rdv)
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+           MATCH (n:Resident {nom:$nom, prenom:$prenom})-[r:Rdv ]->(m:Categorie {metier:$rdv}) WHERE toString(r.date) = $date
+        RETURN r.lieu AS lieu, r.medecin AS medecin, r.commentaire AS commentaire, r.transport AS transport, n.deplacement AS deplacement, n.oxygen AS oxygen, n.diabete AS diabete
+
+        """
+        results = session.run(cypher_query,nom=nom,prenom=prenom,date=date,rdv=rdv)
+        data= [dict(record) for record in results]
+ 
+        return  data
