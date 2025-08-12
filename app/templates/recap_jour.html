@@ -165,7 +165,7 @@
                                             <thead>
                                                 <tr style="background:#f7f7fa; color:#232946;">
                                                     {% for col in plusieurs_jours.columns %}
-                                                        <th style="padding:6px 10px; border-bottom:1px solid #e0e0e0;">{{ col }}</th>
+                                                        <th style="padding:6px 10px; border-bottom:1px solid #e0e0e0; {% if col == 'pk' %}display:none;{% endif %}">{{ col }}</th>
                                                     {% endfor %}
                                                 </tr>
                                             </thead>
@@ -173,7 +173,7 @@
                                                 {% for _, row in plusieurs_jours.iterrows() %}
                                                     <tr>
                                                         {% for col in plusieurs_jours.columns %}
-                                                            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">{{ row[col] }}</td>
+                                                            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0; {% if col == 'pk' %}display:none;{% endif %}">{{ row[col] }}</td>
                                                         {% endfor %}
                                                     </tr>
                                                 {% endfor %}

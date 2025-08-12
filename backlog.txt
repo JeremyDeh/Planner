@@ -7,18 +7,16 @@
 + lors de création de fiche patient ajouter mode de déplacement (seul, canne, déambulateur, fauteil roulant, alité) ----- Done
 + virer le fait qu'au moins un rappel soit obligatoire ----- Done
 + rendez-vous sans horaire  (tel jour machin a ca, mais il y a pas d'heure, faut que ca soit fait dans la journée) ----- Done
-+ ajuoter le champs date de naissance a la création d'un nouveau résident ----- Done
++ ajouter le champs date de naissance a la création d'un nouveau résident ----- Done
 + créer un clé primaire basée sur nom + prenom + datenaissance  ----- Done
-+ forcer le nom en majuscule et le prenom avec premiere lettre maj seulement, lorsqu'on créé un nouveau résident
-+ creer un champs "nom affichage"
-- quand on affiche les résidents dans les menus déroulant, ajouter le numero de chambre pour quand il y a deux personnes avec le meme nom et prenom
-
-- Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )
-  (commencé, fonctions dans utils_date mais pas encore utilisé)
++ forcer le nom en majuscule et le prenom avec premiere lettre maj seulement, lorsqu'on créé un nouveau résident  ----- Done
++ creer un champs "nom affichage"  ----- Done
++ quand on affiche les résidents dans les menus déroulant, ajouter le numero de chambre pour quand il y a deux personnes avec le meme nom et prenom  ----- Done
++ Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )   ----- Done
++ Ajouter taxi dans les moyen de transport ----- Done
 
 - récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer)
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
-
 - Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre
 - 2 types de fiches différentes pour imprimer, une pour les infirimieres avec données completes, et une pour le patient, synthses : Vous avez rendez vous le xxx a telle heure, avec le medecin xxx, pour motif : "type de rdv", (si transport chosiis: Mode de transport : un membre de votre famille vous accompagnerz  ou "Un transport exterieur viendra vous chercher", Lieu du rendez-vous : xxx )
 	pour infirmieres on laisse que le tableau et le truc coloré pour O2, mais dans tableau on garde diabete que si type redndez vous = pedicure
@@ -28,5 +26,8 @@
 - possibilité de mettre ponctuellement oxygen = oui meme si patient a O2=Non
 - indicateur si rdv complet  : booleen choisi par l'utilisateur pour dire s'il manque des trucs sur la fiche
 
+
+### UPGRADE FOR LATER ###
 - possibilité d'ajouter un fichier lors de création du rendez-vous (voir plus tard, selon moi pas critique)
 - permettre d'aller rapidement a une date plus eloignée  (secondaire, pas tres utile selon moi)
+- Exporter fiche en PDF clean (lancer sous module LaTeX qui genere pdf?)
