@@ -57,12 +57,10 @@ def form():
 def journee():
     manquants=selles_non_enregistrees()
     plusieurs_jours= get_plusieurs_jours_selles()
-    print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
         date_note = request.form.get('date_note')
         heure_note = request.form.get('heure_note')
-        print(note, date_note, heure_note)
         ajout_note(note, date_note, heure_note)
         
     
@@ -80,7 +78,6 @@ def enregistre_selles():
     if request.method == 'POST':
         data = request.get_json()
         #print("### Données reçues :", data)
-
         enregistrer_valeur_selles(data)
         maj_last_check_selles(data)
 
@@ -88,15 +85,16 @@ def enregistre_selles():
 
     # Sinon, méthode GET → on renvoie le tableau HTML
     df_selles_du_jour = pd.DataFrame(get_selles_du_jour())
+    print("initialisation df_selles\n", df_selles_du_jour)
     aujourdhui = pd.Timestamp.today().normalize()  # sans l'heure
     cols_dates = ['nuit', 'matin', 'soir']  # tes colonnes de dates
-    df_selles_du_jour[cols_dates] = df_selles_du_jour[cols_dates].where(
-        df_selles_du_jour[cols_dates] == aujourdhui, 
-        None
-    )
-    if df_selles_du_jour.shape == (0,0):
+    try:
+        df_selles_du_jour[cols_dates] = df_selles_du_jour[cols_dates].where(df_selles_du_jour[cols_dates] == aujourdhui, None)
+    except :
+        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','soir'])
+    if df_selles_du_jour.empty:
         print('il est broke ton df')
-        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'moment', 'caracteristique', 'commentaire'])
+        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','soir'])
     else :
         print('df ok')
         for col in ['nuit', 'matin', 'soir']:
@@ -108,9 +106,7 @@ def enregistre_selles():
 
             # On concatène les lignes originales avec les nouvelles
             df_selles_du_jour = pd.concat([df_selles_du_jour, df_none], ignore_index=True)
-            print("nouveau df")
-            print(df_selles_du_jour)
-    residents = get_residents()
+    noms,prenoms,pks = get_residents()
 
     def options_html(selected_value):
         options = ['--', 'Normale', 'Liquide', 'Mou', 'Absence']
@@ -119,17 +115,19 @@ def enregistre_selles():
             for opt in options
         ])
 
-    def get_val(nom_famille, prenom, moment):
-        print(df_selles_du_jour)
+    def get_val(nom_famille, prenom, pk, moment):
         val = df_selles_du_jour.loc[
-            (df_selles_du_jour['nom'] == nom_famille) &
-            (df_selles_du_jour['prenom'] == prenom) &
+            (df_selles_du_jour['pk'] == pk) &
             (df_selles_du_jour['moment'] == moment),
             'caracteristique'
         ].values
+        print(f"### Valeur pour {nom_famille} {prenom} ({pk}) - {moment}: {val}")
         if len(val) > 0:
             return val[0]
-        elif f"{nom_famille} {prenom}" not in selles_non_enregistrees():
+        elif f"{pk}" not in selles_non_enregistrees():
+            print("pk : ",pk)
+            print("val : \n",val)
+            print("df : \n",df_selles_du_jour)
             return 'Absence'
         else:
             return "--"
@@ -141,37 +139,38 @@ def enregistre_selles():
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th>
+                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th><th>pk</th>
                 </tr>
             </thead>
             <tbody>
     '''
 
-    for nom in residents:
-        parts = nom.split(' ')
-        nom_famille = parts[0]
-        prenom = parts[1] if len(parts) > 1 else ""
+    for nom,prenom,pk in zip(noms,prenoms,pks):
 
-        valeur_nuit = get_val(nom_famille, prenom, 'nuit')
-        valeur_matin = get_val(nom_famille, prenom, 'matin')
-        valeur_soir = get_val(nom_famille, prenom, 'soir')
+
+        valeur_nuit = get_val(nom, prenom, pk, 'nuit')
+        valeur_matin = get_val(nom, prenom, pk, 'matin')
+        valeur_soir = get_val(nom, prenom, pk, 'soir')
 
         commentaire = df_selles_du_jour.loc[
-            (df_selles_du_jour['nom'] == nom_famille) &
+            (df_selles_du_jour['nom'] == nom) &
             (df_selles_du_jour['prenom'] == prenom),
             'commentaire'
         ].values
         commentaire = commentaire[0] if len(commentaire) > 0 else ""
-
-        safe_nom = nom.replace(" ", "_")
+        commentaire =commentaire if commentaire !=None else ""
+        nom_complet = f"{nom.replace(' ', '-')} {prenom.replace(' ', '-')}"
+        safe_nom = pk.replace(' ', '_')
 
         table_html += f'''
         <tr>
-            <td>{nom}</td>
+            <td>{nom_complet}</td>
             <td><select id="{safe_nom}-nuit-select">{options_html(valeur_nuit)}</select></td>
             <td><select id="{safe_nom}-matin-select">{options_html(valeur_matin)}</select></td>
             <td><select id="{safe_nom}-soir-select">{options_html(valeur_soir)}</select></td>
             <td><input type="text" value="{commentaire}" placeholder="Note..."></td>
+            <td>{pk}</td>
+            
         </tr>
         '''
 
