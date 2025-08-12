@@ -531,17 +531,18 @@ def selles_non_enregistrees():
     enregistrées aujourd'hui.
 
     Returns:
-        list[str]: Liste des noms complets des résidents sans enregistrement de selles.
+        results, a recuperer en dehors der la fonction sous la forme [x['nom'] for x in results] ou [x['pk'] for x in results]
     """
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
             MATCH (n:Resident)
             WHERE n.derniere_verif_selles is null OR n.derniere_verif_selles < date()
-            RETURN n.pk AS pk
-            ORDER BY n.pk
+            RETURN n.pk AS pk, n.nom_affichage AS nom 
+            ORDER BY n.nom_affichage
         """
         results = session.run(cypher_query)
-        return [record['pk'] for record in results]
+        results = [dict(record) for record in results]
+        return  results
 def get_selles_du_jour():
     """
     Récupère les enregistrements de selles pour la journée en cours.
