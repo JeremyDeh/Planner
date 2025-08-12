@@ -20,16 +20,18 @@ def get_residents():
         list[str]: Liste des noms complets des résidents,
         triés par nom puis prénom.
     """
-    residents = []
+    residents_noms = []
+    residents_prenoms = []
+    pks = []
     with driver.session(database=NEO4J_DB) as session:
-        cypher_query = """MATCH (n:Resident) RETURN n.nom, n.prenom 
-                       ORDER BY n.nom, n.prenom"""
+        cypher_query = """MATCH (n:Resident) RETURN n.nom, n.prenom, n.pk
+                       ORDER BY n.nom, n.prenom, n.pk"""
         neo4j_results = session.run(cypher_query)
         for record in neo4j_results:
-            nom = record['n.nom'] + ' ' + record['n.prenom']
-            if nom:
-                residents.append(nom)
-    return residents
+                residents_noms.append(record['n.nom'])
+                residents_prenoms.append(record['n.prenom'])
+                pks.append(record['n.pk'])
+    return residents_noms, residents_prenoms, pks
 
 def get_residents_chambre():
     """
@@ -40,15 +42,18 @@ def get_residents_chambre():
         triés par nom puis prénom.
     """
     residents = []
+    pks = []
     with driver.session(database=NEO4J_DB) as session:
-        cypher_query = """MATCH (n:Resident) RETURN n.nom, n.prenom, n.chambre
+        cypher_query = """MATCH (n:Resident) RETURN n.nom, n.prenom, n.chambre, n.pk
                        ORDER BY n.nom, n.prenom, n.chambre"""
         neo4j_results = session.run(cypher_query)
         for record in neo4j_results:
-            nom = record['n.nom'] + ' ' + record['n.prenom'] + ' (' + str(record['n.chambre']) + ')'
+            nom = record['n.nom'] + ' ' + record['n.prenom'] + ' (Chambre ' + str(record['n.chambre']) + ')'
+            pk = record['n.pk']
             if nom:
                 residents.append(nom)
-    return residents
+                pks.append(pk)
+    return pks,residents
 
 def get_rendez_vous_jour(driver, NEO4J_DB):
     with driver.session(database=NEO4J_DB) as session:
@@ -89,7 +94,7 @@ def ajout_note(note, date_note, heure_note,metier='Autre'):
     date_heure = datetime.fromisoformat(f"{date_note}T{heure_note}")
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-        Match (n:Service {nom:'Infirmieres'})
+        Match (n:Service {nom:'Infirmières'})
         match (m:Categorie{metier:$metier})
         CREATE (n)-[r:Note {date:datetime($date),commentaire:$contenu, create_date:datetime()}]->(m)
         """
@@ -140,9 +145,7 @@ def extract_form_data(form):
     """
     recurrence = form.get('fichierCSV', '0')
 
-    nomPatient = form['nomPatient']
-    nom, prenom = nomPatient.split(' ')[0], nomPatient.split(' ')[1]
-
+    pk = form['nomPatient']
     metier = form.get('nomMedecin', '')
     service = form.get('nomService', '')
     lieu = form.get('lieu')
@@ -188,8 +191,6 @@ def extract_form_data(form):
 
     return {
         'recurrence': recurrence,
-        'nom': nom,
-        'prenom': prenom,
         'metier': metier,
         'lieu': lieu,
         'commentaire': commentaire,
@@ -197,6 +198,7 @@ def extract_form_data(form):
         'date_rdv_list': date_rdv_list,
         'colonnes_table': colonnes_table,
         'service': service,
+        'pk': pk
     }
 
 
@@ -223,7 +225,7 @@ def insert_rendez_vous(data):
     with driver.session(database=NEO4J_DB) as session:
         for rdv in data['date_rdv_list']:
             cypher_query = """
-            MATCH (n:Resident {nom:$nom, prenom:$prenom})
+            MATCH (n:Resident {pk:$pk})
             MATCH (m:Categorie{metier:$metier})
             CREATE (n)-[r:Rdv {date:$date_str,
                                transport:$transport,
@@ -235,8 +237,6 @@ def insert_rendez_vous(data):
             """
             session.run(
                 cypher_query,
-                nom=data['nom'],
-                prenom=data['prenom'],
                 date_str=rdv,
                 recurrence=data['recurrence'],
                 action=liste_actions,
@@ -244,7 +244,8 @@ def insert_rendez_vous(data):
                 metier=data['metier'],
                 transport=data['transport'],
                 lieu=data['lieu'],
-                responsable=data['service']
+                responsable=data['service'],
+                pk= data['pk']
             )
 
 def get_service():
@@ -311,7 +312,7 @@ def create_rappels(data):
                 )
 
 
-def get_resident_properties(driver, db_name, nom, prenom):
+def get_resident_properties(driver, db_name, pk):
     """
     Récupère les propriétés d'un résident spécifique.
 
@@ -326,10 +327,10 @@ def get_resident_properties(driver, db_name, nom, prenom):
     """
     with driver.session(database=db_name) as session:
         cypher_query = (
-            "MATCH (n:Resident {nom:$nom, prenom:$prenom}) "
+            "MATCH (n:Resident {pk:$pk}) "
             "RETURN properties(n) as consult"
         )
-        results = session.run(cypher_query, nom=nom, prenom=prenom)
+        results = session.run(cypher_query, pk=pk)
         dicts = [dict(record['consult']) for record in results]
         if dicts:
             return pd.DataFrame(dicts)
@@ -337,7 +338,7 @@ def get_resident_properties(driver, db_name, nom, prenom):
             return pd.DataFrame()
 
 
-def get_rendez_vous(driver, db_name, nom, prenom):
+def get_rendez_vous(driver, db_name, pk):
     """
     Récupère la liste des rendez-vous d'un résident.
 
@@ -352,11 +353,11 @@ def get_rendez_vous(driver, db_name, nom, prenom):
     """
     with driver.session(database=db_name) as session:
         cypher_query = (
-            "MATCH (n:Resident {nom:$nom,prenom:$prenom})-[r:Rdv]->(m) "
+            "MATCH (n:Resident {pk:$pk})-[r:Rdv]->(m) "
             "RETURN n.nom, n.prenom, r.date, m.metier, r.commentaire, "
             "r.transport ORDER BY r.date ASC"
         )
-        results = session.run(cypher_query, nom=nom, prenom=prenom)
+        results = session.run(cypher_query, pk=pk)
         return [
             {
                 'Date': record['r.date'].strftime('%Y-%m-%d %H:%M'),
@@ -444,13 +445,13 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
                 deplacement: $deplacement,
                 oxygen: $oxygen,
                 diabete: $diabete,
-                naissance: date($naissance)
-                pk= toUpper($nom.replace(' ','_')) + '_' + toUpper($prenom.replace(' ','_')) + '_' + toString($naissance)
-                nom_affichage: toUpper($nom) + ' ' + $prenom.capitalize()
+                naissance: date($naissance),
+                pk : $pk,
+                nom_affichage: $nom_affichage
             })
             """,
-            nom=nom,
-            prenom=prenom,
+            nom=nom.upper(),
+            prenom=prenom.capitalize(),
             commentaire=commentaire,
             sexe=sexe,
             etage=etage,
@@ -458,7 +459,9 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
             deplacement=deplacement,
             oxygen=oxygen,
             diabete=diabete,
-            naissance=naissance
+            naissance=naissance,
+            pk=nom.upper().replace(' ', '-') + '_' + prenom.capitalize().replace(' ', '-') + '_' + naissance,
+            nom_affichage=nom.upper() + ' ' + prenom.capitalize()
         )
 
 def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence"
@@ -475,21 +478,21 @@ def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence
                     "prenom": prenom,
                     "moment": moment,
                     "caracteristique": data[nom_complet][moment],
-                    "note": data[nom_complet].get("note", "")
+                    "note": data[nom_complet].get("note", ""),
+                    'pk': data[nom_complet].get("pk", "")
                 }) 
 
     with driver.session(database=NEO4J_DB) as session:
         session.run(
             """
             UNWIND $data AS row
-            MATCH (n:Resident {nom: row.nom, prenom: row.prenom})
+            MATCH (n:Resident {pk: row.pk})
             MERGE (m:Selles {
                 date: date(),
                 moment_date: row.moment,
-                caracteristique: row.caracteristique,
                 commentaire: row.note
             })
-            MERGE (m)-[:Par]->(n)
+            MERGE (m)-[r:Par ]->(n) SET r.caracteristique = row.caracteristique
             """,
             data=data_f
         )
@@ -499,13 +502,13 @@ def maj_last_check_selles(data) :
     data_f = []
     for noms_complet in data.keys():  # original_data contient les noms complets
         nom,prenom = noms_complet.split(" ")
-        data_f.append({"nom": nom, "prenom": prenom, "liste":['nuit' if data[noms_complet]['nuit']!='--' else None,'matin' if data[noms_complet]['matin']!='--' else None,'soir' if data[noms_complet]['soir']!='--' else None ]}) if any([valeur !='--' for valeur in (data[noms_complet]['nuit'],data[noms_complet]['matin'],data[noms_complet]['soir']) ]) else None
+        data_f.append({"nom": nom, "prenom": prenom, "pk":data[noms_complet]['pk'], "liste":['nuit' if data[noms_complet]['nuit']!='--' else None,'matin' if data[noms_complet]['matin']!='--' else None,'soir' if data[noms_complet]['soir']!='--' else None ]}) if any([valeur !='--' for valeur in (data[noms_complet]['nuit'],data[noms_complet]['matin'],data[noms_complet]['soir']) ]) else None
         print('data_f : ',data_f)
     with driver.session(database=NEO4J_DB) as session:
         session.run(
             """
             UNWIND $data AS row
-            MATCH (n:Resident {nom: row.nom, prenom: row.prenom})
+            MATCH (n:Resident {pk:row.pk})
             SET n.derniere_verif_selles = date()
             SET n.derniere_verif_selles_nuit = CASE 
                 WHEN 'nuit' in row.liste  THEN date()
@@ -534,10 +537,11 @@ def selles_non_enregistrees():
         cypher_query = """
             MATCH (n:Resident)
             WHERE n.derniere_verif_selles is null OR n.derniere_verif_selles < date()
-            RETURN n.nom + ' ' + n.prenom AS nom_complet
+            RETURN n.pk AS pk
+            ORDER BY n.pk
         """
         results = session.run(cypher_query)
-        return [record['nom_complet'] for record in results]
+        return [record['pk'] for record in results]
 def get_selles_du_jour():
     """
     Récupère les enregistrements de selles pour la journée en cours.
@@ -547,17 +551,20 @@ def get_selles_du_jour():
     """
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-            MATCH (m:Selles)-[r:Par]->(n:Resident)
-            WHERE m.date = date()
-            RETURN n.nom AS nom, n.prenom AS prenom, m.moment_date AS moment,
-                   m.caracteristique AS caracteristique, m.commentaire AS commentaire, n.derniere_verif_selles_nuit, n.derniere_verif_selles_matin, n.derniere_verif_selles_soir
+            MATCH (n:Resident)
+            OPTIONAL MATCH (m:Selles)-[r:Par]->(n)
+            WHERE n.derniere_verif_selles = date()
+            RETURN n.nom AS nom, n.prenom AS prenom, n.pk AS pk, m.moment_date AS moment,
+                   r.caracteristique AS caracteristique, m.commentaire AS commentaire, n.derniere_verif_selles_nuit, n.derniere_verif_selles_matin, n.derniere_verif_selles_soir
             ORDER BY n.nom, n.prenom, m.moment_date
+
         """
         results = session.run(cypher_query)
-        return [
+        maListe = [
             {
                 'nom': record['nom'],
                 'prenom': record['prenom'],
+                'pk': record['pk'],
                 'moment': record['moment'],
                 'caracteristique': record['caracteristique'],
                 'commentaire': record['commentaire'],
@@ -565,4 +572,33 @@ def get_selles_du_jour():
                 'matin': record['n.derniere_verif_selles_matin'],
                 'soir': record['n.derniere_verif_selles_soir']
             } for record in results
-        ]
+    ]
+    print("get_selles_du_jour : ",maListe)
+    return maListe
+def get_plusieurs_jours_selles():
+    """
+    Récupère les enregistrements de selles pour les derniers jours.
+
+    Returns:
+        list[dict]: Liste de dictionnaires contenant les informations des selles.
+    """
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+           MATCH (n:Resident)
+            WHERE NOT EXISTS {
+                MATCH (n)<-[:Par]-(m:Selles)
+                WHERE duration.between(m.date, date()).days < 2
+            }
+            OPTIONAL MATCH (n)<-[:Par]-(m:Selles)
+            WITH n,max(m.date) AS Date
+            RETURN n.nom AS Nom, n.prenom AS Prenom, n.pk AS pk, Date, duration.between(Date, date()).days as Jours
+            ORDER BY n.nom, n.prenom
+
+        """
+        results = session.run(cypher_query)
+        df = pd.DataFrame([dict(record) for record in results])
+        #df['Jours'] = df['Jours'].fillna("-1")
+        if not df.empty:
+            df['Date'] = df['Date'].fillna("--")
+            df['Jours'] = df['Jours'].astype('Int32') 
+        return  df #df.fillna("--")

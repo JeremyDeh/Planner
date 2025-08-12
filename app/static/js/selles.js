@@ -19,8 +19,10 @@ function enregistre_selles() {
     const data = {};
 
     lignes.forEach(row => {
-        const nom = row.querySelector('td').innerText.trim();
-        const safe_nom = nom.replace(/ /g, "_");
+        
+        const nom = row.querySelector('td:first-child').innerText.trim();
+        const pk = row.querySelector('td:last-child').innerText.trim();
+        const safe_nom = pk.replace(/ /g, "_");
 
         const nuit = document.getElementById(`${safe_nom}-nuit-select`).value;
         const matin = document.getElementById(`${safe_nom}-matin-select`).value;
@@ -28,6 +30,7 @@ function enregistre_selles() {
         const note = row.querySelector('input[type="text"]').value;
 
         data[nom] = {
+            pk: pk,
             nuit: nuit,
             matin: matin,
             soir: soir,
