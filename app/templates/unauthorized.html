@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès refusé</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7fa; text-align: center; padding-top: 50px; }
+        h1 { color: #d7263d; }
+        a { color: #4F8CFF; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>🚫 Accès refusé</h1>
+    <p>Vous êtes connecté mais vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
+    <p>Veuillez contacter l'administrateur pour obtenir l'autorisation.</p>
+    <p><a href="{{ url_for('main.form') }}">Retour à l'accueil</a></p>
+</body>
+</html>

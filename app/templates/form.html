@@ -2,7 +2,7 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <title>Formulaire de rendez-vous</title>
+        <title>Formulaire de Contrat Interface</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
@@ -106,7 +106,8 @@
             <div style="position:relative;">
             <!-- Champ texte affiché à l'utilisateur -->
             <input type="text" name="nomPatient_affichage" id="nomPatientInput" 
-                autocomplete="off" placeholder="Commencez à taper..." required >
+                autocomplete="off" placeholder="Commencez à taper..." required 
+                onfocus="showPatientList()" oninput="filterPatientList()">
 
             <!-- Champ caché pour envoyer la PK au backend -->
             <input type="hidden" name="nomPatient" id="nomPatientHidden">
@@ -117,17 +118,13 @@
                 {% for nom in residents %}
                     <div class="patient-item" 
                         data-pk="{{ pks[loop.index0] }}" 
-                        style="padding:8px; cursor:pointer;">
+                        style="padding:8px; cursor:pointer;" 
+                        onclick="selectPatient(this)">
                         {{ nom }}
                     </div>
                 {% endfor %}
             </div>
-            <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
-
-            <script>
-                initAutocomplete('nomPatientInput', 'patientList', 'patient-item', 'nomPatientHidden');
-            </script>
-        
+        </div>
 
 
             <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 12px;">
@@ -137,14 +134,11 @@
                         <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
                         <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
                             {% for nom in medecins %}
-                                <div class="medecin-item" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                                <div class="medecin-item" onclick="selectMedecin('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
-                <script>
-                    initAutocomplete('nomMedecinInput', 'medecinList', 'medecin-item');
-                </script>
                 <div style="flex:1; min-width:220px;">
                     <label>Nom du médecin (optionnel) :</label>
                     <input type="text" name="identiteMedecin" >
@@ -161,7 +155,6 @@
                     <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
                     <option value="vsl">VSL</option>
                     <option value="ambulance">Ambulance</option>
-                    <option value="taxi">Taxi</option>
                     <option value="famille">Famille</option>
                     <option value="---">Absence de transport</option>
                 </select>
@@ -172,14 +165,95 @@
                 <input type="text" name="nomService" id="nomServiceInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showServiceList()" oninput="filterServiceList()">
                 <div id="serviceList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
                     {% for nom in service %}
-                        <div class="service-item" style="padding:8px; cursor:pointer;">{{ nom }}</div>
+                        <div class="service-item" onclick="selectService('{{ nom }}')" style="padding:8px; cursor:pointer;">{{ nom }}</div>
                     {% endfor %}
                 </div>
             </div>
             <script>
-                initAutocomplete('nomServiceInput', 'serviceList', 'service-item');
+                function showPatientList() {
+                    document.getElementById('patientList').style.display = 'block';
+                }
+
+                function hidePatientList() {
+                    setTimeout(function() {
+                        document.getElementById('patientList').style.display = 'none';
+                    }, 200);
+                }
+
+                function selectPatient(element) {
+                    // Nom affiché dans le champ texte
+                    document.getElementById('nomPatientInput').value = element.textContent.trim();
+
+                    // PK envoyée dans le champ hidden
+                    document.getElementById('nomPatientHidden').value = element.getAttribute('data-pk');
+
+                    hidePatientList();
+                }
+
+                function filterPatientList() {
+                    var input = document.getElementById('nomPatientInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#patientList .patient-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+
+                document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
+
+                function showMedecinList() {
+                    document.getElementById('medecinList').style.display = 'block';
+                }
+                function hideMedecinList() {
+                    setTimeout(function() {
+                        document.getElementById('medecinList').style.display = 'none';
+                    }, 200);
+                }
+                function selectMedecin(nom) {
+                    document.getElementById('nomMedecinInput').value = nom;
+                    hideMedecinList();
+                }
+                function filterMedecinList() {
+                    var input = document.getElementById('nomMedecinInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#medecinList .medecin-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                document.getElementById('nomMedecinInput').addEventListener('blur', hideMedecinList);
+                
+                function showServiceList() {
+                    document.getElementById('serviceList').style.display = 'block';
+                }
+                function hideServiceList() {
+                    setTimeout(function() {
+                        document.getElementById('serviceList').style.display = 'none';
+                    }, 200);
+                }
+                function selectService(nom) {
+                    document.getElementById('nomServiceInput').value = nom;
+                    hideServiceList();
+                }
+                function filterServiceList() {
+                    var input = document.getElementById('nomServiceInput').value.toLowerCase();
+                    var items = document.querySelectorAll('#serviceList .service-item');
+                    items.forEach(function(item) {
+                        if (item.textContent.toLowerCase().includes(input)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                document.getElementById('nomServiceInput').addEventListener('blur', hideServiceList);
             </script>
-            
             <label>Commentaire :
                 <input type="text" name="commentaire" style="width: 100%;">
             </label>

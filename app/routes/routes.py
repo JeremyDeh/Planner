@@ -31,6 +31,7 @@ from app.services import (
     get_infos_rdv
 
 )
+from app.routes.auth import login_required, role_required
 
 NEO4J_URI = "bolt://localhost:7687"
 NEO4J_USER = "neo4j"
@@ -60,6 +61,7 @@ def popup_row_alt():
             '<p style="color: green; font-weight: bold;">'
             'Pas d\'oxygène requis</p>'
         )
+    
     html += oxygen_html
     for key, value in data.items():
         key_td = (
@@ -92,6 +94,8 @@ def form():
 
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
+@login_required
+@role_required("infirmiere")
 def journee():
     manquants=[x['nom'] for x in selles_non_enregistrees()]
     plusieurs_jours= get_plusieurs_jours_selles()

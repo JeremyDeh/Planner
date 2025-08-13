@@ -69,11 +69,21 @@
             <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
             <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
         </div>
+        
+
         <div class="central-panel">
         <!-- Bannière moderne en haut -->
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Ordre du jour</span>
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('auth.logout') }}"
+                style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
+                Se déconnecter
+                </a>    
+            {% endif %}
+            
+           
         </div>
 
         <!-- Layout principal avec cardbox métiers et cardbox formulaire note à droite -->
@@ -165,7 +175,7 @@
                                             <thead>
                                                 <tr style="background:#f7f7fa; color:#232946;">
                                                     {% for col in plusieurs_jours.columns %}
-                                                        <th style="padding:6px 10px; border-bottom:1px solid #e0e0e0; {% if col == 'pk' %}display:none;{% endif %}">{{ col }}</th>
+                                                        <th style="padding:6px 10px; border-bottom:1px solid #e0e0e0;  {% if col == 'pk' %}display:none;{% endif %}">{{ col }}</th>
                                                     {% endfor %}
                                                 </tr>
                                             </thead>
@@ -173,7 +183,7 @@
                                                 {% for _, row in plusieurs_jours.iterrows() %}
                                                     <tr>
                                                         {% for col in plusieurs_jours.columns %}
-                                                            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0; {% if col == 'pk' %}display:none;{% endif %}">{{ row[col] }}</td>
+                                                            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;  {% if col == 'pk' %}display:none;{% endif %}">{{ row[col] }}</td>
                                                         {% endfor %}
                                                     </tr>
                                                 {% endfor %}
@@ -214,7 +224,8 @@
                             <div id="sellesPopupContent" style="background:#fff; border-radius:18px; padding:0; max-width:90vw; max-height:90vh; overflow:auto;"></div>
                         </div>
 
-                        
+                        <!-- Ton JS -->
+                        <script src="{{ url_for('static', filename='js/selles.js') }}"></script>
 
                     </div>
                 {% endif %}
@@ -223,8 +234,7 @@
             <div id="sellesPopupContent">
         </div>
         </div>
-        <!-- Ton JS -->
-        <script src="{{ url_for('static', filename='js/selles.js') }}"></script>
+        
                 
             </div>
             <!-- Cardbox formulaire ajout de note à droite -->

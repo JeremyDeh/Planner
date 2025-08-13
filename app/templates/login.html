@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+        <title>Connexion</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f7fa;
+        }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(35,41,70,0.18);
+            padding: 48px 36px 36px 36px;
+            min-width: 320px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #e0e0e0;
+        }
+        .login-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #232946;
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .login-card label {
+            font-size: 1.1em;
+            color: #232946;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: block;
+        }
+        .login-card input[type="text"],
+        .login-card input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 18px;
+            font-size: 1em;
+            background: #f7f7fa;
+            color: #232946;
+        }
+        .login-card input[type="submit"] {
+            background: linear-gradient(90deg, #4F8CFF 0%, #232946 100%);
+            color: #eebbc3;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(35,41,70,0.08);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .login-card input[type="submit"]:hover {
+            background: #232946;
+            color: #eebbc3;
+            box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+        }
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 18px;
+            filter: drop-shadow(0 2px 8px #23294655);
+        }
+        .login-error {
+            color: #d7263d;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <style>
+            .cardbox-modern {
+                transition: box-shadow 0.2s, transform 0.2s;
+            }
+            .cardbox-modern:hover {
+                box-shadow: 0 12px 32px rgba(35,41,70,0.18);
+                transform: scale(1.04);
+                z-index: 2;
+            }
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f7f7fa;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+                border-radius: 0 24px 24px 0;
+                z-index: 100;
+            }
+            .menu-btn {
+                background: rgba(255,255,255,0.08);
+                color: #fff;
+                border: none;
+                padding: 16px 0;
+                margin: 0 18px 16px 18px;
+                border-radius: 10px;
+                font-size: 1.08em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+                letter-spacing: 1px;
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #fff;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+                transform: scale(1.04);
+            }
+            .central-panel {
+                margin-left: 220px;
+                padding: 40px 40px 40px 40px;
+                min-height: 100vh;
+                background: #f7f7fa;
+            }
+        </style>
+        <div class="sidebar">
+            <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
+            <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
+            <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+            <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+            <button onclick="window.location.href='{{ url_for('main.agenda') }}'" class="menu-btn{% if request.path == url_for('main.agenda') %} active{% endif %}">Agenda</button>
+        </div>
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Connexion</span>
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('auth.logout') }}"
+                style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
+                Se déconnecter
+                </a>    
+            {% else %}
+                <a href="{{ url_for('auth.register') }}"
+                style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
+                Register
+                </a>  
+            {% endif %}
+            
+        </div>
+    <div class="login-container">
+        <div class="login-card">
+            <img src="https://img.icons8.com/ios-filled/100/4F8CFF/user-male-circle.png" alt="Logo" class="login-logo">
+            <div class="login-title">Connexion</div>
+           
+            {% if error %}
+                <div class="login-error">{{ error }}</div>
+            {% endif %}
+            <form method="post">
+                <label for="username">Nom d'utilisateur :</label>
+                <input type="text" id="username" name="username" required autofocus>
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required>
+                <input type="submit" value="Se connecter">
+            </form>
+        </div>
+    </div>
+</body>
+</html>
