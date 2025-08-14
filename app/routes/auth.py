@@ -52,7 +52,9 @@ def unauthorized():
     return render_template("unauthorized.html"), 403
 
 
-def create_user_in_neo4j(username, password):
+def create_user_in_neo4j(username, password, confirm_password):
+    if password != confirm_password:
+        return False, "Les mots de passe ne correspondent pas."
     password_hash = generate_password_hash(password)
 
     with driver.session(database=NEO4J_DB) as session:
@@ -63,7 +65,7 @@ def create_user_in_neo4j(username, password):
         """, username=username).single()
 
         if existing:
-            return False  # déjà pris
+            return False,"Nom d'utilisater déjà pris"  # déjà pris
 
         # Création avec PK incrémentée
         result = session.run("""
@@ -80,7 +82,7 @@ def create_user_in_neo4j(username, password):
             RETURN u
         """, username=username, password_hash=password_hash)
 
-        return result.single() is not None
+        return result.single() is not None, "Ok"
 
 
 
@@ -119,12 +121,12 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-
-        created = create_user_in_neo4j(username, password)
+        confirm_password = request.form["confirm_password"]
+        created,message = create_user_in_neo4j(username, password,confirm_password)
         if created:
             return redirect(url_for("auth.login"))
         else:
-            return render_template("register.html", error="Nom d'utilisateur déjà pris")
+            return render_template("register.html", error=message)
 
     return render_template("register.html")
 
