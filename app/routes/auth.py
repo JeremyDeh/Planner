@@ -18,7 +18,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 
-def role_required(required_role):
+def role_required(*required_role):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -32,7 +32,7 @@ def role_required(required_role):
                     RETURN u.role AS role
                 """, id=session["user_id"]).single()
 
-                if not result or result["role"] != required_role:
+                if not result or result["role"] not in required_role:
                     return redirect(url_for("auth.unauthorized"))
 
             return f(*args, **kwargs)

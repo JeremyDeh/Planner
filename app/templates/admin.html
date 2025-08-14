@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Inscription</title>
+    <title>Admin Panel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
@@ -10,14 +10,14 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             background: #f7f7fa;
         }
-        .register-container {
+        .admin-container {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-        .register-card {
+        .admin-card {
             background: #fff;
             border-radius: 18px;
             box-shadow: 0 8px 32px rgba(35,41,70,0.18);
@@ -29,7 +29,7 @@
             align-items: center;
             border: 1px solid #e0e0e0;
         }
-        .register-title {
+        .admin-title {
             font-size: 2em;
             font-weight: 700;
             color: #232946;
@@ -37,15 +37,14 @@
             text-align: center;
             letter-spacing: 2px;
         }
-        .register-card label {
+        .admin-card label {
             font-size: 1.1em;
             color: #232946;
             margin-bottom: 8px;
             font-weight: 500;
             display: block;
         }
-        .register-card input[type="text"],
-        .register-card input[type="password"] {
+        .admin-card select {
             width: 100%;
             padding: 10px 12px;
             border-radius: 8px;
@@ -55,7 +54,7 @@
             background: #f7f7fa;
             color: #232946;
         }
-        .register-card input[type="submit"] {
+        .admin-card input[type="submit"] {
             background: linear-gradient(90deg, #4F8CFF 0%, #232946 100%);
             color: #eebbc3;
             border: none;
@@ -67,22 +66,10 @@
             box-shadow: 0 2px 8px rgba(35,41,70,0.08);
             transition: background 0.2s, box-shadow 0.2s;
         }
-        .register-card input[type="submit"]:hover {
+        .admin-card input[type="submit"]:hover {
             background: #232946;
             color: #eebbc3;
             box-shadow: 0 4px 16px rgba(35,41,70,0.12);
-        }
-        .register-logo {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 18px;
-            filter: drop-shadow(0 2px 8px #23294655);
-        }
-        .register-error {
-            color: #d7263d;
-            font-weight: 600;
-            margin-bottom: 12px;
-            text-align: center;
         }
     </style>
 </head>
@@ -143,7 +130,7 @@
                 background: #f7f7fa;
             }
         </style>
-        <div class="sidebar">
+    <div class="sidebar">
             <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
             <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
             <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
@@ -152,36 +139,46 @@
         </div>
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
-            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Register</span>
+            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Connexion</span>
             {% if session.get('user_id') %}
                 <a href="{{ url_for('auth.logout') }}"
                 style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
                 Se déconnecter
                 </a>    
             {% else %}
-                <a href="{{ url_for('auth.login') }}"
+                <a href="{{ url_for('auth.register') }}"
                 style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
-                Login
+                Register
                 </a>  
             {% endif %}
             
         </div>
-    <div class="register-container" ">
-        <div class="register-card">
-            <img src="https://img.icons8.com/ios-filled/100/4F8CFF/user-male-circle.png" alt="Logo" class="register-logo">
-            <div class="register-title">Inscription</div>
-            {% if error %}
-                <div class="register-error">{{ error }}</div>
-            {% endif %}
-            <form method="post">
-                <label for="username">Nom d'utilisateur :</label>
-                <input type="text" id="username" name="username" required autofocus>
-                <label for="password">Mot de passe :</label>
-                <input type="password" id="password" name="password" required>
-                <label for="confirm_password">Confirmer le mot de passe :</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
-                <input type="submit" value="S'inscrire">
+    <div class="admin-container">
+        <div class="admin-card">
+            <div class="admin-title">Administration</div>
+            <form method="post" action="{{ url_for('main.admin') }}">
+                <label for="adminSelect">Sélectionnez un élément :</label>
+                <select id="adminSelect" name="selected_item" required>
+                    {% for item in users_list %}
+                        <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="Valider">
             </form>
+            {% if liste_roles is defined and liste_roles %}
+            <div style="margin-top:24px; width:100%;">
+                <form method="post" action="{{ url_for('main.admin') }}">
+                    <label for="rolesSelect">Sélectionnez un rôle pour {{ choix }} :</label>
+                    <input type="hidden" name="username" value="{{ choix }}">
+                    <select id="rolesSelect" name="selected_role" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e0e0e0; margin-bottom:18px; font-size:1em; background:#f7f7fa; color:#232946;">
+                        {% for role in liste_roles %}
+                            <option value="{{ role }}">{{ role }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Valider">
+                </form>
+            </div>
+            {% endif %}
         </div>
     </div>
 </body>

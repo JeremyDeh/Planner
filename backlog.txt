@@ -16,7 +16,9 @@
 + Ajouter taxi dans les moyen de transport ----- Done
 + 2 types de fiches différentes pour imprimer, une pour les infirimieres avec données completes, et une pour le patient, synthses : Vous avez rendez vous le xxx a telle heure, avec le medecin xxx, pour motif : "type de rdv", (si transport chosiis: Mode de transport : un membre de votre famille vous accompagnerz  ou "Un transport exterieur viendra vous chercher", Lieu du rendez-vous : xxx )
 	pour infirmieres on laisse que le tableau et le truc coloré pour O2, mais dans tableau on garde diabete que si type redndez vous = pedicure ----- Done
-
++ ajouter un systeme de connexion utilisateur ----- Done
++ ajouter des droits utilisateurs pour acceder a certaines pages ----- Done
++ ajouter un admin pour apgrader les utilisateurs créés
 
 - récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer)
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv

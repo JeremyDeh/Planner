@@ -10,9 +10,76 @@
     </style>
 </head>
 <body>
+    <style>
+            .cardbox-modern {
+                transition: box-shadow 0.2s, transform 0.2s;
+            }
+            .cardbox-modern:hover {
+                box-shadow: 0 12px 32px rgba(35,41,70,0.18);
+                transform: scale(1.04);
+                z-index: 2;
+            }
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f7f7fa;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 200px;
+                height: 100vh;
+                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                padding-top: 40px;
+                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+                border-radius: 0 24px 24px 0;
+                z-index: 100;
+            }
+            .menu-btn {
+                background: rgba(255,255,255,0.08);
+                color: #fff;
+                border: none;
+                padding: 16px 0;
+                margin: 0 18px 16px 18px;
+                border-radius: 10px;
+                font-size: 1.08em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+                letter-spacing: 1px;
+            }
+            .menu-btn:hover, .menu-btn.active {
+                background: #fff;
+                color: #232946;
+                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+                transform: scale(1.04);
+            }
+            .central-panel {
+                margin-left: 220px;
+                padding: 40px 40px 40px 40px;
+                min-height: 100vh;
+                background: #f7f7fa;
+            }
+        </style>
+        <div class="sidebar">
+            <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
+            <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
+            <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
+            <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
+            <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
+        </div>
+    <a href="{{ url_for('auth.logout') }}"
+                style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
+                Se déconnecter
+    </a> 
     <h1>🚫 Accès refusé</h1>
     <p>Vous êtes connecté mais vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
     <p>Veuillez contacter l'administrateur pour obtenir l'autorisation.</p>
-    <p><a href="{{ url_for('main.form') }}">Retour à l'accueil</a></p>
+    <p><a href="{{ url_for('main.journee') }}">Retour à l'accueil</a></p>
 </body>
 </html>

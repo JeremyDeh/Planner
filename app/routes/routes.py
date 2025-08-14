@@ -28,7 +28,9 @@ from app.services import (
     selles_non_enregistrees,
     get_selles_du_jour,
     get_plusieurs_jours_selles,
-    get_infos_rdv
+    get_infos_rdv,
+    get_all_users,
+    update_roles
 
 )
 from app.routes.auth import login_required, role_required
@@ -80,6 +82,8 @@ def popup_row_alt():
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
+@login_required
+@role_required("infirmiere","admin")
 def form():
     if request.method == 'POST':
         form_data = extract_form_data(request.form)
@@ -95,7 +99,7 @@ def form():
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
 @login_required
-@role_required("infirmiere")
+@role_required("infirmiere","admin")
 def journee():
     manquants=[x['nom'] for x in selles_non_enregistrees()]
     plusieurs_jours= get_plusieurs_jours_selles()
@@ -229,6 +233,8 @@ def enregistre_selles():
     return ''
 
 @main_bp.route('/client_file', methods=['GET', 'POST'])
+@login_required
+@role_required("infirmiere","admin")
 def client_file():
     pks,residents = get_residents_chambre()
     name = ''
@@ -258,6 +264,8 @@ def client_file():
 
 
 @main_bp.route('/emploi_collectif', methods=['GET'])
+@login_required
+@role_required("infirmiere","admin")
 def emploi_collectif():
     rdv_types = get_rdv_types(driver, NEO4J_DB)
     events = get_all_rdv_events(driver, NEO4J_DB)
@@ -288,41 +296,6 @@ def add_resident():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-
-@main_bp.route('/agenda')
-def agenda():
-    with driver.session(database=NEO4J_DB) as session:
-        cypher_query = "MATCH (n:Categorie) RETURN n.metier " \
-                       "ORDER BY n.metier ASC"
-        neo4j_results = session.run(cypher_query)
-        RDVTypes = [x['n.metier'] for x in neo4j_results]
-
-    with driver.session(database=NEO4J_DB) as session:
-        cypher_query = """
-        MATCH (n:Resident)-[r]->(m)
-        RETURN n.nom, n.prenom, r.date, m.metier, type(r), r.commentaire
-        ORDER BY r.date ASC
-        """
-        neo4j_results = session.run(cypher_query)
-        node_result = {
-            record['r.date'].isoformat(): [
-                record['n.nom'] + ' ' + record['n.prenom'],
-                record['m.metier'],
-                record['r.commentaire'],
-                record['type(r)']
-            ] for record in neo4j_results
-        }
-
-    events = [
-        {
-            "title": label[0],
-            "start": dt,
-            "description": f"{label[1]} ({label[3]}) : {label[2]}"
-        }
-        for dt, label in node_result.items()
-    ]
-
-    return render_template("agenda.html", events=events, RDVTypes=RDVTypes)
 
 
 @main_bp.route('/popup_content')
@@ -372,3 +345,35 @@ def popup_row():
 
     html += '</table>'
     return make_response(html)
+
+@main_bp.route('/admin', methods=['GET', 'POST'])
+@login_required
+@role_required("admin")
+def admin():
+    """
+    Route d'administration pour upgrade des user.
+    """
+    users_dico = get_all_users()
+    if request.method == 'POST':
+        selected_role = request.form.get("selected_role")
+        username = request.form.get("username")
+        if selected_role:
+            print(f"Rôle sélectionné : {selected_role}, {username}")
+            update_roles(username, selected_role)
+        else:
+            choix = request.form.get('selected_item')
+            print('choix : ', choix)
+            print('users_dico : ', users_dico[choix])
+            liste_roles=["admin","infirmiere","nobody"]
+            return render_template('admin.html',
+                users_list=users_dico.keys(),
+                users_roles=users_dico.values(),
+                choix=choix,
+                liste_roles=liste_roles 
+        )
+    
+    return render_template(
+        'admin.html',
+        users_list=users_dico.keys(),
+        users_roles=users_dico.values()
+    )

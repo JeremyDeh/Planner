@@ -622,3 +622,33 @@ def get_infos_rdv(date, nom_full, rdv,pk=''):
         data= [dict(record) for record in results]
  
         return  data
+    
+def get_all_users():
+    """
+    Récupère la liste de tous les utilisateurs (username) dans la base Neo4j.
+
+    Returns:
+        dict:  dico contenant les usernames et roles.
+    """
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH (n:Auth)
+            RETURN n.user AS username, n.role AS role, n.pk AS pk
+            ORDER BY n.user
+        """
+        results = session.run(cypher_query)
+        return {record['username']:[record['role']] for record in results}
+def update_roles(username, role):
+    """
+    Met à jour les rôles d'un utilisateur dans la base Neo4j.
+
+    Args:
+        username (str): Nom d'utilisateur à mettre à jour.
+        roles (list[str]): Liste des rôles à attribuer.
+    """
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH (n:Auth {user: $username})
+            SET n.role = $role
+        """
+        session.run(cypher_query, username=username, role=role)
