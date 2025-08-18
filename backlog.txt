@@ -21,8 +21,9 @@
 + ajouter un admin pour apgrader les utilisateurs créés ----- Done
 + ajout d'un bouton pour supprimer un rendez vous ----- Done
 + ajout d'un bouton pour supprimer une chaine de rendez-vous ----- Done
++ Gestion des suppressions de rappels ----- Done
++ récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer) ----- Done
 
-- récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer)
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
 - Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre
 - possibilité d'updater le rendez-vous pour modifier une info (et pour rajouter des fichiers a posteriori, mais pas critique pour moi)
@@ -31,6 +32,9 @@
 - possibilité de mettre ponctuellement oxygen = oui meme si patient a O2=Non
 - indicateur si rdv complet  : booleen choisi par l'utilisateur pour dire s'il manque des trucs sur la fiche (pas urgent car principalement pour les fichiers a joindre, qui sont pour plus tard, pour le reste les champs importants sont en obligatoire donc pas possible d'etre pas entieremment rempli)
 
+## Gestion de bugs :
+- Quand la personne rempli un nom qui n'est pas dans la liste
+- Quand la personne rempli un rendez vous avec rappel mais sans le nombre de jours 
 
 ### UPGRADE FOR LATER ###
 - possibilité d'ajouter un fichier lors de création du rendez-vous (voir plus tard, selon moi pas critique)

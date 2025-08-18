@@ -267,8 +267,8 @@
                     <ul class="cardbox-notes" style="list-style:none; padding-left:0; margin-top:12px;">
                         {% for _, row in notes.iterrows() %}
                             {% set date_str_notes = row['date']|string %}
-                            {% set heure_notes = date_str_notes.split('T')[1] if 'T' in date_str_notes else date_str_notes %}
-                            {% set heure_notes = heure_notes[:5] %}
+                            {% set heure_notes = date_str_notes.split('T')[1][:5] if 'T' in date_str_notes else '--:--' %}
+                            
                             <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04); color:#232946;">
                                 <span style="display:inline-block; background:#eebbc3; color:#232946; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure_notes }}</span><br>
                                 <span style="color:#5c5859; font-weight:600;">{{ row['commentaire'] if 'commentaire' in row else row }}</span>

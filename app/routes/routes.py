@@ -35,7 +35,9 @@ from app.services import (
     get_all_users,
     update_roles,
     supprimer_rdv,
-    supprimer_rdv_chaine
+    supprimer_rdv_chaine,
+    get_next_id,
+    create_rappel_infini
 
 )
 from app.routes.auth import login_required, role_required
@@ -93,9 +95,12 @@ def form():
     if request.method == 'POST':
         form_data = extract_form_data(request.form)
         
-        insert_rendez_vous(driver,form_data, NEO4J_DB)
-        create_rappels(driver,form_data)
-        return "Fichier Excel généré :"
+        next_id = get_next_id(driver)
+        insert_rendez_vous(driver,form_data, next_id, NEO4J_DB)
+        create_rappels(driver,form_data,next_id)
+        if not form_data.get('fin') : ## si boolean fin est False, on cree un rappel apres 365 jours
+            create_rappel_infini(driver,form_data,next_id, NEO4J_DB) # quand il n'y a paz de date de fin, on cree sur 365 jours et ensuite on met un rappel pour qu'ils recréent apres un an
+        return "Rendez-vous créés:"
     else:
         pks,residents = get_residents_chambre(driver)
         medecins = get_medecins(driver)
@@ -180,8 +185,8 @@ def enregistre_selles():
         ].values
         if len(val) > 0:
             return val[0]
-        elif f"{pk}" not in [x['pk'] for x in selles_non_enregistrees(driver)]:
-            return 'Absence'
+        #elif f"{pk}" not in [x['pk'] for x in selles_non_enregistrees(driver)]:
+        #    return 'Absence'
         else:
             return "--"
 

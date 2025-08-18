@@ -23,7 +23,9 @@ from .neo4j_services import (
     get_all_users,
     update_roles,
     supprimer_rdv,
-    supprimer_rdv_chaine
+    supprimer_rdv_chaine,
+    get_next_id,
+    create_rappel_infini
 )
 
 __all__ = [
@@ -52,4 +54,6 @@ __all__ = [
     'update_roles',
     'supprimer_rdv',
     'supprimer_rdv_chaine',
+    'get_next_id',
+    'create_rappel_infini',
 ]
