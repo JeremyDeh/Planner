@@ -45,8 +45,9 @@ def create_app():
     app.register_blueprint(auth_bp)
     return app
 
-
+app = create_app()
 if __name__ == "__main__":
-    app = create_app()
+    
     print('Lancement en cours ')
-    app.run(debug=True, port=5001)
+    app.run(host="0.0.0.0", port=5001, debug=True)
+    #app.run(debug=True, port=5001)

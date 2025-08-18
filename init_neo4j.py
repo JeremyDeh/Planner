@@ -40,7 +40,10 @@ CREATE (:Service {nom: catego});
         session.run("""
         CREATE (g:Rappel {metier: 'Rappel',nom:'Rappel'})
         """)
-
+    with driver.session() as session:
+        session.run("""
+        CREATE (n:Auth {user: 'Admin', password: 'pbkdf2:sha256:260000$37caSawTGiKjVu2W$debfe94b19d39d8174a82e00aa6e3fbb946396cf2e08a6f8adae85100bf9a391', role: 'admin',pk:1 })
+        """)
 
 
 

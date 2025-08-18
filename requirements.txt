@@ -5,3 +5,5 @@ Jinja2==3.0.3
 Werkzeug==2.1.2
 neo4j==5.28.1
 openpyxl==3.0.9
+cryptography
+gunicorn

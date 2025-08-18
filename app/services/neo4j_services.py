@@ -5,14 +5,8 @@ from app.services.utils_date import (generate_dates,
                                      generate_smart_weekday_recurrence)
 import pandas as pd
 
-NEO4J_URI = "bolt://localhost:7687"
-NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = os.getenv("NEO4J_PASS")
-NEO4J_DB = "neo4j"
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
-
-def get_residents():
+def get_residents(driver, NEO4J_DB="neo4j"):
     """
     Récupère la liste des noms complets des résidents depuis la base Neo4j.
 
@@ -33,7 +27,7 @@ def get_residents():
                 pks.append(record['n.pk'])
     return residents_noms, residents_prenoms, pks
 
-def get_residents_chambre():
+def get_residents_chambre(driver, NEO4J_DB="neo4j"):
     """
     Récupère la liste des noms complets des résidents depuis la base Neo4j.
 
@@ -55,7 +49,7 @@ def get_residents_chambre():
                 pks.append(pk)
     return pks,residents
 
-def get_rendez_vous_jour(driver, NEO4J_DB):
+def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
                         MATCH (n:Resident)-[r]->(m)
@@ -82,7 +76,7 @@ def get_rendez_vous_jour(driver, NEO4J_DB):
     return df_rdv,df_service
 
 
-def ajout_note(note, date_note, heure_note,metier='Autre'):
+def ajout_note(driver,note, date_note, heure_note,metier='Autre', NEO4J_DB="neo4j"):
     """
     Ajoute une note à la base de données Neo4j.
 
@@ -100,7 +94,7 @@ def ajout_note(note, date_note, heure_note,metier='Autre'):
         """
         session.run(cypher_query, date=date_heure, contenu=note,metier=metier)
 
-def get_medecins():
+def get_medecins(driver, NEO4J_DB="neo4j"):
 
     """
     Récupère la liste des métiers (catégories)
@@ -119,6 +113,19 @@ def get_medecins():
             if nom:
                 medecins.append(nom)
     return medecins
+
+def get_next_id(driver, NEO4J_DB="neo4j"):
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        MATCH ()-[rel:Rdv]-()
+        RETURN coalesce(max(rel.id_chain), 0) + 1 AS next_id  
+
+        """
+        session.run(
+            cypher_query
+        )
+        result = session.run(cypher_query).single()
+        return result["next_id"] if result else 1
 
 
 def extract_form_data(form):
@@ -159,7 +166,10 @@ def extract_form_data(form):
 
     if recurrence == 'on':
         date_fin = form.get('date_fin', '')
-        rdv_fin = datetime.fromisoformat(date_fin + 'T' + heure_rdv + ':00')
+        try:
+            rdv_fin = datetime.fromisoformat(date_fin + 'T' + heure_rdv + ':00')
+        except :
+            rdv_fin = rdv_debut + timedelta(days=365)  # Si pas de date fin, on prend un an par défaut
         type_recurrence = form.get('recurrence')
         print(type_recurrence)
 
@@ -204,7 +214,7 @@ def extract_form_data(form):
     }
 
 
-def insert_rendez_vous(data):
+def insert_rendez_vous(driver,data, NEO4J_DB="neo4j"):
     """
     Insère un ou plusieurs rendez-vous dans la base Neo4j
     pour un résident donné.
@@ -224,19 +234,23 @@ def insert_rendez_vous(data):
               associées au rendez-vous.
     """
     liste_actions = [x[0] for x in data['colonnes_table'].values()]
+    next_id = get_next_id(driver)
     with driver.session(database=NEO4J_DB) as session:
         for rdv in data['date_rdv_list']:
             cypher_query = """
-            MATCH (n:Resident {pk:$pk})
-            MATCH (m:Categorie{metier:$metier})
-            CREATE (n)-[r:Rdv {date:$date_str,
-                               transport:$transport,
-                               lieu:$lieu,
-                               commentaire:$commentaire,
-                               responsable:$responsable,
-                               medecin:$medecin,
-                               create_date:datetime()
-                        }]->(m)
+            // Puis utilise next_id dans la création
+            MATCH (n:Resident {pk: $pk})
+            MATCH (m:Categorie {metier: $metier})
+            CREATE (n)-[r:Rdv {
+                date: $date_str,
+                transport: $transport,
+                lieu: $lieu,
+                commentaire: $commentaire,
+                responsable: $responsable,
+                medecin: $medecin,
+                create_date: datetime(),
+                id_chain: $next_id
+            }]->(m)
             """
             session.run(
                 cypher_query,
@@ -249,10 +263,11 @@ def insert_rendez_vous(data):
                 lieu=data['lieu'],
                 responsable=data['service'],
                 pk= data['pk'],
-                medecin= data['medecin']
+                medecin= data['medecin'],
+                next_id=next_id
             )
 
-def get_service():
+def get_service(driver, NEO4J_DB="neo4j"):
     """
     Récupère la liste des services (médecins) depuis la base Neo4j.
 
@@ -269,7 +284,7 @@ def get_service():
                 service.append(nom)
     return service
 
-def create_rappels(data):
+def create_rappels(driver,data, NEO4J_DB="neo4j"):
     """
     Crée des rappels associés aux rendez-vous dans la base Neo4j.
 
@@ -356,10 +371,10 @@ def get_rendez_vous(driver, db_name, pk):
         Liste de dictionnaires avec les infos des rendez-vous.
     """
     with driver.session(database=db_name) as session:
-        cypher_query = (
-            "MATCH (n:Resident {pk:$pk})-[r:Rdv]->(m) "
-            "RETURN n.nom, n.prenom, r.date, m.metier, r.commentaire, "
-            "r.transport ORDER BY r.date ASC"
+        cypher_query = ("""
+            MATCH (n:Resident {pk:$pk})-[r:Rdv]->(m) 
+            RETURN n.nom, n.prenom, r.date, m.metier, r.commentaire, r.transport , r.medecin, r.lieu
+            ORDER BY r.date ASC"""
         )
         results = session.run(cypher_query, pk=pk)
         return [
@@ -367,7 +382,9 @@ def get_rendez_vous(driver, db_name, pk):
                 'Date': record['r.date'].strftime('%Y-%m-%d %H:%M'),
                 'Rendez-vous': record['m.metier'],
                 'Transport': record['r.transport'],
-                'Note': record['r.commentaire']
+                'Note': record['r.commentaire'],
+                'Medecin': record['r.medecin'],
+                'Lieu': record['r.lieu'],
             } for record in results
         ]
 
@@ -410,7 +427,7 @@ def get_all_rdv_events(driver, db_name):
         cypher_query = """
         MATCH (n:Resident)-[r]->(m)
         RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, m.metier,
-        r.commentaire, r.rdv
+        r.commentaire, r.rdv, ID(r) as id_rdv_one, r.id_chain AS id_chain
         ORDER BY toString(r.date) ASC
         """
         ## on doit order by toString() car sans le cast, il differencie les dates et les datetime etfait son tr séparémment
@@ -424,14 +441,16 @@ def get_all_rdv_events(driver, db_name):
                 'Rendez-vous': record['m.metier'] if record['type(r)'] == 'Rdv'
                 else record['type(r)'] + ' : ' + record['r.rdv'],
                 'Note': record['r.commentaire'],
-                'Type_Evt': record['type(r)']
+                'Type_Evt': record['type(r)'],
+                'ID_one': record['id_rdv_one'],
+                'ID_chain': record['id_chain']
             }
             for record in results
         ]
     return events
 
 
-def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
+def add_resident_to_db(driver, NEO4J_DB, nom, prenom, commentaire, sexe, etage,
                        oxygen, diabete, chambre,deplacement,naissance):
     """
     Crée un nouveau résident dans la base Neo4j avec les propriétés fournies.
@@ -468,7 +487,7 @@ def add_resident_to_db(driver, db_name, nom, prenom, commentaire, sexe, etage,
             nom_affichage=nom.upper() + ' ' + prenom.capitalize()
         )
 
-def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence"
+def enregistrer_valeur_selles(driver,data,NEO4J_DB='neo4j'): # on n'enregistre pas les données "Absence"
     print('data : ',data)
  
     data_f = []
@@ -500,7 +519,7 @@ def enregistrer_valeur_selles(data): # on n'enregistre pas les données "Absence
             """,
             data=data_f
         )
-def maj_last_check_selles(data) :
+def maj_last_check_selles(driver, data, NEO4J_DB='neo4j'): 
     print(data)
 
     data_f = []
@@ -529,7 +548,7 @@ def maj_last_check_selles(data) :
             """,
             data=data_f
         )# derniere_verif_selles correspond a la derniere fois qu'on a mis a jour les selles pour la personne, mais il peut ne pas y avoir de selles enregistrées si on a verifié mais qu'elle n'a pas été a la selle ce jour, cela sert juste a verifer les oubli d'enregistrement de la part des personnes en charge
-def selles_non_enregistrees():
+def selles_non_enregistrees(driver, NEO4J_DB='neo4j'):
     """
     Récupère la liste des résidents pour lesquels les selles n'ont pas été
     enregistrées aujourd'hui.
@@ -547,7 +566,7 @@ def selles_non_enregistrees():
         results = session.run(cypher_query)
         results = [dict(record) for record in results]
         return  results
-def get_selles_du_jour():
+def get_selles_du_jour(driver, NEO4J_DB='neo4j'):
     """
     Récupère les enregistrements de selles pour la journée en cours.
 
@@ -580,7 +599,7 @@ def get_selles_du_jour():
     ]
     print("get_selles_du_jour : ",maListe)
     return maListe
-def get_plusieurs_jours_selles():
+def get_plusieurs_jours_selles(driver, NEO4J_DB='neo4j'):
     """
     Récupère les enregistrements de selles pour les derniers jours.
 
@@ -607,7 +626,7 @@ def get_plusieurs_jours_selles():
             df['Date'] = df['Date'].fillna("--")
             df['Jours'] = df['Jours'].astype('Int32') 
         return  df #df.fillna("--")
-def get_infos_rdv(date, nom_full, rdv,pk=''):
+def get_infos_rdv(driver,date, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
     nom=nom_full.split(" ")[0]
     prenom =nom_full.split(" ")[1]
     date=date+':00'
@@ -623,7 +642,7 @@ def get_infos_rdv(date, nom_full, rdv,pk=''):
  
         return  data
     
-def get_all_users():
+def get_all_users(driver, NEO4J_DB='neo4j'):
     """
     Récupère la liste de tous les utilisateurs (username) dans la base Neo4j.
 
@@ -638,7 +657,7 @@ def get_all_users():
         """
         results = session.run(cypher_query)
         return {record['username']:[record['role']] for record in results}
-def update_roles(username, role):
+def update_roles(driver,username, role, NEO4J_DB='neo4j'):
     """
     Met à jour les rôles d'un utilisateur dans la base Neo4j.
 
@@ -652,3 +671,45 @@ def update_roles(username, role):
             SET n.role = $role
         """
         session.run(cypher_query, username=username, role=role)
+
+def supprimer_rdv(driver,id_rdv, NEO4J_DB='neo4j'):
+    """
+    Supprime un rendez-vous spécifique de la base Neo4j.
+
+    Args:
+        id_rdv (int): ID du rendez-vous à supprimer.
+    """
+    print("je tente de supprimer le rdv : ",id_rdv)
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH ()-[r:Rdv]->()
+            WHERE ID(r) = $id_rdv
+            DELETE r
+        """
+        session.run(cypher_query, id_rdv=id_rdv)
+
+
+def supprimer_rdv_chaine(driver, id_rdv,date, NEO4J_DB='neo4j'):
+    """
+    Supprime un rendez-vous spécifique de la base Neo4j.
+
+    Args:
+        id_rdv (int): ID du rendez-vous à supprimer.
+    """
+    print("je tente d acceder a la chaine : ",id_rdv)
+    id_rdv = int(id_rdv) if isinstance(id_rdv, str) else id_rdv
+    if len(date) == 10:  # yyyy-MM-dd
+        date = date + "T00:00:00"
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH ()-[r:Rdv]->()
+            WHERE r.id_chain = $id_rdv AND datetime(
+                    CASE 
+                    WHEN toString(r.date) CONTAINS "T" 
+                    THEN datetime(r.date) 
+                    ELSE datetime(toString(r.date) + "T00:00:00") 
+                    END
+                ) >= datetime($date)
+            DELETE r
+        """
+        session.run(cypher_query, id_rdv=id_rdv,date=date)

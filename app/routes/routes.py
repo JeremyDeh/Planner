@@ -2,12 +2,15 @@
 from neo4j import GraphDatabase
 import os
 import pandas as pd
+from datetime import datetime, timedelta, date
 from flask import (
     Blueprint,
     request,
     render_template,
     jsonify,
-    make_response)
+    make_response,
+    redirect, 
+    url_for)
 from app.services import (
     extract_form_data,
     insert_rendez_vous,
@@ -30,7 +33,9 @@ from app.services import (
     get_plusieurs_jours_selles,
     get_infos_rdv,
     get_all_users,
-    update_roles
+    update_roles,
+    supprimer_rdv,
+    supprimer_rdv_chaine
 
 )
 from app.routes.auth import login_required, role_required
@@ -87,13 +92,14 @@ def popup_row_alt():
 def form():
     if request.method == 'POST':
         form_data = extract_form_data(request.form)
-        insert_rendez_vous(form_data)
-        create_rappels(form_data)
+        
+        insert_rendez_vous(driver,form_data, NEO4J_DB)
+        create_rappels(driver,form_data)
         return "Fichier Excel généré :"
     else:
-        pks,residents = get_residents_chambre()
-        medecins = get_medecins()
-        service = get_service()
+        pks,residents = get_residents_chambre(driver)
+        medecins = get_medecins(driver)
+        service = get_service(driver)
         return render_template("form.html", residents=residents, medecins=medecins, service=service,pks=pks)
 
 
@@ -101,15 +107,15 @@ def form():
 @login_required
 @role_required("infirmiere","admin")
 def journee():
-    manquants=[x['nom'] for x in selles_non_enregistrees()]
-    plusieurs_jours= get_plusieurs_jours_selles()
+    manquants=[x['nom'] for x in selles_non_enregistrees(driver)]
+    plusieurs_jours= get_plusieurs_jours_selles(driver)
     print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
         date_note = request.form.get('date_note')
         heure_note = request.form.get('heure_note')
         print(note, date_note, heure_note)
-        ajout_note(note, date_note, heure_note)
+        ajout_note(driver,note, date_note, heure_note)
         
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
@@ -127,13 +133,13 @@ def enregistre_selles():
         data = request.get_json()
         #print("### Données reçues :", data)
 
-        enregistrer_valeur_selles(data)
-        maj_last_check_selles(data)
+        enregistrer_valeur_selles(driver,data)
+        maj_last_check_selles(driver,data)
 
         return jsonify({'status': 'success', 'message': 'Données enregistrées avec succès'})
 
     # Sinon, méthode GET → on renvoie le tableau HTML
-    df_selles_du_jour = pd.DataFrame(get_selles_du_jour())
+    df_selles_du_jour = pd.DataFrame(get_selles_du_jour(driver))
     aujourdhui = pd.Timestamp.today().normalize()  # sans l'heure
     cols_dates = ['nuit', 'matin', 'soir']  # tes colonnes de dates
     try:
@@ -156,7 +162,7 @@ def enregistre_selles():
             df_selles_du_jour = pd.concat([df_selles_du_jour, df_none], ignore_index=True)
             print("nouveau df")
             print(df_selles_du_jour)
-    noms,prenoms,pks = get_residents()
+    noms,prenoms,pks = get_residents(driver)
 
     def options_html(selected_value):
         options = ['--', 'Normale', 'Liquide', 'Mou', 'Absence']
@@ -174,7 +180,7 @@ def enregistre_selles():
         ].values
         if len(val) > 0:
             return val[0]
-        elif f"{pk}" not in [x['pk'] for x in selles_non_enregistrees()]:
+        elif f"{pk}" not in [x['pk'] for x in selles_non_enregistrees(driver)]:
             return 'Absence'
         else:
             return "--"
@@ -236,7 +242,7 @@ def enregistre_selles():
 @login_required
 @role_required("infirmiere","admin")
 def client_file():
-    pks,residents = get_residents_chambre()
+    pks,residents = get_residents_chambre(driver)
     name = ''
     results = None
     node_result = []
@@ -323,7 +329,7 @@ def popup_row():
     nom_reserv = data["nom_resident"]
     rdv = data["Rendez-vous"]
     transport = data["Transport"]
-    infos = get_infos_rdv(data["Date"].replace(' ','T'), nom_reserv, rdv)
+    infos = get_infos_rdv(driver,data["Date"].replace(' ','T'), nom_reserv, rdv)
     print('infos : ', infos)
     medecin=infos[0].get('medecin', '') if infos[0].get('medecin', '') != None else ''
     html += f"<strong>{nom_reserv}</strong><br>"
@@ -353,13 +359,13 @@ def admin():
     """
     Route d'administration pour upgrade des user.
     """
-    users_dico = get_all_users()
+    users_dico = get_all_users(driver)
     if request.method == 'POST':
         selected_role = request.form.get("selected_role")
         username = request.form.get("username")
         if selected_role:
             print(f"Rôle sélectionné : {selected_role}, {username}")
-            update_roles(username, selected_role)
+            update_roles(driver,username, selected_role)
         else:
             choix = request.form.get('selected_item')
             print('choix : ', choix)
@@ -377,3 +383,22 @@ def admin():
         users_list=users_dico.keys(),
         users_roles=users_dico.values()
     )
+
+@main_bp.route('/supp_one', methods=['GET','POST'])
+def supp_one():
+    if request.method == 'POST':
+        id_one= request.form.get('id_one')
+        id_one= int(id_one) if id_one.isdigit() else id_one
+        print('id_one : ', id_one)
+        supprimer_rdv(driver,id_one)
+    return redirect(url_for('main.emploi_collectif'))
+
+@main_bp.route('/supp_all', methods=['GET','POST'])
+def supp_all():
+    if request.method == 'POST':
+        id_chain,date = request.form.get('id_chain').split('_')
+        print("date avant : ",date)
+        date=date.replace(' ','T')+':00'
+        print("date apres : ", date)
+        supprimer_rdv_chaine(driver,id_chain,date)
+    return redirect(url_for('main.emploi_collectif'))

@@ -18,7 +18,9 @@
 	pour infirmieres on laisse que le tableau et le truc coloré pour O2, mais dans tableau on garde diabete que si type redndez vous = pedicure ----- Done
 + ajouter un systeme de connexion utilisateur ----- Done
 + ajouter des droits utilisateurs pour acceder a certaines pages ----- Done
-+ ajouter un admin pour apgrader les utilisateurs créés
++ ajouter un admin pour apgrader les utilisateurs créés ----- Done
++ ajout d'un bouton pour supprimer un rendez vous ----- Done
++ ajout d'un bouton pour supprimer une chaine de rendez-vous ----- Done
 
 - récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer)
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv

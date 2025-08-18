@@ -252,7 +252,7 @@
                     {% if results is not none and results.shape[0] > 0 %}
                         {% set row = results.iloc[0] %}
                         <div style="background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(35,41,70,0.08); padding: 32px 28px; min-width: 320px; max-width: 420px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center;">
-                            <img src="https://nospensees.fr/wp-content/uploads/2017/06/femme-agee-300x199.jpg?w=640&q=75&auto=format%2Ccompress&fit=max" alt="Photo résident" style="width: 120px; height: 80px; object-fit: cover; border-radius: 10px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(35,41,70,0.10);">
+                            
                             <div style="font-size: 1.5em; font-weight: 600; color: #232946; margin-bottom: 8px; text-align: center;">
                                 {{ row['nom'] if 'nom' in row else '' }} {{ row['prenom'] if 'prenom' in row else '' }}
                             </div>
