@@ -140,51 +140,139 @@
             <svg width="30" height="30" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="8" r="4" fill="#232946" stroke="#eebbc3" stroke-width="1.5"/><path d="M4 18c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#232946" stroke-width="1.5" fill="#eebbc3"/></svg>
         </button>
 
-        <div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
-            <div class="popup-content" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw;">
-                <h3>Ajouter un nouveau résident</h3>
-                <form id="popupFormInner" autocomplete="off">
-                    <label>Nom : <input type="text" name="nom" required></label><br>
-                    <label>Prénom : <input type="text" name="prenom" required></label><br>
-                    <label>Date de naissance : <input type="date" name="date_naissance" required></label><br>
-                    <div style="display: flex; gap: 18px; margin-bottom: 8px;">
-                    <label>Sexe :
-                        <select name="gender" required>
-                            <option value="homme">Homme</option>
-                            <option value="femme">Femme</option>
-                        </select>
-                    </label><br>
-                    <label>Étage :
-                        <select name="etage" required>
-                            <option value="1">0</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                        </select>
-                    </label>
-                    <label>Chambre : <input type="text" name="chambre" required></label><br>
-                    </div>
-                    <label>Mode de déplacement :
-                        <select name="deplacement" required>
-                            <option value="Seul">Seul</option>
-                            <option value="Canne">Canne</option>
-                            <option value="Deambulateur">Déambulateur</option>
-                            <option value="Fauteil">Fauteil roulant</option>
-                            <option value="Lit">Alité</option>
-                        </select>
-                    </label>
-                    <div style="display: flex; gap: 18px; margin-bottom: 8px;">
-                        <label style="margin-bottom:0;">O2 : <input type="checkbox" name="O2" value="1"></label>
-                        <label style="margin-bottom:0;">Diabète : <input type="checkbox" name="diabete" value="1"></label>
-                    </div>
-                    <label>Commentaire : <input type="text" name="commentaire" required></label><br>
-                    <button type="submit" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:8px 18px; font-size:1em; cursor:pointer;">Valider</button>
-                </form>
+<div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
+    <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
+        <h3 class="noselect">Ajouter un nouveau résident</h3>
+        <form id="popupFormInner" autocomplete="off" style="display:flex; flex-direction:column; gap:12px;">
 
-                    <button type="button" id="closePopupBtn" style="margin-left:12px; background:#eee; color:#232946; border:none; border-radius:6px; padding:8px 18px; font-size:1em; cursor:pointer;">Annuler</button>
-                
+            <!-- Nom -->
+            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                Nom:
+                <input type="text" name="nom" required
+                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                >
+            </label>
+
+            <!-- Prénom -->
+            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                Prénom:
+                <input type="text" name="prenom" required
+                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                >
+            </label>
+
+            <!-- Date de naissance -->
+            <label class="noselect" style="display:flex; flex-direction:row; gap:8px; justify-content:center; align-items:center; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                Date de naissance:
+                <input type="date" name="date_naissance" required
+                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                >
+            </label>
+
+            <!-- Sexe, Étage, Chambre -->
+            <div class="noselect" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
+
+                <!-- Sexe -->
+                <label style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946; justify-content:center;">
+                    Sexe:
+                    <select name="gender" required
+                        style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                        onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                        onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                    >
+                        <option value="homme">Homme</option>
+                        <option value="femme">Femme</option>
+                    </select>
+                </label>
+
+                <!-- Étage -->
+                <label style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946; justify-content:center;">
+                    Étage:
+                    <select name="etage" required
+                        style="width:100px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                        onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                        onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                    >
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </label>
+
+                <!-- Chambre -->
+                <label style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                    Chambre:
+                    <input type="text" name="chambre" required
+                        style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                        onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                        onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                    >
+                </label>
+
             </div>
-        </div>
+
+            <!-- Mode de déplacement -->
+            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                Mode de déplacement:
+                <select name="deplacement" required
+                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                >
+                    <option value="Seul">Seul</option>
+                    <option value="Canne">Canne</option>
+                    <option value="Deambulateur">Déambulateur</option>
+                    <option value="Fauteil">Fauteil roulant</option>
+                    <option value="Lit">Alité</option>
+                </select>
+            </label>
+
+            <!-- O2 et Diabète -->
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <label style="display:flex; align-items:center; gap:4px; font-family:Arial, sans-serif; font-size:14px; color:#232946; cursor:pointer;">
+                    O2:
+                    <input type="checkbox" name="O2" value="1"
+                        style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; appearance:none; position:relative;"
+                        onclick="this.style.background=this.checked?'#003366':'#f0f0f5';"
+                    >
+                </label>
+
+                <label style="display:flex; align-items:center; gap:4px; font-family:Arial, sans-serif; font-size:14px; color:#232946; cursor:pointer;">
+                    Diabète:
+                    <input type="checkbox" name="diabete" value="1"
+                        style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; appearance:none; position:relative;"
+                        onclick="this.style.background=this.checked?'#003366':'#f0f0f5';"
+                    >
+                </label>
+            </div>
+
+            <!-- Commentaire -->
+            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                Commentaire:
+                <input type="text" name="commentaire" required
+                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
+                >
+            </label>
+
+            <!-- Boutons -->
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
+                <button type="submit" style="background:#1e7e34; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Valider</button>
+                <button type="button" id="closePopupBtn" style="background:#c82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
 
         <script>
         document.getElementById('openPopupBtn').onclick = function() {

@@ -185,3 +185,20 @@ form select {
   -moz-user-select: none;    /* Pour Firefox */
   -ms-user-select: none;     /* Pour IE/Edge */
 }
+
+.zoneSaisie {
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: #f0f0f5;
+    font-size: 14px;
+    font-family: inherit;
+    color: #232946;
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+.zoneSaisie:focus {
+    border: 1px solid #003366;
+    box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
+}
