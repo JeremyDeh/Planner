@@ -28,44 +28,44 @@
 
 - ajouter un bouton a gauche : imprimer tout lees rendez vous de date a date (genre sr une semaine) imprimer sous forme tableau avec les infos 
 
-- enlever IDE et a la place de AS, aide soignante, ergo = ergotherapeute,
+- enlever le choix "IDE" et a la place du choix "AS", ecrire "Aide soignante",et pour le choix "ergo" : ergotherapeute,
 
-- corriger reccurence tout les mois sans date de fin (bug a la validation)
+- corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Jeremy)
 
-- faire apparaitre  medecin  généralistes dans  personnes en charge
+- faire apparaitre  medecin  généralistes dans "personnes en charge" quand on créé un rendez-vous
 
-- sur la page du jour permettre de filtrer sur personne en charge
+- sur la page du jour permettre de filtrer sur "personne en charge"
 
-- afficher rappel que dans notes, mais pas dans les cardbox metiers
+- sur page principal : afficher "Rappel" que dans "notes" a droite, mais pas dans les cardbox metiers
 
-- 3 couleurs poselon les notes sur la page principale (note du jour/ note permanente et rappel) d abord afficher notes et rappel, et en bas, note permanente
+- sur page principale : 3 couleurs selon les notes (note du jour/ note permanente / rappel) d abord afficher notes et rappel, et en bas, note permanente
 
-- permettre de faire <entree> sur les autocomplete (quand tu commence a ecrie un nom et qu'il te le propose, pouvoir faire <Entree> au lieu de cliquer dessus)
+- quand on crée rendez-vous : permettre de faire <entree> sur les autocomplete (quand tu commence a ecrire un nom et qu'il te le propose, pouvoir faire <Entree> au lieu de cliquer dessus)
 
-- dans les nouveaux rdv : renommer "personne en charge dans le service" ->  "Visibilité dan le planning"
+- dans les nouveaux rdv : renommer "personne en charge dans le service" ->  "Visibilité dans le planning"
    et rajouter "Tous"
 
-- ordre du jour quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre
+- page principale : quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre, car plusieurs peuvent avoir meme nom + prenom
 
 - dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme
 
 - dans les selles : remplacer "soir" par "apres midi"
 
-- outil de notes sur la page pincipales, ajuoter un truc de note actives sans date mais possibilité de supprimer quand c'estfait
+- outil de notes sur la page pincipales, ajuouter un truc de note actives sans date (reste plusieurs jours) mais possibilité de supprimer quand c'est fait
 
 - ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris
 
-- couleur differentes pour cardbox medical vs pas medical ()
+- couleur differentes pour les titres des cardbox selon si medical vs pas medical 
 
-- ajouter plusieurs residents d'un coup pour un meme rdv
+- ajouter plusieurs residents d'un coup pour un meme rdv (le champs texte avec les choix de résidents selon ce qu'on commence à ecrire, fonctionnera pareil mais on peut en taper plusieurs)
 
 - Ajouter "EMPPA" en type de rendez vous
 
-- dans le tableau des rendez-vous format date dd-mm-yyyy 
+- dans le tableau des rendez-vous : format date dd-mm-yyyy au lieu de yyyy-mm-dd
 
-- les filtres de type de rendez-vous de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple
+- les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple
 
-- sur la page "fiche résident" afficher la vue calendrier pou les rendez-vous
+- sur la page "fiche résident" afficher la vue calendrier pour les rendez-vous
 
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
 - Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre
