@@ -13,7 +13,7 @@
 + creer un champs "nom affichage"  ----- Done
 + quand on affiche les résidents dans les menus déroulant, ajouter le numero de chambre pour quand il y a deux personnes avec le meme nom et prenom  ----- Done
 + Recurrence par mois faire au meme jour, pas a la meme date (si  premier lundi du mois, sera le premier lundi du mois suivant, mais pas tout les numero 3 du mois , et pas vraiment toutes les 4 semaines non plus car peut tomber le 31 si rdv le 3 )   ----- Done
-+ Ajouter taxi dans les moyen de transport ----- Done
+- Ajouter taxi dans les moyen de transport ----- Done
 + 2 types de fiches différentes pour imprimer, une pour les infirimieres avec données completes, et une pour le patient, synthses : Vous avez rendez vous le xxx a telle heure, avec le medecin xxx, pour motif : "type de rdv", (si transport chosiis: Mode de transport : un membre de votre famille vous accompagnerz  ou "Un transport exterieur viendra vous chercher", Lieu du rendez-vous : xxx )
 	pour infirmieres on laisse que le tableau et le truc coloré pour O2, mais dans tableau on garde diabete que si type redndez vous = pedicure ----- Done
 + ajouter un systeme de connexion utilisateur ----- Done
@@ -23,6 +23,49 @@
 + ajout d'un bouton pour supprimer une chaine de rendez-vous ----- Done
 + Gestion des suppressions de rappels ----- Done
 + récurrences sans date de fin (mettre 1 ou 3 ou 5 an, avec rappel avant la fin pour penser a le reprogrammer) ----- Done
+
+
+
+- ajouter un bouton a gauche : imprimer tout lees rendez vous de date a date (genre sr une semaine) imprimer sous forme tableau avec les infos 
+
+- enlever IDE et a la place de AS, aide soignante, ergo = ergotherapeute,
+
+- corriger reccurence tout les mois sans date de fin (bug a la validation)
+
+- faire apparaitre  medecin  généralistes dans  personnes en charge
+
+- sur la page du jour permettre de filtrer sur personne en charge
+
+- afficher rappel que dans notes, mais pas dans les cardbox metiers
+
+- 3 couleurs poselon les notes sur la page principale (note du jour/ note permanente et rappel) d abord afficher notes et rappel, et en bas, note permanente
+
+- permettre de faire <entree> sur les autocomplete (quand tu commence a ecrie un nom et qu'il te le propose, pouvoir faire <Entree> au lieu de cliquer dessus)
+
+- dans les nouveaux rdv : renommer "personne en charge dans le service" ->  "Visibilité dan le planning"
+   et rajouter "Tous"
+
+- ordre du jour quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre
+
+- dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme
+
+- dans les selles : remplacer "soir" par "apres midi"
+
+- outil de notes sur la page pincipales, ajuoter un truc de note actives sans date mais possibilité de supprimer quand c'estfait
+
+- ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris
+
+- couleur differentes pour cardbox medical vs pas medical ()
+
+- ajouter plusieurs residents d'un coup pour un meme rdv
+
+- Ajouter "EMPPA" en type de rendez vous
+
+- dans le tableau des rendez-vous format date dd-mm-yyyy 
+
+- les filtres de type de rendez-vous de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple
+
+- sur la page "fiche résident" afficher la vue calendrier pou les rendez-vous
 
 - mettre un indicatif 'depart de l'etablissement' pour supprimer les rdv
 - Mettre le type de reccurence sur creation de RDV comme pour les rappel : indiquer si cest 'mois' 'jour' 'semaine' et la personne rentre le nombre
