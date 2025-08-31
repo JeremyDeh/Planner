@@ -761,7 +761,7 @@ def imprimerMultiJours(driver,NEO4J_DB='neo4j'):
             WITH n, m, r, date(substring(toString(r.date), 0, 10)) AS rdvDate
             WHERE rdvDate >= date()
             AND rdvDate <= date() + duration('P7D')
-            RETURN n.nom AS nom, n.chambre AS chambre, n.prenom AS prenom, m.metier AS typeRdv, r.date as date, r.medecin as nomMedecin, r.lieu AS lieu, r.commentaire AS commentaire, r.transport AS transport
+            RETURN n.nom AS nom, n.chambre AS chambre, n.prenom AS prenom, m.metier AS typeRdv, r.date as date, r.medecin as nomMedecin, r.lieu AS lieu, r.commentaire AS commentaire, r.transport AS transport, n.oxygen AS oxygene
             ORDER BY rdvDate, r.date
 
         """

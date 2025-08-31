@@ -114,8 +114,6 @@ def form():
 @role_required("infirmiere","admin")
 def impression():
     rdv_list=imprimerMultiJours(driver)
-    print("########################### RDV_LIST ")
-    print(rdv_list)
     return render_template("impression.html",rdv_list=rdv_list)
 
 

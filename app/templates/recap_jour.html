@@ -78,7 +78,8 @@
         <div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
             <div id="impressionPopupContent" style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
                 <button onclick="closeImpressionPopup()" style="position:absolute; top:18px; right:18px;">Fermer</button>
-                <div id="impressionContentInner"></div>
+                <button onclick="printImpressionContent()" style="position:absolute; top:18px; left:18px; background:#4F8CFF; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1em; font-weight:600; cursor:pointer;">Imprimer</button>
+                <div id="impressionContentInner" style="margin-top:56px;"></div>
             </div>
         </div>
         <!-- Bannière moderne en haut -->
@@ -249,6 +250,19 @@
             }
             function closeImpressionPopup() {
                 document.getElementById('impressionPopup').style.display = 'none';
+            }
+            function printImpressionContent() {
+                var printContents = document.getElementById('impressionContentInner').innerHTML;
+                var printWindow = window.open('', '', 'height=800,width=1200');
+                printWindow.document.write('<html><head><title>Impression</title>');
+                printWindow.document.write(document.head.innerHTML);
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(printContents);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
             }
             document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
             </script>

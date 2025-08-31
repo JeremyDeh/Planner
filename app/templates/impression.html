@@ -10,45 +10,55 @@
     </style>
 </head>
 <body>
-    <h1>Rendez-vous des 7 prochains jours</h1>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>Chambre</th>
-                <th>Type de RDV</th>
-                <th>Date</th>
-                <th>Heure</th>
-                <th>Médecin</th>
-                <th>Lieu</th>
-                <th>Commentaire</th>
-                <th>Transport</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for rdv in rdv_list %}
-            <tr>
-                <td>{{ "%02d"|format(rdv.date.day) }}-{{ "%02d"|format(rdv.date.month) }}-{{ rdv.date.year }}</td>
-                <td>
-                    {% if rdv.date.hour is defined %}
-                        {{ "%02d"|format(rdv.date.hour) }}:{{ "%02d"|format(rdv.date.minute) }}
-                    {% else %}
-                        ---
-                    {% endif %}
-                </td>
-                <td>{{ rdv.nom }}</td>
-                <td>{{ rdv.prenom }}</td>
-                <td>{{ rdv.chambre }}</td>
-                <td>{{ rdv.typeRdv }}</td>
-                <td>{{ rdv.nomMedecin }}</td>
-                <td>{{ rdv.lieu }}</td>
-                <td>{{ rdv.commentaire }}</td>
-                <td>{{ rdv.transport }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    <!-- Contenu à imprimer -->
+    <div id="printable">
+        <h1>Rendez-vous des 7 prochains jours</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Chambre</th>
+                    <th>Type de RDV</th>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Médecin</th>
+                    <th>Lieu</th>
+                    <th>Commentaire</th>
+                    <th>Transport</th>
+                    <th>Oxygène</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rdv in rdv_list %}
+                <tr>
+                    <td>{{ "%02d"|format(rdv.date.day) }}-{{ "%02d"|format(rdv.date.month) }}-{{ rdv.date.year }}</td>
+                    <td>
+                        {% if rdv.date.hour is defined %}
+                            {{ "%02d"|format(rdv.date.hour) }}:{{ "%02d"|format(rdv.date.minute) }}
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td>{{ rdv.nom }}</td>
+                    <td>{{ rdv.prenom }}</td>
+                    <td>{{ rdv.chambre }}</td>
+                    <td>{{ rdv.typeRdv }}</td>
+                    <td>{{ rdv.nomMedecin }}</td>
+                    <td>{{ rdv.lieu }}</td>
+                    <td>{{ rdv.commentaire }}</td>
+                    <td>{{ rdv.transport }}</td>
+                    <td>{{ rdv.oxygene }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </body>
+
+
 </html>
