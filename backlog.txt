@@ -6,33 +6,33 @@
    et rajouter "Tous"  --- Done
 + Ajouter "EMPPA" en type de rendez vous   --- Done
 
-- corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Jeremy)
+- corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Dur)
 
-- sur la page du jour permettre de filtrer sur "personne en charge" 
+- sur la page du jour permettre de filtrer sur "personne en charge" -->(Moyen)
 
-- ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris
+- ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris  -->(Dur)
 
-- outil de notes sur la page pincipales, ajuouter un truc de note actives sans date (reste plusieurs jours) mais possibilité de supprimer quand c'est fait
+- outil de notes sur la page pincipales, ajuouter un truc de note actives sans date (reste plusieurs jours) mais possibilité de supprimer quand c'est fait  -->(Dur)
 
-- sur page principale : 3 couleurs selon les notes (note du jour/ note permanente / rappel) d abord afficher notes et rappel, et en bas, note permanente
+- sur page principale : 3 couleurs selon les notes (note du jour/ note permanente / rappel) d abord afficher notes et rappel, et en bas, note permanente  -->(Facile, mais depend de celle du dessus)
 
-- quand on crée rendez-vous : permettre de faire <entree> sur les autocomplete (quand tu commence a ecrire un nom et qu'il te le propose, pouvoir faire <Entree> au lieu de cliquer dessus)
+- quand on crée rendez-vous : permettre de faire <entree> sur les autocomplete (quand tu commence a ecrire un nom et qu'il te le propose, pouvoir faire <Entree> au lieu de cliquer dessus)  -->(???)
 
-- page principale : quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre, car plusieurs peuvent avoir meme nom + prenom
+- page principale : quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre, car plusieurs peuvent avoir meme nom + prenom  -->(Facile)
 
-- dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme
+- dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme  -->(Tres Facile)
 
-- dans les selles : remplacer "soir" par "apres midi"
+- dans les selles : remplacer "soir" par "apres midi"  -->(Tres facile)
 
-- couleur differentes pour les titres des cardbox selon si medical vs pas medical 
+- couleur differentes pour les titres des cardbox selon si medical vs pas medical  -->(Facile)
 
-- ajouter plusieurs residents d'un coup pour un meme rdv (le champs texte avec les choix de résidents selon ce qu'on commence à ecrire, fonctionnera pareil mais on peut en taper plusieurs)
+- ajouter plusieurs residents d'un coup pour un meme rdv (le champs texte avec les choix de résidents selon ce qu'on commence à ecrire, fonctionnera pareil mais on peut en taper plusieurs)  -->(Moyen)
 
-- dans le tableau des rendez-vous : format date dd-mm-yyyy au lieu de yyyy-mm-dd
+- dans le tableau des rendez-vous : format date dd-mm-yyyy au lieu de yyyy-mm-dd  -->(Tres facile)
 
-- les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple
+- les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple  -->(Facile)
 
-- sur la page "fiche résident" afficher la vue calendrier pour les rendez-vous
+- sur la page "fiche résident" afficher la vue calendrier pour les rendez-vous  -->(Dur)
 
 
 
