@@ -753,3 +753,18 @@ def supprimer_rdv_chaine(driver, id_rdv,date, NEO4J_DB='neo4j'):
             DELETE r,s
         """
         session.run(cypher_query, id_rdv=id_rdv,date=date)
+
+def imprimerMultiJours(driver,NEO4J_DB='neo4j'):
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH (n:Resident)-[r:Rdv]-(m:Categorie)
+            WITH n, m, r, date(substring(toString(r.date), 0, 10)) AS rdvDate
+            WHERE rdvDate >= date()
+            AND rdvDate <= date() + duration('P7D')
+            RETURN n.nom AS nom, n.chambre AS chambre, n.prenom AS prenom, m.metier AS typeRdv, r.date as date, r.medecin as nomMedecin, r.lieu AS lieu, r.commentaire AS commentaire, r.transport AS transport
+            ORDER BY rdvDate, r.date
+
+        """
+        result = session.run(cypher_query)
+        liste_rdv = [dict(record) for record in result]
+    return liste_rdv

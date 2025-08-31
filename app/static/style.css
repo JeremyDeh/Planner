@@ -16,6 +16,13 @@ form {
     max-width: 800px;
     margin: auto;
     padding: 30px;
+.separator-vertical {
+    width: 60%;
+    height: 32px;
+    border-left: 2px solid #4a90e2;
+    margin: 20px auto 20px auto;
+    display: block;
+}
     background: white;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);

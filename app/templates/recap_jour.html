@@ -68,10 +68,19 @@
             <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
             <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
             <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
+            <div class="separator-vertical"></div>
+            <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
         </div>
         
 
         <div class="central-panel">
+        <!-- Popup Impression -->
+        <div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
+            <div id="impressionPopupContent" style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
+                <button onclick="closeImpressionPopup()" style="position:absolute; top:18px; right:18px;">Fermer</button>
+                <div id="impressionContentInner"></div>
+            </div>
+        </div>
         <!-- Bannière moderne en haut -->
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
@@ -227,7 +236,22 @@
                 <div id="sellesPopupContent" style="background:#fff; border-radius:18px; padding:0; max-width:90vw; max-height:90vh; overflow:auto;"></div>
             </div>
 
-            <!-- Ton JS -->
+            <!-- JS Impression Popup -->
+            <script>
+            function openImpressionPopup() {
+                document.getElementById('impressionPopup').style.display = 'flex';
+                // Charger le contenu via AJAX
+                fetch('{{ url_for('main.impression') }}', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('impressionContentInner').innerHTML = html;
+                    });
+            }
+            function closeImpressionPopup() {
+                document.getElementById('impressionPopup').style.display = 'none';
+            }
+            document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
+            </script>
             <script src="{{ url_for('static', filename='js/selles.js') }}"></script>
 
         <!-- Popup Selles -->

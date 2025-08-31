@@ -37,7 +37,8 @@ from app.services import (
     supprimer_rdv,
     supprimer_rdv_chaine,
     get_next_id,
-    create_rappel_infini
+    create_rappel_infini,
+    imprimerMultiJours
 
 )
 from app.routes.auth import login_required, role_required
@@ -106,6 +107,16 @@ def form():
         medecins = get_medecins(driver)
         service = get_service(driver)
         return render_template("form.html", residents=residents, medecins=medecins, service=service,pks=pks)
+
+
+@main_bp.route('/impression', methods=['GET', 'POST'])
+@login_required
+@role_required("infirmiere","admin")
+def impression():
+    rdv_list=imprimerMultiJours(driver)
+    print("########################### RDV_LIST ")
+    print(rdv_list)
+    return render_template("impression.html",rdv_list=rdv_list)
 
 
 @main_bp.route('/journee', methods=['GET', 'POST'])
