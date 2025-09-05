@@ -530,7 +530,7 @@ def enregistrer_valeur_selles(driver,data,NEO4J_DB='neo4j'): # on n'enregistre p
     for nom_complet in data.keys():
         
         nom, prenom = nom_complet.split(" ", 1)
-        for moment in ["nuit", "matin", "soir"]:
+        for moment in ["nuit", "matin", "apres_midi"]:
             if data[nom_complet][moment] != "--" :##and  data[nom_complet][moment] != "Absence" :
                 data_f.append({
                     "nom": nom,
@@ -562,7 +562,7 @@ def maj_last_check_selles(driver, data, NEO4J_DB='neo4j'):
     for noms_complet in data.keys():  # original_data contient les noms complets
         nom,prenom = noms_complet.split(" ")
         
-        data_f.append({"nom": nom, "prenom": prenom, "pk":data[noms_complet]['pk'], "liste":['nuit' if data[noms_complet]['nuit']!='--' else None,'matin' if data[noms_complet]['matin']!='--' else None,'soir' if data[noms_complet]['soir']!='--' else None ]}) if any([valeur !='--' for valeur in (data[noms_complet]['nuit'],data[noms_complet]['matin'],data[noms_complet]['soir']) ]) else None
+        data_f.append({"nom": nom, "prenom": prenom, "pk":data[noms_complet]['pk'], "liste":['nuit' if data[noms_complet]['nuit']!='--' else None,'matin' if data[noms_complet]['matin']!='--' else None,'apres_midi' if data[noms_complet]['apres_midi']!='--' else None ]}) if any([valeur !='--' for valeur in (data[noms_complet]['nuit'],data[noms_complet]['matin'],data[noms_complet]['apres_midi']) ]) else None
         print('data_f : ',data_f)
     with driver.session(database=NEO4J_DB) as session:
         session.run(
@@ -578,9 +578,9 @@ def maj_last_check_selles(driver, data, NEO4J_DB='neo4j'):
                 WHEN 'matin' in row.liste THEN date()
                 ELSE n.derniere_verif_selles_matin
             END,
-            n.derniere_verif_selles_soir = CASE
-                WHEN 'soir' in row.liste THEN date()
-                ELSE n.derniere_verif_selles_soir
+            n.derniere_verif_selles_apres_midi = CASE
+                WHEN 'apres_midi' in row.liste THEN date()
+                ELSE n.derniere_verif_selles_apres_midi
             END
             """,
             data=data_f
@@ -616,7 +616,7 @@ def get_selles_du_jour(driver, NEO4J_DB='neo4j'):
             OPTIONAL MATCH (m:Selles)-[r:Par]->(n)
             WHERE n.derniere_verif_selles = date()
             RETURN n.nom AS nom, n.prenom AS prenom, n.pk AS pk, m.moment_date AS moment,
-                   r.caracteristique AS caracteristique, m.commentaire AS commentaire, n.derniere_verif_selles_nuit, n.derniere_verif_selles_matin, n.derniere_verif_selles_soir
+                   r.caracteristique AS caracteristique, m.commentaire AS commentaire, n.derniere_verif_selles_nuit, n.derniere_verif_selles_matin, n.derniere_verif_selles_apres_midi
             ORDER BY n.nom, n.prenom, m.moment_date
 
         """
@@ -631,7 +631,7 @@ def get_selles_du_jour(driver, NEO4J_DB='neo4j'):
                 'commentaire': record['commentaire'],
                 'nuit': record['n.derniere_verif_selles_nuit'],
                 'matin': record['n.derniere_verif_selles_matin'],
-                'soir': record['n.derniere_verif_selles_soir']
+                'apres_midi': record['n.derniere_verif_selles_apres_midi']
             } for record in results
     ]
     print("get_selles_du_jour : ",maListe)

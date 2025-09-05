@@ -26,14 +26,14 @@ function enregistre_selles() {
 
         const nuit = document.getElementById(`${safe_nom}-nuit-select`).value;
         const matin = document.getElementById(`${safe_nom}-matin-select`).value;
-        const soir = document.getElementById(`${safe_nom}-soir-select`).value;
+        const apres_midi = document.getElementById(`${safe_nom}-apres_midi-select`).value;
         const note = row.querySelector('input[type="text"]').value;
 
         data[nom] = {
             pk: pk,
             nuit: nuit,
             matin: matin,
-            soir: soir,
+            apres_midi: apres_midi,
             commentaire: note
         };
     });

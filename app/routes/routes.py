@@ -155,17 +155,17 @@ def enregistre_selles():
     # Sinon, méthode GET → on renvoie le tableau HTML
     df_selles_du_jour = pd.DataFrame(get_selles_du_jour(driver))
     aujourdhui = pd.Timestamp.today().normalize()  # sans l'heure
-    cols_dates = ['nuit', 'matin', 'soir']  # tes colonnes de dates
+    cols_dates = ['nuit', 'matin', 'apres_midi']  # tes colonnes de dates
     try:
         df_selles_du_jour[cols_dates] = df_selles_du_jour[cols_dates].where(df_selles_du_jour[cols_dates] == aujourdhui, None)
     except :
-        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','soir'])
+        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','apres_midi'])
     if df_selles_du_jour.empty:
         print('il est broke ton df')
-        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','soir'])
+        df_selles_du_jour=pd.DataFrame(columns=['nom', 'prenom', 'pk', 'moment', 'caracteristique', 'commentaire','nuit','matin','apres_midi'])
     else :
         print('df ok')
-        for col in ['nuit', 'matin', 'soir']:
+        for col in ['nuit', 'matin', 'apres_midi']:
             df_none = df_selles_du_jour[df_selles_du_jour[col].isna()].copy()
 
             # On modifie leur 'caracteristique'
@@ -206,7 +206,7 @@ def enregistre_selles():
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr>
-                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Soir</th><th>Note</th><th style="display:none;">pk</th>
+                    <th>Nom</th><th>Nuit</th><th>Matin</th><th>Après-Midi</th><th>Note</th><th style="display:none;">pk</th>
                 </tr>
             </thead>
             <tbody>
@@ -215,7 +215,7 @@ def enregistre_selles():
     for nom,prenom,pk in zip(noms,prenoms,pks):
         valeur_nuit = get_val(nom, prenom, pk, 'nuit')
         valeur_matin = get_val(nom, prenom, pk, 'matin')
-        valeur_soir = get_val(nom, prenom, pk, 'soir')
+        valeur_apres_midi = get_val(nom, prenom, pk, 'apres_midi')
 
         commentaire = df_selles_du_jour.loc[
             (df_selles_du_jour['nom'] == nom) &
@@ -232,7 +232,7 @@ def enregistre_selles():
             <td>{nom_complet}</td>
             <td><select id="{safe_nom}-nuit-select">{options_html(valeur_nuit)}</select></td>
             <td><select id="{safe_nom}-matin-select">{options_html(valeur_matin)}</select></td>
-            <td><select id="{safe_nom}-soir-select">{options_html(valeur_soir)}</select></td>
+            <td><select id="{safe_nom}-apres_midi-select">{options_html(valeur_apres_midi)}</select></td>
             <td><input type="text" value="{commentaire}" placeholder="Note..."></td>
             <td style="display:none;">{pk}</td>
         </tr>

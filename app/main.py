@@ -32,9 +32,9 @@ except Exception:
 
 # Vérification de la date
 licence_data = json.loads(licence_json)
-if datetime.date.today() > datetime.date.fromisoformat(licence_data["expire"]):
-    print("Licence expirée.")
-    raise SystemExit("Licence expirée.")
+#if datetime.date.today() > datetime.date.fromisoformat(licence_data["expire"]):
+#    print("Licence expirée.")
+#    raise SystemExit("Licence expirée.")
 
 print("Licence valide pour :", licence_data["client"])
 
