@@ -5,6 +5,22 @@ from app.services.utils_date import (generate_dates,
                                      generate_smart_weekday_recurrence)
 import pandas as pd
 
+def get_personnel(driver, NEO4J_DB="neo4j"):
+    """
+    Récupère la liste du personnel (médecins et infirmières) depuis la base Neo4j.
+
+    Returns:
+        list[str]: Liste des noms du personnel, triés par ordre alphabétique.
+    """
+    personnel = []
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = "MATCH (n:Service) RETURN n.nom ORDER BY n.nom"
+        neo4j_results = session.run(cypher_query)
+        for record in neo4j_results:
+            nom = record['n.nom']
+            if nom:
+                personnel.append(nom)
+    return personnel
 
 def get_residents(driver, NEO4J_DB="neo4j"):
     """
@@ -54,7 +70,7 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
         cypher_query = """
                         MATCH (n:Resident)-[r:Rdv]->(m)
                         WHERE date(r.date) = date()
-                        RETURN n.nom AS nom, n.prenom AS prenom, r.date AS date, r.lieu AS lieu, m.metier AS metier, r.commentaire AS commentaire
+                        RETURN n.nom AS nom, n.prenom AS prenom, r.date AS date, r.lieu AS lieu, m.metier AS metier, r.commentaire AS commentaire, r.responsable AS responsable
                         ORDER BY m.metier, n.nom, n.prenom
                         """
         neo4j_results = session.run(cypher_query)

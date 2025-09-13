@@ -26,7 +26,8 @@ from .neo4j_services import (
     supprimer_rdv_chaine,
     get_next_id,
     create_rappel_infini,
-    imprimerMultiJours
+    imprimerMultiJours,
+    get_personnel
 )
 
 __all__ = [
@@ -58,4 +59,5 @@ __all__ = [
     'get_next_id',
     'create_rappel_infini',
     'imprimerMultiJours',
+    'get_personnel',
 ]

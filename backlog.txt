@@ -5,10 +5,12 @@
 + dans les nouveaux rdv : renommer "personne en charge dans le service" ->  "Visibilité dans le planning"  --- Done
    et rajouter "Tous"  --- Done
 + Ajouter "EMPPA" en type de rendez vous   --- Done
++ dans les selles : remplacer "soir" par "apres midi"  -->(Tres facile)  --- Done
++ sur la page du jour permettre de filtrer sur "personne en charge" -->(Moyen)  --- Done
++ dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme  -->(Tres Facile)   --- Done
+
 
 - corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Dur)
-
-- sur la page du jour permettre de filtrer sur "personne en charge" -->(Moyen)
 
 - ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris  -->(Dur)
 
@@ -19,10 +21,6 @@
 - quand on crée rendez-vous : permettre de faire <entree> sur les autocomplete (quand tu commence a ecrire un nom et qu'il te le propose, pouvoir faire <Entree> au lieu de cliquer dessus)  -->(???)
 
 - page principale : quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre, car plusieurs peuvent avoir meme nom + prenom  -->(Facile)
-
-- dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme  -->(Tres Facile)
-
-- dans les selles : remplacer "soir" par "apres midi"  -->(Tres facile)
 
 - couleur differentes pour les titres des cardbox selon si medical vs pas medical  -->(Facile)
 

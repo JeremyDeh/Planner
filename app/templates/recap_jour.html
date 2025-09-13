@@ -99,12 +99,59 @@
         <!-- Layout principal avec cardbox métiers et cardbox formulaire note à droite -->
         <div style="display:flex; flex-direction:row; align-items:flex-start; padding-top:100px;">
             <div style="flex:1; margin-right:360px; max-width:calc(100vw - 600px);">
+                <!-- Menu déroulant des services -->
+                {% if liste_service is defined and liste_service|length > 0 %}
+                <div style="margin-bottom:24px;">
+                    <label for="serviceSelect" style="font-weight:600; margin-right:12px;">Service :</label>
+                    <select id="serviceSelect" name="serviceSelect" style="padding:8px 16px; border-radius:8px; border:1px solid #ccc; font-size:1em;">
+                        {% for service in liste_service %}
+                            <option value="{{ service }}" {% if service == "Infirmières" %}selected{% endif %}>{{ service }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var select = document.getElementById('serviceSelect');
+
+                        function appliquerFiltre() {
+                            var selectedService = select.value;
+                            var allCardboxes = document.querySelectorAll('.cardbox-modern.filterable');
+
+                            allCardboxes.forEach(function(cardbox) {
+                                var lis = cardbox.querySelectorAll('ul li[data-responsable]');
+                                var visibleCount = 0;
+
+                                lis.forEach(function(li) {
+                                    if (li.getAttribute('data-responsable') === selectedService) {
+                                        li.style.display = '';
+                                        visibleCount++;
+                                    } else {
+                                        li.style.display = 'none';
+                                    }
+                                });
+
+                                // Masquer ou afficher la cardbox selon le contenu
+                                if (visibleCount === 0) {
+                                    cardbox.style.display = 'none';
+                                } else {
+                                    cardbox.style.display = '';
+                                }
+                            });
+                        }
+
+                        select.addEventListener('change', appliquerFiltre);
+
+                        // Appliquer le filtre au chargement
+                        appliquerFiltre();
+                    });
+                </script>
+                {% endif %}
                 {# Cardbox pour chaque métier distinct #}
                 {% if rdv is defined and rdv.shape[0] > 0 %}
                     {% set metiers = rdv['metier'].unique() %}
                     <div style="display:flex; flex-wrap:wrap; gap:24px;">
                         {% for metier in metiers %}
-                            <div class="cardbox-modern" style="background:#f7f7fa; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:260px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0;">
+                            <div class="cardbox-modern filterable" style="background:#f7f7fa; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-width:220px; min-height:260px; width:320px; margin-bottom:20px; border:1px solid #e0e0e0;">
                                 <h3 style="margin-top:0;">{{ metier }}</h3>
                                 <ul style="list-style:none; padding-left:0; margin-top:12px;">
                                     {% for _, row in rdv.iterrows() %}
@@ -112,7 +159,7 @@
                                             {% set date_str = row['date']|string %}
                                             {% set heure = date_str.split('T')[1] if 'T' in date_str else '--:--' %}
                                             {% set heure = heure[:5] %}
-                                            <li style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                                            <li data-responsable="{{ row['responsable'] }}" style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
                                                 <span style="display:inline-block; background:#232946; color:#eebbc3; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure }}</span>
                                                 <span style="font-weight:600; margin-left:8px;">{{ row['nom'] }} {{ row['prenom'] }}</span> <br>
                                                 <span style="padding-left:2em; color:#232946; font-size:0.98em;">Lieu : {{ row['lieu'] }}</span> <br>
@@ -174,12 +221,8 @@
                     transform: translateX(20px);
                 }
                 </style>
-                <div id="sellesContentNormal">
-                    <p style="color:#6c6c80; font-size:0.98em;">Résidents dont l'enregistrement des selles est manquant pour la journée :</p>
-                    {% for manquant in manquants %}
-                        <strong>{{ manquant }}</strong><br>
-                    {% endfor %}
-                </div>
+                
+
                 <div id="sellesContentDerniersJours" style="display:none;">
                     <p style="color:#6c6c80; font-size:0.98em;">Résidents qui n'ont pas été à la selle ces derniers jours</p>
                     {% if plusieurs_jours is defined and plusieurs_jours.shape[0] > 0 %}
@@ -207,27 +250,43 @@
                         <p style="color:#b0b0b0;">Aucune donnée pour les derniers jours.</p>
                     {% endif %}
                 </div>
+                <div id="sellesContentNormal">
+                    <p style="color:#6c6c80; font-size:0.98em;">Résidents dont l'enregistrement des selles est manquant pour la journée :</p>
+                    {% for manquant in manquants %}
+                        <strong>{{ manquant }}</strong><br>
+                    {% endfor %}
+                </div>
                 <script>
-                document.addEventListener('DOMContentLoaded', function() {
+                    document.addEventListener('DOMContentLoaded', function() {
                     var sliderSwitch = document.getElementById('sellesSliderSwitch');
                     var normalDiv = document.getElementById('sellesContentNormal');
                     var derniersDiv = document.getElementById('sellesContentDerniersJours');
                     var labelAuj = document.getElementById('sliderLabelAuj');
                     var labelDerniers = document.getElementById('sliderLabelDerniers');
-                    sliderSwitch.addEventListener('click', function(event) {
-                        event.stopPropagation();
-                        if(sliderSwitch.checked) {
-                            normalDiv.style.display = 'none';
-                            derniersDiv.style.display = '';
-                            labelAuj.style.display = 'none';
-                            labelDerniers.style.display = '';
-                        } else {
+
+                    function updateDisplay() {
+                        if (sliderSwitch.checked) {
+                            // → Normal (inversé)
                             normalDiv.style.display = '';
                             derniersDiv.style.display = 'none';
                             labelAuj.style.display = '';
                             labelDerniers.style.display = 'none';
+                        } else {
+                            // → Derniers jours (par défaut)
+                            normalDiv.style.display = 'none';
+                            derniersDiv.style.display = '';
+                            labelAuj.style.display = 'none';
+                            labelDerniers.style.display = '';
                         }
+                    }
+
+                    sliderSwitch.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                        updateDisplay();
                     });
+
+                    // état initial inversé
+                    updateDisplay();
                 });
                 </script>
             </div>

@@ -38,7 +38,8 @@ from app.services import (
     supprimer_rdv_chaine,
     get_next_id,
     create_rappel_infini,
-    imprimerMultiJours
+    imprimerMultiJours,
+    get_personnel
 
 )
 from app.routes.auth import login_required, role_required
@@ -123,6 +124,7 @@ def impression():
 def journee():
     manquants=[x['nom'] for x in selles_non_enregistrees(driver)]
     plusieurs_jours= get_plusieurs_jours_selles(driver)
+    liste_service= get_personnel(driver)
     print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
         note = request.form.get('note', '').strip()
@@ -138,7 +140,8 @@ def journee():
         rdv=rendez_vous,
         notes=notes,
         manquants=manquants,
-        plusieurs_jours=plusieurs_jours
+        plusieurs_jours=plusieurs_jours,
+        liste_service=liste_service
     )
 
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
