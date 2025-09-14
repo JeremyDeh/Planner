@@ -274,35 +274,74 @@
 </div>
 
 
+<div id="popupMessage"
+     style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+            background:#1e7e34; color:#fff; padding:32px 48px; border-radius:16px;
+            font-size:20px; min-width:320px; text-align:center;
+            font-weight:bold; box-shadow:0 8px 32px rgba(0,0,0,0.35);
+            z-index:2000; opacity:0; transition:opacity 0.3s ease;">
+</div>
+
+
+
         <script>
-        document.getElementById('openPopupBtn').onclick = function() {
-            document.getElementById('popupForm').style.display = 'flex';
-        };
-        document.getElementById('closePopupBtn').onclick = function() {
-            document.getElementById('popupForm').style.display = 'none';
-        };
-        document.getElementById('popupFormInner').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch('/add_resident', {
-                method: 'POST',
+document.addEventListener("DOMContentLoaded", () => {
+    const openBtn    = document.getElementById("openPopupBtn");
+    const closeBtn   = document.getElementById("closePopupBtn");
+    const popup      = document.getElementById("popupForm");
+    const form       = document.getElementById("popupFormInner");
+    const messageBox = document.getElementById("popupMessage");
+
+    // Ouvrir formulaire
+    openBtn.onclick = () => popup.style.display = "flex";
+    // Fermer formulaire
+    closeBtn.onclick = () => popup.style.display = "none";
+
+    // Soumission formulaire
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch("/add_resident", {
+                method: "POST",
                 body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Résident ajouté avec succès !');
-                    document.getElementById('popupForm').style.display = 'none';
-                    this.reset();
-                } else {
-                    alert('Erreur : ' + (data.error || 'Impossible d\'ajouter le résident.'));
-                }
-            })
-            .catch(() => {
-                alert('Erreur réseau ou serveur.');
             });
-        };
-        </script>
+            const data = await response.json();
+
+            if (data.success) {
+                showPopup("✅ Résident ajouté avec succès !", "success");
+                popup.style.display = "none";
+                this.reset();
+            } else {
+                showPopup("❌ Erreur : " + (data.error || "Impossible d'ajouter le résident.") , "error");
+            }
+        } catch {
+            showPopup("⚠️ Erreur réseau ou serveur.", "error");
+        }
+    };
+
+    // Affichage du message
+    function showPopup(message, type) {
+        messageBox.textContent = message;
+        messageBox.style.background = type === "success" ? "#1e7e34" : "#c82333";
+        messageBox.style.display = "block";
+
+        // animation fade-in
+        requestAnimationFrame(() => {
+            messageBox.style.opacity = "1";
+        });
+
+        // disparition après 3s
+        setTimeout(() => {
+            messageBox.style.opacity = "0";
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
     
             <form method="post" action="{{ url_for('main.client_file') }}" style="margin-top:18px;">
                 <label>Nom du résident :</label>
