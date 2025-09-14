@@ -416,7 +416,7 @@ def get_rendez_vous(driver, db_name, pk):
         results = session.run(cypher_query, pk=pk)
         return [
             {
-                'Date': record['r.date'].strftime('%Y-%m-%d %H:%M'),
+                'Date': record['r.date'].strftime('%d/%m/%Y %H:%M'),
                 'Rendez-vous': record['m.metier'],
                 'Transport': record['r.transport'],
                 'Note': record['r.commentaire'],

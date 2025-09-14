@@ -44,21 +44,24 @@
             font-size: 1em;
         }
         table.collectif-table th {
-            background: #232946;
-            color: #eebbc3;
+            background: #5A8DEE;
+            color: #f7f7fa;
             font-weight: 600;
         }
         table.collectif-table tr:nth-child(even) {
             background: #f7f7fa;
         }
         table.collectif-table tr:hover {
-            background: #eebbc3;
+            background: #A3C2FF;
             color: #232946;
+            
         }
         /* Lignes passées en mode historique */
         tr.past-row {
-            background: #e0e0e0 !important;
-            color: #888 !important;
+            background: #FFCFA0 !important;
+            color: #232946 !important;
+            font-style: italic;
+            font-weight: 400;
         }
         
     </style>
@@ -85,7 +88,7 @@
                 left: 0;
                 width: 200px;
                 height: 100vh;
-                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
                 display: flex;
                 flex-direction: column;
                 align-items: stretch;
@@ -131,14 +134,42 @@
 
     </div>
     <div class="central-panel" style="padding-top:100px;">
-        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);; box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Fiche résidents</span>
         </div>
-        <button id="openPopupBtn" style="margin-bottom: 18px; background: #eebbc3; color: #232946; border: 2px solid #232946; border-radius: 8px; padding: 6px 10px; min-width: 48px; width: 54px; height: 44px; font-size: 1em; cursor: pointer; display: flex; align-items: center; gap: 0; justify-content: center; box-shadow: 0 2px 8px rgba(35,41,70,0.08); transition: border 0.2s, box-shadow 0.2s;">
-            <svg width="25" height="25" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="11" r="11" fill="#232946"/><path d="M11 6v10M6 11h10" stroke="#eebbc3" stroke-width="2" stroke-linecap="round"/></svg>
-            <svg width="30" height="30" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="8" r="4" fill="#232946" stroke="#eebbc3" stroke-width="1.5"/><path d="M4 18c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#232946" stroke-width="1.5" fill="#eebbc3"/></svg>
-        </button>
+<button id="openPopupBtn" style="
+  margin-bottom: 18px; 
+  background: #5A8DEE; 
+  color: #FFFFFF; 
+  border: 2px solid #FFFFFF; 
+  border-radius: 8px; 
+  padding: 6px 10px; 
+  min-width: 48px; 
+  width: 54px; 
+  height: 44px; 
+  font-size: 1em; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  gap: 0; 
+  justify-content: center; 
+  box-shadow: 0 2px 8px rgba(35,41,70,0.2); 
+  transition: background 0.2s, border 0.2s, box-shadow 0.2s;
+">
+  <!-- Cercle + réduit et fond bleu -->
+  <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;">
+    <circle cx="11" cy="11" r="9" fill="#5A8DEE"/>
+    <path d="M11 6v10M6 11h10" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+
+  <!-- Cercle petit bonhomme -->
+  <svg width="30" height="30" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;">
+    <circle cx="11" cy="8" r="4" fill="#5A8DEE" stroke="#FFFFFF" stroke-width="1.5"/>
+    <path d="M4 18c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  </svg>
+</button>
+
 
 <div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
     <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
@@ -156,7 +187,7 @@
             </label>
 
             <!-- Prénom -->
-            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+            <label claFs="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
                 Prénom:
                 <input type="text" name="prenom" required
                     style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
@@ -265,8 +296,8 @@
 
             <!-- Boutons -->
             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
-                <button type="submit" style="background:#1e7e34; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Valider</button>
-                <button type="button" id="closePopupBtn" style="background:#c82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+                <button type="submit" class="btn-valider">Valider</button>
+                <button type="button" id="closePopupBtn" style="background:#C82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
             </div>
 
         </form>
@@ -343,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
     
-            <form method="post" action="{{ url_for('main.client_file') }}" style="margin-top:18px;">
+            <form method="post" action="{{ url_for('main.client_file') }}" style="margin-top:18px;" class="">
                 <label>Nom du résident :</label>
                 
                 <div style="position:relative;">
@@ -361,7 +392,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
 
-                <button type="submit" id="validerBtn" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:8px 18px; font-size:1em; cursor:pointer;">Valider</button>
+                <button type="submit" id="validerBtn" class="btn-valider">Valider</button>
+
             </form>
 
             <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
@@ -374,8 +406,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             {% if results is not none or (nodes is defined and nodes|length > 0) %}
             <div class="fiche-flex-container" style="margin-top:32px;">
-                <div class="client-list fiche-carte">
-                    <h3>Informations du résident</h3>
+                <div class="client-list fiche-carte; noselect">
+                    <h3 class="noselect">Informations du résident</h3>
                     {% if results is not none and results.shape[0] > 0 %}
                         {% set row = results.iloc[0] %}
                         <div style="background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(35,41,70,0.08); padding: 32px 28px; min-width: 320px; max-width: 420px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center;">
@@ -430,14 +462,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     {% endif %}
                 </div>
                 <div class="fiche-planning">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px;">
-                        <h3 style="margin-bottom:0;">Planning du résident</h3>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; margin-top: 20px;">
+                        <h3 style="margin-bottom:0;" class="noselect">Planning du résident</h3>
                         <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
-                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#eebbc3; cursor:pointer;"> Historique
+                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#5A8DEE; cursor:pointer;"> Historique
                         </label>
                     </div>
                     {% if nodes is defined and nodes|length > 0 %}
-                        <table class="collectif-table" id="planningTable">
+                        <table class="collectif-table noselect" id="planningTable">
                             <thead>
                                 <tr>
                                     {% for col in nodes[0].keys() %}
@@ -465,9 +497,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <td style="text-align:center;">
                                         <button class="dots-btn-alt" data-row-alt='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <circle cx="5" cy="12" r="2" fill="#eebbc3"/>
-                                                <circle cx="12" cy="12" r="2" fill="#eebbc3"/>
-                                                <circle cx="19" cy="12" r="2" fill="#eebbc3"/>
+                                                <circle cx="5" cy="12" r="2" fill="#232946"/>
+                                                <circle cx="12" cy="12" r="2" fill="#232946"/>
+                                                <circle cx="19" cy="12" r="2" fill="#232946"/>
                                             </svg>
                                         </button>
                                     </td>
@@ -484,13 +516,14 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (/\d{4}-\d{2}-\d{2}/.test(dateStr)) {
                                 d = new Date(dateStr);
                             } else if (/\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
-                                const [j, m, a] = dateStr.split('/');
+                                const [j, m, a] = dateStr.split(/[\/ ]/);
                                 d = new Date(`${a}-${m}-${j}`);
                             } else {
                                 return true; // si format inconnu, ne pas filtrer
                             }
                             const today = new Date();
                             today.setHours(0,0,0,0);
+                            console.log(d);
                             return d >= today;
                         }
                         function filterPlanningRows(showAll) {
@@ -637,7 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             let nomResident = '';
                             let oxygen = '';
                             let diabete = '';
-                            const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
+                            const carte = document.querySelector('.fiche-carte .client-list .noselect') || document.querySelector('.fiche-carte .noselect');
                             if (carte) {
                                 const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
                                 if (titre) nomResident = titre.textContent.trim();

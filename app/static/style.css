@@ -186,19 +186,39 @@ form select {
   -ms-user-select: none;     /* Pour IE/Edge */
 }
 
-.zoneSaisie {
-    padding: 8px 16px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    background: #f0f0f5;
-    font-size: 14px;
-    font-family: inherit;
-    color: #232946;
-    outline: none;
-    transition: border 0.3s, box-shadow 0.3s;
+.btn-valider {
+    background: #1e7e34;
+    font-weight: bold;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.1s ease;
 }
 
-.zoneSaisie:focus {
-    border: 1px solid #003366;
-    box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
+/* Effet au survol */
+.btn-valider:hover {
+    background: #1e7e34;
 }
+
+/* Effet au clic */
+.btn-valider:active {
+    transform: scale(0.97);
+}
+
+#openPopupBtn {
+  transition: transform 2s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 2s cubic-bezier(0.25, 1, 0.5, 1),
+              background 1.5s ease;
+}
+
+#openPopupBtn:active {
+  transform: scale(0.95) translateY(2px); /* léger déplacement et contraction */
+  box-shadow: 0 1px 4px rgba(35,41,70,0.15); /* ombre douce */
+}
+
+
+
+

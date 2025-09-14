@@ -58,34 +58,45 @@ def popup_row_alt():
     Génère le contenu HTML pour la nouvelle popup personnalisée (colonne alt).
     """
     data = request.get_json(force=True)
-    html = '<h3 style="margin-top:0; color:#eebbc3;">Informations complémentaires (ALT)</h3>'
-    html += '<table style="width:100%; border-collapse:collapse;">'
+    html = '<h3 class="noselect" style="margin-top:0; color:#5A8DEE; font-weight:bold;">Informations complémentaires (ALT)</h3>'
+    html += '<table class="noselect" style="width:100%; border-collapse:collapse;">'
+
+    # Oxygène spécifique
     if data.get('oxygen') == 'Oui':
-        oxygen_html = (
-            '<p style="color: red; font-weight: bold;">'
-            'Attention : Oxygène requis</p>'
-        )
+        oxygen_html = '<p class="noselect" style="color: red; font-weight: bold;">Attention : Oxygène requis</p>'
     else:
-        oxygen_html = (
-            '<p style="color: green; font-weight: bold;">'
-            'Pas d\'oxygène requis</p>'
-        )
-    
+        oxygen_html = '<p class="noselect" style="color: green; font-weight: bold;">Pas d\'oxygène requis</p>'
     html += oxygen_html
+
+    # Correspondance clé → libellé
+    labels = {
+        "nom_resident": "Nom résident",
+        "Date": "Date",
+        "Rendez-vous": "Rendez-vous",
+        "Transport": "Transport",
+        "Medecin": "Médecin",
+        "Lieu": "Lieu",
+        "diabete": "Diabète",
+        "oxygen": "O₂"
+    }
+
     for key, value in data.items():
+        # Si on a un libellé, sinon on met la clé brute
+        label = labels.get(key, key)
         key_td = (
-            "<td style='font-weight:600; color:#eebbc3; padding:6px 10px; border-bottom:1px solid #eee;'>"
-            f"{key}</td>"
+            f"<td class='noselect' style='font-weight:600; color:#5A8DEE; padding:6px 10px; border-bottom:1px solid #eee; text-align:left;'>"
+            f"{label}</td>"
         )
         value_td = (
-            "<td style='padding:6px 10px; border-bottom:1px solid #eee;'>"
+            f"<td class='noselect' style='padding:6px 10px; border-bottom:1px solid #eee;'>"
             f"{value}</td>"
         )
-        row = f"<tr>{key_td}{value_td}</tr>"
-        html += row
+        html += f"<tr>{key_td}{value_td}</tr>"
+
     html += '</table>'
-    html += '<div style="margin-top:18px; color:#232946;">Ceci est une popup personnalisée pour la colonne ALT.</div>'
     return make_response(html)
+
+
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
