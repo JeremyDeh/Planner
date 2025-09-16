@@ -187,7 +187,7 @@
             </label>
 
             <!-- Prénom -->
-            <label claFs="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
                 Prénom:
                 <input type="text" name="prenom" required
                     style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
@@ -406,8 +406,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             {% if results is not none or (nodes is defined and nodes|length > 0) %}
             <div class="fiche-flex-container" style="margin-top:32px;">
-                <div class="client-list fiche-carte; noselect">
-                    <h3 class="noselect">Informations du résident</h3>
+                <div class="client-list fiche-carte">
+                    <h3>Informations du résident</h3>
                     {% if results is not none and results.shape[0] > 0 %}
                         {% set row = results.iloc[0] %}
                         <div style="background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(35,41,70,0.08); padding: 32px 28px; min-width: 320px; max-width: 420px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center;">
@@ -463,13 +463,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="fiche-planning">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; margin-top: 20px;">
-                        <h3 style="margin-bottom:0;" class="noselect">Planning du résident</h3>
+                        <h3 style="margin-bottom:0;">Planning du résident</h3>
                         <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
                             <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#5A8DEE; cursor:pointer;"> Historique
                         </label>
                     </div>
                     {% if nodes is defined and nodes|length > 0 %}
-                        <table class="collectif-table noselect" id="planningTable">
+                        <table class="collectif-table" id="planningTable">
                             <thead>
                                 <tr>
                                     {% for col in nodes[0].keys() %}
@@ -670,7 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             let nomResident = '';
                             let oxygen = '';
                             let diabete = '';
-                            const carte = document.querySelector('.fiche-carte .client-list .noselect') || document.querySelector('.fiche-carte .noselect');
+                            const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
                             if (carte) {
                                 const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
                                 if (titre) nomResident = titre.textContent.trim();

@@ -667,6 +667,8 @@ def get_infos_rdv(driver,date, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
     nom=nom_full.split(" ")[0]
     prenom =nom_full.split(" ")[1]
     date=date+':00'
+    date=date.split('/')[2].split('T')[0]+'-'+date.split('/')[1]+'-'+date.split('/')[0]+'T'+date.split('T')[1]
+    print(f"ma date : {date}")
     print('get_infos_rdv : ',date, nom, prenom, rdv)
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
@@ -676,7 +678,7 @@ def get_infos_rdv(driver,date, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
         """
         results = session.run(cypher_query,nom=nom,prenom=prenom,date=date,rdv=rdv)
         data= [dict(record) for record in results]
- 
+        print("data sortie fonction : ",data)
         return  data
     
 def get_all_users(driver, NEO4J_DB='neo4j'):
