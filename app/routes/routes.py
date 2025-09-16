@@ -338,7 +338,7 @@ def popup_row():
     les données JSON.
     """
     data = request.get_json(force=True)
-    html = '<h3 style="margin-top:0;">Détail du rendez-vous</h3>'
+    html = '<h3 style="margin-top:20px;">Détail du rendez-vous</h3>'
     html += '<table style="width:100%; border-collapse:collapse;">'
 
     date_parts = data["Date"].split(" ")
@@ -350,9 +350,9 @@ def popup_row():
     print('infos : ', infos)
     medecin=infos[0].get('medecin', '') if infos[0].get('medecin', '') != None else ''
     html += f"<strong>{nom_reserv}</strong><br>"
-    intro= f"""Vous avez rendez vous  "{rdv}" prévu le {date_parts[0]} a {date_parts[1]}, """
+    intro= f"""Vous avez rendez vous  "{rdv}" prévu le {date_parts[0]} à {date_parts[1]}"""
     if medecin != '':
-        intro += f"avec : {medecin}, "
+        intro += f", avec : {medecin}. "
     html += intro
     if transport != '---':
         transport_html = f"""<p style="color: #232946; font-weight: bold;">Un transport est prévu pour vous emmener à ce rendez vous : {transport}</p>"""
