@@ -181,7 +181,8 @@ def extract_form_data(form):
     """
     recurrence = form.get('fichierCSV', '0')
 
-    pk = form['nomPatient']
+
+    pk = form['nomPatients'].split(",")
     metier = form.get('nomMedecin', '')
     service = form.get('nomService', '')
     lieu = form.get('lieu')
@@ -246,7 +247,7 @@ def extract_form_data(form):
     }
 
 
-def insert_rendez_vous(driver,data, next_id, NEO4J_DB="neo4j"):
+def insert_rendez_vous(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
     """
     Insère un ou plusieurs rendez-vous dans la base Neo4j
     pour un résident donné.
@@ -294,7 +295,7 @@ def insert_rendez_vous(driver,data, next_id, NEO4J_DB="neo4j"):
                 transport=data['transport'],
                 lieu=data['lieu'],
                 responsable=data['service'],
-                pk= data['pk'],
+                pk= individu_pk,
                 medecin= data['medecin'],
                 next_id=next_id
             )
@@ -316,7 +317,7 @@ def get_service(driver, NEO4J_DB="neo4j"):
                 service.append(nom)
     return service
 
-def create_rappels(driver,data,next_id, NEO4J_DB="neo4j"):
+def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
     """
     Crée des rappels associés aux rendez-vous dans la base Neo4j.
 
@@ -356,7 +357,7 @@ def create_rappels(driver,data,next_id, NEO4J_DB="neo4j"):
                 """
                 session.run(
                     cypher_query,
-                    pk=data['pk'],
+                    pk=individu_pk,
                     type_rdv=data['metier'],
                     date_str=rappel_rdv,
                     date_evt=rdv,
@@ -367,9 +368,9 @@ def create_rappels(driver,data,next_id, NEO4J_DB="neo4j"):
                     next_id=next_id
                 )
 
-def create_rappel_infini(driver, data, next_id, NEO4J_DB="neo4j"):
+def create_rappel_infini(driver, data, individu_pk, next_id, NEO4J_DB="neo4j"):
     date_fin =data['date_rdv_list'][-1]## on prend la derniere date 
-    pk= data['pk']
+    pk= individu_pk
     metier = data['metier']
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = ("""

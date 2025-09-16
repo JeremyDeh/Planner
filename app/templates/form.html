@@ -102,29 +102,34 @@
                 <input type="time" name="duree_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
             
-            <label>Nom du résident :</label>
+            <label>Nom(s) du résident :</label>
             <div style="position:relative;">
-            <!-- Champ texte affiché à l'utilisateur -->
-            <input type="text" name="nomPatient_affichage" id="nomPatientInput" 
-                autocomplete="off" placeholder="Commencez à taper..." required 
-                onfocus="showPatientList()" oninput="filterPatientList()">
 
-            <!-- Champ caché pour envoyer la PK au backend -->
-            <input type="hidden" name="nomPatient" id="nomPatientHidden">
+                <!-- Champ texte pour rechercher -->
+                <input type="text" id="nomPatientInput"
+                    autocomplete="off" placeholder="Commencez à taper..."
+                    onfocus="showPatientList()" oninput="filterPatientList()">
 
-            <div id="patientList" style="display:none; position:absolute; left:0; right:0; 
-                                        background:#fff; border:1px solid #ccc; 
-                                        max-height:200px; overflow-y:auto; z-index:10;">
-                {% for nom in residents %}
-                    <div class="patient-item" 
-                        data-pk="{{ pks[loop.index0] }}" 
-                        style="padding:8px; cursor:pointer;" 
-                        onclick="selectPatient(this)">
-                        {{ nom }}
-                    </div>
-                {% endfor %}
+                <!-- Champ caché pour stocker les IDs sélectionnés (séparés par des virgules) -->
+                <input type="hidden" name="nomPatients" id="nomPatientHidden">
+
+                <!-- Zone des résidents sélectionnés -->
+                <div id="selectedPatients" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:5px;"></div>
+
+                <!-- Liste des suggestions -->
+                <div id="patientList" style="display:none; position:absolute; left:0; right:0;
+                                            background:#fff; border:1px solid #ccc;
+                                            max-height:200px; overflow-y:auto; z-index:10;">
+                    {% for nom in residents %}
+                        <div class="patient-item"
+                            data-pk="{{ pks[loop.index0] }}"
+                            style="padding:8px; cursor:pointer;"
+                            onclick="selectPatient(this)">
+                            {{ nom }}
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
 
 
             <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 12px;">
@@ -169,7 +174,9 @@
                     {% endfor %}
                 </div>
             </div>
-            <script>
+ <script>
+                let selectedPatients = [];
+
                 function showPatientList() {
                     document.getElementById('patientList').style.display = 'block';
                 }
@@ -181,24 +188,54 @@
                 }
 
                 function selectPatient(element) {
-                    // Nom affiché dans le champ texte
-                    document.getElementById('nomPatientInput').value = element.textContent.trim();
+                    const pk = element.getAttribute('data-pk');
+                    const name = element.textContent.trim();
 
-                    // PK envoyée dans le champ hidden
-                    document.getElementById('nomPatientHidden').value = element.getAttribute('data-pk');
+                    // Vérifie si déjà sélectionné
+                    if (selectedPatients.some(p => p.pk === pk)) return;
+
+                    // Ajoute dans la liste
+                    selectedPatients.push({ pk, name });
+                    updateSelectedPatients();
+
+                    // Vide le champ de recherche
+                    document.getElementById('nomPatientInput').value = "";
 
                     hidePatientList();
                 }
 
+                function updateSelectedPatients() {
+                    const container = document.getElementById('selectedPatients');
+                    container.innerHTML = "";
+
+                    selectedPatients.forEach((patient, index) => {
+                        const tag = document.createElement('div');
+                        tag.style.cssText = "background:#e0e0e0; padding:5px 10px; border-radius:12px; display:flex; align-items:center; margin:3px;";
+
+                        tag.innerHTML = `
+                            <span>${patient.name}</span>
+                            <span style="margin-left:8px; cursor:pointer; color:red; font-weight:bold;"
+                                onclick="removePatient(${index})">&times;</span>
+                        `;
+
+                        container.appendChild(tag);
+                    });
+
+                    // Met à jour le champ caché (liste des IDs séparés par virgules)
+                    document.getElementById('nomPatientHidden').value =
+                        selectedPatients.map(p => p.pk).join(',');
+                }
+
+                function removePatient(index) {
+                    selectedPatients.splice(index, 1);
+                    updateSelectedPatients();
+                }
+
                 function filterPatientList() {
-                    var input = document.getElementById('nomPatientInput').value.toLowerCase();
-                    var items = document.querySelectorAll('#patientList .patient-item');
+                    const input = document.getElementById('nomPatientInput').value.toLowerCase();
+                    const items = document.querySelectorAll('#patientList .patient-item');
                     items.forEach(function(item) {
-                        if (item.textContent.toLowerCase().includes(input)) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
+                        item.style.display = item.textContent.toLowerCase().includes(input) ? '' : 'none';
                     });
                 }
 
