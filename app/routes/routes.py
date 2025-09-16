@@ -58,7 +58,7 @@ def popup_row_alt():
     Génère le contenu HTML pour la nouvelle popup personnalisée (colonne alt).
     """
     data = request.get_json(force=True)
-    html = '<h3 class="noselect" style="margin-top:0; color:#5A8DEE; font-weight:bold;">Informations complémentaires (ALT)</h3>'
+    html = '<h3 class="noselect" style="margin-top:0; color:#5A8DEE; font-weight:bold;">Informations complémentaires</h3>'
     html += '<table class="noselect" style="width:100%; border-collapse:collapse;">'
 
     # Oxygène spécifique
@@ -346,6 +346,7 @@ def popup_row():
     rdv = data["Rendez-vous"]
     transport = data["Transport"]
     infos = get_infos_rdv(driver,data["Date"].replace(' ','T'), nom_reserv, rdv)
+
     print('infos : ', infos)
     medecin=infos[0].get('medecin', '') if infos[0].get('medecin', '') != None else ''
     html += f"<strong>{nom_reserv}</strong><br>"

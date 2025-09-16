@@ -667,7 +667,12 @@ def get_infos_rdv(driver,date, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
     nom=nom_full.split(" ")[0]
     prenom =nom_full.split(" ")[1]
     date=date+':00'
-    date=date.split('/')[2].split('T')[0]+'-'+date.split('/')[1]+'-'+date.split('/')[0]+'T'+date.split('T')[1]
+
+    if 'T00' in date:
+        # Si la date contient 'T00', cela signifie qu'il n'y a pas d'heure réelle
+        date=date.split('/')[2].split('T')[0]+'-'+date.split('/')[1]+'-'+date.split('/')[0]
+    else:
+        date=date.split('/')[2].split('T')[0]+'-'+date.split('/')[1]+'-'+date.split('/')[0]+'T'+date.split('T')[1]
     print(f"ma date : {date}")
     print('get_infos_rdv : ',date, nom, prenom, rdv)
     with driver.session(database=NEO4J_DB) as session:

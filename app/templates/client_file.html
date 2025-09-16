@@ -447,8 +447,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             {% endif %}
                             {% if 'naissance' in row %}
                                 <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Date de naissance : <b>{{ row['naissance'] }}</b>
-                                </div>
+                                Date de naissance : 
+                                <b id="naissance">{{ row['naissance'] }}</b>
+                            </div>
                             {% endif %}
                             {% if 'deplacement' in row %}
                                 <div style="margin-bottom: 8px; width: 100%; text-align: center;">
@@ -507,6 +508,18 @@ document.addEventListener("DOMContentLoaded", () => {
                                 {% endfor %}
                             </tbody>
                         </table>
+
+                        <script>
+                        // Récupérer la date sous forme de chaîne (format "YYYY-MM-DD")
+                        let naissanceStr = "{{ row['naissance'] }}";
+
+                        // Utiliser une expression régulière pour reformater la chaîne "YYYY-MM-DD" en "DD/MM/YYYY"
+                        let regex = /^(\d{4})-(\d{2})-(\d{2})$/;
+                        let formattedDate = naissanceStr.replace(regex, '$3/$2/$1');
+
+                        // Remplacer le contenu de la balise avec la date formatée
+                        document.getElementById('naissance').textContent = formattedDate;
+                    </script>
                         <script>
                         // Filtrage planning : n'affiche que les lignes dont la date >= aujourd'hui, sauf si historique activé
                         function isDateInFuture(dateStr) {
