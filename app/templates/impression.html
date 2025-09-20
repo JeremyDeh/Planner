@@ -19,12 +19,13 @@
         <table>
             <thead>
                 <tr>
-                    <th>Nom</th>
-                    <th>Prénom</th>
-                    <th>Chambre</th>
-                    <th>Type de RDV</th>
+
                     <th>Date</th>
                     <th>Heure</th>
+                    <th>Chambre</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Type de RDV</th>
                     <th>Médecin</th>
                     <th>Lieu</th>
                     <th>Commentaire</th>
@@ -37,8 +38,8 @@
                 <tr>
                     <td>{{ "%02d"|format(rdv.date.day) }}-{{ "%02d"|format(rdv.date.month) }}-{{ rdv.date.year }}</td>
                     <td>
-                        {% if rdv.date.hour is defined %}
-                            {{ "%02d"|format(rdv.date.hour) }}:{{ "%02d"|format(rdv.date.minute) }}
+                        {% if rdv.heure is defined and rdv.heure != None %}
+                            {{ "%02d"|format(rdv.heure.hour) }}:{{ "%02d"|format(rdv.heure.minute) }}
                         {% else %}
                             ---
                         {% endif %}

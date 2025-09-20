@@ -506,7 +506,7 @@ def get_all_rdv_events(driver, db_name):
                 'Nom': record['n.nom'] + ' ' + record['n.prenom'],
                 'Etage': record['n.etage'],
                 'Chambre': record['n.chambre'],
-                'Date': record['r.date'].to_native().strftime('%Y-%m-%d') if not record['r.heure'] else record['r.date'].to_native().strftime('%Y-%m-%d')+'T'+ record['r.heure'].to_native().strftime('%H:%M'),
+                'Date': record['r.date'].to_native().strftime('%d/%m/%Y') if not record['r.heure'] else record['r.date'].to_native().strftime('%d/%m/%Y')+' '+ record['r.heure'].to_native().strftime('%H:%M'),
                 'Rendez-vous': record['m.metier'] if record['type(r)'] == 'Rdv' else record['type(r)'] + ' : ' + record['r.rdv'],
                 'Note': record['r.commentaire'],
                 'Type_Evt': record['type(r)'],
@@ -796,10 +796,11 @@ def imprimerMultiJours(driver,NEO4J_DB='neo4j'):
             WITH n, m, r, date(substring(toString(r.date), 0, 10)) AS rdvDate
             WHERE rdvDate >= date()
             AND rdvDate <= date() + duration('P7D')
-            RETURN n.nom AS nom, n.chambre AS chambre, n.prenom AS prenom, m.metier AS typeRdv, r.date as date, r.medecin as nomMedecin, r.lieu AS lieu, r.commentaire AS commentaire, r.transport AS transport, n.oxygen AS oxygene
+            RETURN n.nom AS nom, n.chambre AS chambre, n.prenom AS prenom, m.metier AS typeRdv, r.date as date, r.heure as heure, r.medecin as nomMedecin, r.lieu AS lieu, r.commentaire AS commentaire, r.transport AS transport, n.oxygen AS oxygene
             ORDER BY rdvDate, r.date
 
         """
         result = session.run(cypher_query)
         liste_rdv = [dict(record) for record in result]
+        print("liste rdv impression : ", liste_rdv)
     return liste_rdv
