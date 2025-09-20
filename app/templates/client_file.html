@@ -44,21 +44,24 @@
             font-size: 1em;
         }
         table.collectif-table th {
-            background: #232946;
-            color: #eebbc3;
-            font-weight: 600;
+            background: #F2F6FC;
+            color:  #000000;
+            font-weight: 700;
         }
         table.collectif-table tr:nth-child(even) {
             background: #f7f7fa;
         }
         table.collectif-table tr:hover {
-            background: #eebbc3;
+            background: #A3C2FF;
             color: #232946;
+            
         }
         /* Lignes passées en mode historique */
         tr.past-row {
-            background: #e0e0e0 !important;
-            color: #888 !important;
+            background: #FFCFA0 !important;
+            color: #232946 !important;
+            font-style: italic;
+            font-weight: 400;
         }
         
     </style>
@@ -85,7 +88,7 @@
                 left: 0;
                 width: 200px;
                 height: 100vh;
-                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
                 display: flex;
                 flex-direction: column;
                 align-items: stretch;
@@ -131,14 +134,26 @@
 
     </div>
     <div class="central-panel" style="padding-top:100px;">
-        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);; box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Fiche résidents</span>
         </div>
-        <button id="openPopupBtn" style="margin-bottom: 18px; background: #eebbc3; color: #232946; border: 2px solid #232946; border-radius: 8px; padding: 6px 10px; min-width: 48px; width: 54px; height: 44px; font-size: 1em; cursor: pointer; display: flex; align-items: center; gap: 0; justify-content: center; box-shadow: 0 2px 8px rgba(35,41,70,0.08); transition: border 0.2s, box-shadow 0.2s;">
-            <svg width="25" height="25" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="11" r="11" fill="#232946"/><path d="M11 6v10M6 11h10" stroke="#eebbc3" stroke-width="2" stroke-linecap="round"/></svg>
-            <svg width="30" height="30" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right: -6px; margin-left: -6px;"><circle cx="11" cy="8" r="4" fill="#232946" stroke="#eebbc3" stroke-width="1.5"/><path d="M4 18c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#232946" stroke-width="1.5" fill="#eebbc3"/></svg>
-        </button>
+
+
+
+
+<button id="openPopupBtn" class="openPopupBtn">
+    <!-- Icône "+" blanc toujours visible -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
+         fill="none" stroke="white" stroke-width="2" 
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    <span>Ajout d'un nouveau résident</span>
+  </button>
+
+
 
 <div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
     <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
@@ -265,8 +280,8 @@
 
             <!-- Boutons -->
             <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
-                <button type="submit" style="background:#1e7e34; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Valider</button>
-                <button type="button" id="closePopupBtn" style="background:#c82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+                <button type="submit" class="btn-valider">Valider</button>
+                <button type="button" id="closePopupBtn" style="background:#C82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
             </div>
 
         </form>
@@ -274,37 +289,76 @@
 </div>
 
 
+<div id="popupMessage"
+     style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+            background:#1e7e34; color:#fff; padding:32px 48px; border-radius:16px;
+            font-size:20px; min-width:320px; text-align:center;
+            font-weight:bold; box-shadow:0 8px 32px rgba(0,0,0,0.35);
+            z-index:2000; opacity:0; transition:opacity 0.3s ease;">
+</div>
+
+
+
         <script>
-        document.getElementById('openPopupBtn').onclick = function() {
-            document.getElementById('popupForm').style.display = 'flex';
-        };
-        document.getElementById('closePopupBtn').onclick = function() {
-            document.getElementById('popupForm').style.display = 'none';
-        };
-        document.getElementById('popupFormInner').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch('/add_resident', {
-                method: 'POST',
+document.addEventListener("DOMContentLoaded", () => {
+    const openBtn    = document.getElementById("openPopupBtn");
+    const closeBtn   = document.getElementById("closePopupBtn");
+    const popup      = document.getElementById("popupForm");
+    const form       = document.getElementById("popupFormInner");
+    const messageBox = document.getElementById("popupMessage");
+
+    // Ouvrir formulaire
+    openBtn.onclick = () => popup.style.display = "flex";
+    // Fermer formulaire
+    closeBtn.onclick = () => popup.style.display = "none";
+
+    // Soumission formulaire
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch("/add_resident", {
+                method: "POST",
                 body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Résident ajouté avec succès !');
-                    document.getElementById('popupForm').style.display = 'none';
-                    this.reset();
-                } else {
-                    alert('Erreur : ' + (data.error || 'Impossible d\'ajouter le résident.'));
-                }
-            })
-            .catch(() => {
-                alert('Erreur réseau ou serveur.');
             });
-        };
-        </script>
+            const data = await response.json();
+
+            if (data.success) {
+                showPopup("✅ Résident ajouté avec succès !", "success");
+                popup.style.display = "none";
+                this.reset();
+            } else {
+                showPopup("❌ Erreur : " + (data.error || "Impossible d'ajouter le résident.") , "error");
+            }
+        } catch {
+            showPopup("⚠️ Erreur réseau ou serveur.", "error");
+        }
+    };
+
+    // Affichage du message
+    function showPopup(message, type) {
+        messageBox.textContent = message;
+        messageBox.style.background = type === "success" ? "#1e7e34" : "#c82333";
+        messageBox.style.display = "block";
+
+        // animation fade-in
+        requestAnimationFrame(() => {
+            messageBox.style.opacity = "1";
+        });
+
+        // disparition après 3s
+        setTimeout(() => {
+            messageBox.style.opacity = "0";
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
     
-            <form method="post" action="{{ url_for('main.client_file') }}" style="margin-top:18px;">
+            <form method="post" action="{{ url_for('main.client_file') }}" class="">
                 <label>Nom du résident :</label>
                 
                 <div style="position:relative;">
@@ -322,7 +376,8 @@
                 </div>
             </div>
 
-                <button type="submit" id="validerBtn" style="background:#232946; color:#eebbc3; border:none; border-radius:6px; padding:8px 18px; font-size:1em; cursor:pointer;">Valider</button>
+                <button type="submit" id="validerBtn" class="btn-valider">Valider</button>
+
             </form>
 
             <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
@@ -376,8 +431,9 @@
                             {% endif %}
                             {% if 'naissance' in row %}
                                 <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Date de naissance : <b>{{ row['naissance'] }}</b>
-                                </div>
+                                Date de naissance : 
+                                <b id="naissance">{{ row['naissance'] }}</b>
+                            </div>
                             {% endif %}
                             {% if 'deplacement' in row %}
                                 <div style="margin-bottom: 8px; width: 100%; text-align: center;">
@@ -391,10 +447,10 @@
                     {% endif %}
                 </div>
                 <div class="fiche-planning">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; margin-top: 20px;">
                         <h3 style="margin-bottom:0;">Planning du résident</h3>
                         <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
-                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#eebbc3; cursor:pointer;"> Historique
+                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#5A8DEE; cursor:pointer;"> Historique
                         </label>
                     </div>
                     {% if nodes is defined and nodes|length > 0 %}
@@ -426,9 +482,9 @@
                                     <td style="text-align:center;">
                                         <button class="dots-btn-alt" data-row-alt='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <circle cx="5" cy="12" r="2" fill="#eebbc3"/>
-                                                <circle cx="12" cy="12" r="2" fill="#eebbc3"/>
-                                                <circle cx="19" cy="12" r="2" fill="#eebbc3"/>
+                                                <circle cx="5" cy="12" r="2" fill="#232946"/>
+                                                <circle cx="12" cy="12" r="2" fill="#232946"/>
+                                                <circle cx="19" cy="12" r="2" fill="#232946"/>
                                             </svg>
                                         </button>
                                     </td>
@@ -436,6 +492,18 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+
+                        <script>
+                        // Récupérer la date sous forme de chaîne (format "YYYY-MM-DD")
+                        let naissanceStr = "{{ row['naissance'] }}";
+
+                        // Utiliser une expression régulière pour reformater la chaîne "YYYY-MM-DD" en "DD/MM/YYYY"
+                        let regex = /^(\d{4})-(\d{2})-(\d{2})$/;
+                        let formattedDate = naissanceStr.replace(regex, '$3/$2/$1');
+
+                        // Remplacer le contenu de la balise avec la date formatée
+                        document.getElementById('naissance').textContent = formattedDate;
+                    </script>
                         <script>
                         // Filtrage planning : n'affiche que les lignes dont la date >= aujourd'hui, sauf si historique activé
                         function isDateInFuture(dateStr) {
@@ -445,13 +513,14 @@
                             if (/\d{4}-\d{2}-\d{2}/.test(dateStr)) {
                                 d = new Date(dateStr);
                             } else if (/\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
-                                const [j, m, a] = dateStr.split('/');
+                                const [j, m, a] = dateStr.split(/[\/ ]/);
                                 d = new Date(`${a}-${m}-${j}`);
                             } else {
                                 return true; // si format inconnu, ne pas filtrer
                             }
                             const today = new Date();
                             today.setHours(0,0,0,0);
+                            console.log(d);
                             return d >= today;
                         }
                         function filterPlanningRows(showAll) {
