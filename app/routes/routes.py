@@ -354,16 +354,17 @@ def popup_row():
     html = '<h3 style="margin-top:20px;">Détail du rendez-vous</h3>'
     html += '<table style="width:100%; border-collapse:collapse;">'
 
-    date_parts = data["Date"].split(" ")
+    date_parts = data["Date"]
+    heure_parts = data["Heure"]
     nom_reserv = data["nom_resident"]
     rdv = data["Rendez-vous"]
     transport = data["Transport"]
-    infos = get_infos_rdv(driver,data["Date"].replace(' ','T'), nom_reserv, rdv)
+    infos = get_infos_rdv(driver,date_parts,heure_parts, nom_reserv, rdv)
 
     print('infos : ', infos)
     medecin=infos[0].get('medecin', '') if infos[0].get('medecin', '') != None else ''
     html += f"<strong>{nom_reserv}</strong><br>"
-    intro= f"""Vous avez rendez vous  "{rdv}" prévu le {date_parts[0]} à {date_parts[1]}"""
+    intro= f"""Vous avez rendez vous  "{rdv}" prévu le {date_parts} à {heure_parts}"""
     if medecin != '':
         intro += f", avec : {medecin}. "
     html += intro

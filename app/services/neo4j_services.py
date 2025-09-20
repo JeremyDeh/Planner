@@ -203,7 +203,6 @@ def extract_form_data(form):
             rdv_fin = rdv_debut + timedelta(days=365)  # Si pas de date fin, on prend un an par défaut
             fin=False
         type_recurrence = form.get('recurrence')
-        print(type_recurrence)
 
         if type_recurrence == 'mois':
             date_rdv_list = generate_smart_weekday_recurrence(rdv_debut,
@@ -270,12 +269,19 @@ def insert_rendez_vous(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
     
     with driver.session(database=NEO4J_DB) as session:
         for rdv in data['date_rdv_list']:
+            if isinstance(rdv, datetime):
+                    date_part = rdv.date()
+                    time_part = rdv.time()
+            elif isinstance(rdv, date):
+                    date_part = rdv
+                    time_part = None
             cypher_query = """
             // Puis utilise next_id dans la création
             MATCH (n:Resident {pk: $pk})
             MATCH (m:Categorie {metier: $metier})
             CREATE (n)-[r:Rdv {
-                date: $date_str,
+                date: date($date),
+                heure: localtime($heure),
                 transport: $transport,
                 lieu: $lieu,
                 commentaire: $commentaire,
@@ -287,7 +293,8 @@ def insert_rendez_vous(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
             """
             session.run(
                 cypher_query,
-                date_str=rdv,
+                date=date_part,
+                heure=time_part,
                 recurrence=data['recurrence'],
                 action=liste_actions,
                 commentaire=data['commentaire'],
@@ -333,19 +340,25 @@ def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
             - transport (str): Mode de transport.
             - lieu (str): Lieu du rendez-vous.
     """
-    print("data pour rappels :", data)
     with driver.session(database=NEO4J_DB) as session:
         for rdv in data['date_rdv_list']:
-            print("Rappel pour le rendez-vous :", rdv)
-            print("data complete :", data)
             for rappel_item in data['colonnes_table'].values():
-                rappel_rdv = rdv - timedelta(days=int(rappel_item[2]))
+                #rappel_rdv = rdv - timedelta(days=int(rappel_item[2]))
+                if isinstance(rdv, datetime):
+                    rappel_date_part = rdv.date() - timedelta(days=int(rappel_item[2]))
+                    rdv_date_part = rdv.date()
+                    time_part = rdv.time()
+                elif isinstance(rdv, date):
+                    rappel_date_part = rdv - timedelta(days=int(rappel_item[2]))
+                    rdv_date_part = rdv
+                    time_part = None
                 commentaire_rappel = rappel_item[0]
                 cypher_query = """
                 MATCH (n:Resident {pk:$pk})-[s:Rdv{date:$date_evt}]-(o:Categorie{metier:$type_rdv})
                 WITH n, o, ID(s) as id_rdv
                 CREATE (n)-[r:Rappel {date:$date_str,
                                 date_evt:$date_evt,
+                                heure:$heure,
                                 rdv:$type_rdv,
                                 lieu:$lieu,
                                 transport:$transport,
@@ -359,8 +372,9 @@ def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
                     cypher_query,
                     pk=individu_pk,
                     type_rdv=data['metier'],
-                    date_str=rappel_rdv,
-                    date_evt=rdv,
+                    date_str=rappel_date_part,
+                    date_evt=rdv_date_part,
+                    heure=time_part,
                     action=None,
                     commentaire=commentaire_rappel,
                     transport=data['transport'],
@@ -427,13 +441,14 @@ def get_rendez_vous(driver, db_name, pk):
     with driver.session(database=db_name) as session:
         cypher_query = ("""
             MATCH (n:Resident {pk:$pk})-[r:Rdv]->(m) 
-            RETURN n.nom, n.prenom, r.date, m.metier, r.commentaire, r.transport , r.medecin, r.lieu
+            RETURN n.nom, n.prenom, r.date, r.heure, m.metier, r.commentaire, r.transport , r.medecin, r.lieu
             ORDER BY r.date ASC"""
         )
         results = session.run(cypher_query, pk=pk)
         return [
             {
-                'Date': record['r.date'].strftime('%d/%m/%Y %H:%M'),
+                'Date': record['r.date'].to_native().strftime('%d/%m/%Y'),
+                'Heure': record['r.heure'].to_native().strftime('%H:%M') if record['r.heure']  else '--:--',
                 'Rendez-vous': record['m.metier'],
                 'Transport': record['r.transport'],
                 'Note': record['r.commentaire'],
@@ -480,7 +495,7 @@ def get_all_rdv_events(driver, db_name):
     with driver.session(database=db_name) as session:
         cypher_query = """
         MATCH (n:Resident)-[r]->(m)
-        RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, m.metier,
+        RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, r.heure, m.metier,
         r.commentaire, r.rdv, ID(r) as id_rdv_one, r.id_chain AS id_chain
         ORDER BY toString(r.date) ASC
         """
@@ -491,7 +506,7 @@ def get_all_rdv_events(driver, db_name):
                 'Nom': record['n.nom'] + ' ' + record['n.prenom'],
                 'Etage': record['n.etage'],
                 'Chambre': record['n.chambre'],
-                'Date': record['r.date'].strftime('%Y-%m-%d %H:%M') if 'T' in str(record['r.date']) else record['r.date'].strftime('%Y-%m-%d'),
+                'Date': record['r.date'].to_native().strftime('%Y-%m-%d') if not record['r.heure'] else record['r.date'].to_native().strftime('%Y-%m-%d')+'T'+ record['r.heure'].to_native().strftime('%H:%M'),
                 'Rendez-vous': record['m.metier'] if record['type(r)'] == 'Rdv' else record['type(r)'] + ' : ' + record['r.rdv'],
                 'Note': record['r.commentaire'],
                 'Type_Evt': record['type(r)'],
@@ -541,7 +556,6 @@ def add_resident_to_db(driver, NEO4J_DB, nom, prenom, commentaire, sexe, etage,
         )
 
 def enregistrer_valeur_selles(driver,data,NEO4J_DB='neo4j'): # on n'enregistre pas les données "Absence"
-    print('data : ',data)
  
     data_f = []
     for nom_complet in data.keys():
@@ -573,14 +587,13 @@ def enregistrer_valeur_selles(driver,data,NEO4J_DB='neo4j'): # on n'enregistre p
             data=data_f
         )
 def maj_last_check_selles(driver, data, NEO4J_DB='neo4j'): 
-    print(data)
 
     data_f = []
     for noms_complet in data.keys():  # original_data contient les noms complets
         nom,prenom = noms_complet.split(" ")
         
         data_f.append({"nom": nom, "prenom": prenom, "pk":data[noms_complet]['pk'], "liste":['nuit' if data[noms_complet]['nuit']!='--' else None,'matin' if data[noms_complet]['matin']!='--' else None,'apres_midi' if data[noms_complet]['apres_midi']!='--' else None ]}) if any([valeur !='--' for valeur in (data[noms_complet]['nuit'],data[noms_complet]['matin'],data[noms_complet]['apres_midi']) ]) else None
-        print('data_f : ',data_f)
+
     with driver.session(database=NEO4J_DB) as session:
         session.run(
             """
@@ -651,7 +664,6 @@ def get_selles_du_jour(driver, NEO4J_DB='neo4j'):
                 'apres_midi': record['n.derniere_verif_selles_apres_midi']
             } for record in results
     ]
-    print("get_selles_du_jour : ",maListe)
     return maListe
 def get_plusieurs_jours_selles(driver, NEO4J_DB='neo4j'):
     """
@@ -680,25 +692,25 @@ def get_plusieurs_jours_selles(driver, NEO4J_DB='neo4j'):
             df['Date'] = df['Date'].fillna("--")
             df['Jours'] = df['Jours'].astype('Int32') 
         return  df #df.fillna("--")
-def get_infos_rdv(driver,date, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
+def get_infos_rdv(driver,date,heure, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
     nom=nom_full.split(" ")[0]
     prenom =nom_full.split(" ")[1]
-    date=date+':00'
+    #date=date+':00'
 
-    if 'T00' in date:
-        # Si la date contient 'T00', cela signifie qu'il n'y a pas d'heure réelle
-        date=date.split('/')[2].split('T')[0]+'-'+date.split('/')[1]+'-'+date.split('/')[0]
-    else:
-        date=date.split('/')[2].split('T')[0]+'-'+date.split('/')[1]+'-'+date.split('/')[0]+'T'+date.split('T')[1]
+    # Si la date contient 'T00', cela signifie qu'il n'y a pas d'heure réelle
+    date=date
+    heure=heure
+    
     print(f"ma date : {date}")
     print('get_infos_rdv : ',date, nom, prenom, rdv)
+    date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")### reformatter la date fr en date isoo pour la BDD
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-           MATCH (n:Resident {nom:$nom, prenom:$prenom})-[r:Rdv ]->(m:Categorie {metier:$rdv}) WHERE toString(r.date) = $date
+           MATCH (n:Resident {nom:$nom, prenom:$prenom})-[r:Rdv ]->(m:Categorie {metier:$rdv}) WHERE r.date = date($date) and r.heure=localtime($heure)
         RETURN r.lieu AS lieu, r.medecin AS medecin, r.commentaire AS commentaire, r.transport AS transport, n.deplacement AS deplacement, n.oxygen AS oxygen, n.diabete AS diabete
 
         """
-        results = session.run(cypher_query,nom=nom,prenom=prenom,date=date,rdv=rdv)
+        results = session.run(cypher_query,nom=nom,prenom=prenom,date=date_iso, heure=heure,rdv=rdv)
         data= [dict(record) for record in results]
         print("data sortie fonction : ",data)
         return  data
@@ -757,7 +769,6 @@ def supprimer_rdv_chaine(driver, id_rdv,date, NEO4J_DB='neo4j'):
     Args:
         id_rdv (int): ID du rendez-vous à supprimer.
     """
-    print("je tente d acceder a la chaine : ",id_rdv)
     id_rdv = int(id_rdv) if isinstance(id_rdv, str) else id_rdv
     if len(date) == 10:  # yyyy-MM-dd
         date = date + "T00:00:00"
