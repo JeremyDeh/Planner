@@ -109,10 +109,11 @@ def form():
         form_data = extract_form_data(request.form)
         
         next_id = get_next_id(driver)
-        insert_rendez_vous(driver,form_data, next_id, NEO4J_DB)
-        create_rappels(driver,form_data,next_id)
+        for individu_pk in form_data['pk']:
+            insert_rendez_vous(driver,form_data,individu_pk, next_id, NEO4J_DB)
+            create_rappels(driver,form_data,individu_pk, next_id)
         if not form_data.get('fin') : ## si boolean fin est False, on cree un rappel apres 365 jours
-            create_rappel_infini(driver,form_data,next_id, NEO4J_DB) # quand il n'y a paz de date de fin, on cree sur 365 jours et ensuite on met un rappel pour qu'ils recréent apres un an
+            create_rappel_infini(driver,form_data,individu_pk,next_id, NEO4J_DB) # quand il n'y a paz de date de fin, on cree sur 365 jours et ensuite on met un rappel pour qu'ils recréent apres un an
         return "Rendez-vous créés:"
     else:
         pks,residents = get_residents_chambre(driver)
