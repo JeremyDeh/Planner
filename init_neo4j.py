@@ -28,8 +28,13 @@ def is_db_empty(driver):
 def init_db(driver):
     with driver.session() as session:
         session.run("""
-UNWIND ['Dentiste', 'Imagerie','Esthéticienne','Cardiologie','Coiffeur','Pédicure','Famille','Autre' ,'Ophtalmologie','Audioprothésiste','Télémédecine','Urologie','Pneumologie','Dermatologie','Consultation mémoire','Chirurgie','Kinésithérapie','Ergothérapie','Rhumatologie','Urgence','Gastrologie/Entérologie','Animation','PASA','Endoscopie','Neurologie','Gynécologie','Oncologie','Néphrologie','Orthopédie','Ambulatoire','Endocrinologie','Diabétologie','Optique','Médecine','EMPPA'] AS catego
-CREATE (:Categorie {metier: catego});
+UNWIND ['Dentiste', 'Imagerie','Cardiologie','Ophtalmologie','Audioprothésiste','Télémédecine','Urologie','Pneumologie','Dermatologie','Consultation mémoire','Chirurgie','Kinésithérapie','Ergothérapie','Rhumatologie','Urgence','Gastrologie/Entérologie','Animation','PASA','Endoscopie','Neurologie','Gynécologie','Oncologie','Néphrologie','Orthopédie','Ambulatoire','Endocrinologie','Diabétologie','Optique','Médecine','EMPPA'] AS catego
+CREATE (:Categorie {metier: catego,type:'medical'});
+        """)
+    with driver.session() as session:
+        session.run("""
+UNWIND ['Esthéticienne','Coiffeur','Pédicure','Famille','Autre' ] AS catego
+CREATE (:Categorie {metier: catego,type:'non_medical'});
         """)
     with driver.session() as session:
         session.run("""

@@ -53,6 +53,28 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 main_bp = Blueprint('main', __name__)
 
+
+@main_bp.route("/update_status", methods=["POST"])
+def update_status():
+    print("Je suis passé par là")
+    data = request.json
+    row_id = data["id"]
+    new_status = data["status"]
+    print(f"ID de la ligne : {row_id}, Nouveau statut : {new_status}")
+    cypher = """
+    MATCH ()-[r]->()
+    WHERE ID(r) = $rid
+    SET r.status = $status
+    RETURN ID(r) AS id, r.status AS new_status
+    """
+
+    with driver.session() as session:
+        result = session.run(cypher, rid=int(row_id), status=new_status)
+        record = result.single()
+    print(record)
+    return jsonify({"id": record["id"], "new_status": record["new_status"]})
+
+
 # Nouvelle route pour la popup ALT
 @main_bp.route('/popup_row_alt', methods=['POST'])
 def popup_row_alt():
@@ -147,6 +169,7 @@ def journee():
         
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
+    print('notes : \n#####\n',notes)
     return render_template(
         'recap_jour.html',
         rdv=rendez_vous,
