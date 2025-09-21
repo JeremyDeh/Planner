@@ -224,7 +224,7 @@
                                             {% set heure = heure[:5] %}
                                             <li data-responsable="{{ row['responsable'] }}" style="margin-bottom:10px; background:#fff; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
                                                 <span style="display:inline-block; background:#232946; color:#eebbc3; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px;">{{ heure }}</span>
-                                                <span style="font-weight:600; margin-left:8px;">{{ row['nom'] }} {{ row['prenom'] }}</span> <br>
+                                                <span style="font-weight:600; margin-left:8px;">{{ row['nom'] }} {{ row['prenom'] }} <br><dd style="margin-left:65px;"> (Chambre {{ row['chambre'] }})</span> <br>
                                                 <span style="padding-left:2em; color:#232946; font-size:0.98em;">Lieu : {{ row['lieu'] }}</span> <br>
                                                 <span style="padding-left:2em; color:#6c6c80; font-size:0.95em;">Note : {{ row['commentaire'] }}</span>
                                             </li>

@@ -70,7 +70,7 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
         cypher_query = """
                         MATCH (n:Resident)-[r:Rdv]->(m)
                         WHERE date(r.date) = date()
-                        RETURN n.nom AS nom, n.prenom AS prenom, r.date AS date, r.heure AS heure, r.lieu AS lieu, m.metier AS metier, m.type AS type, r.commentaire AS commentaire, r.responsable AS responsable
+                        RETURN n.nom AS nom, n.prenom AS prenom, n.chambre AS chambre, r.date AS date, r.heure AS heure, r.lieu AS lieu, m.metier AS metier, m.type AS type, r.commentaire AS commentaire, r.responsable AS responsable
                         ORDER BY m.metier, n.nom, n.prenom
                         """
         neo4j_results = session.run(cypher_query)
