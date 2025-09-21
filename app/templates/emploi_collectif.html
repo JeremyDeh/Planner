@@ -227,8 +227,8 @@ th { background: #eebbc3; color: #232946; }
                         <thead>
                             <tr>
                                 {% for col in nodes[0].keys() %}
-                                    {% if col != "ID_one" and col != "ID_chain" %}
-                                        <th>{{ col }}</th>
+                                    {% if col != "ID_one" and col != "ID_chain"  and col != "Date" %}
+                                        <th>{{ col if col != 'Date_Fr' else 'Date' }}</th>
                                     {% endif %}
                                 {% endfor %}
                                 <th class="col-supp">Supprimer un RDV</th>
@@ -239,7 +239,7 @@ th { background: #eebbc3; color: #232946; }
                             {% for node in nodes %}
                             <tr>
                                 {% for key,value in node.items() %}
-                                    {% if key != "ID_one" and key != "ID_chain" %}
+                                    {% if key != "ID_one" and key != "ID_chain" and key != "Date" %}
                                         <td>{{ value }}</td>
                                     {% endif %}
                                 {% endfor %}

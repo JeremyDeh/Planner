@@ -428,8 +428,6 @@ def supp_one():
 def supp_all():
     if request.method == 'POST':
         id_chain,date = request.form.get('id_chain').split('_')
-        print("date avant : ",date)
-        date=date.replace(' ','T')+':00'
-        print("date apres : ", date)
+
         supprimer_rdv_chaine(driver,id_chain,date)
     return redirect(url_for('main.emploi_collectif'))

@@ -386,6 +386,7 @@ def create_rappel_infini(driver, data, individu_pk, next_id, NEO4J_DB="neo4j"):
     date_fin =data['date_rdv_list'][-1]## on prend la derniere date 
     pk= individu_pk
     metier = data['metier']
+
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = ("""
             MATCH (n:Resident {pk:$pk}) 
@@ -506,7 +507,8 @@ def get_all_rdv_events(driver, db_name):
                 'Nom': record['n.nom'] + ' ' + record['n.prenom'],
                 'Etage': record['n.etage'],
                 'Chambre': record['n.chambre'],
-                'Date': record['r.date'].to_native().strftime('%d/%m/%Y') if not record['r.heure'] else record['r.date'].to_native().strftime('%d/%m/%Y')+' '+ record['r.heure'].to_native().strftime('%H:%M'),
+                'Date_Fr': record['r.date'].to_native().strftime('%d/%m/%Y') if not record['r.heure'] else record['r.date'].to_native().strftime('%d/%m/%Y')+' '+ record['r.heure'].to_native().strftime('%H:%M'),
+                'Date': record['r.date'].to_native().strftime('%Y-%m-%d') if not record['r.heure'] else record['r.date'].to_native().strftime('%Y-%m-%d')+'T'+ record['r.heure'].to_native().strftime('%H:%M:%S'),
                 'Rendez-vous': record['m.metier'] if record['type(r)'] == 'Rdv' else record['type(r)'] + ' : ' + record['r.rdv'],
                 'Note': record['r.commentaire'],
                 'Type_Evt': record['type(r)'],
@@ -770,24 +772,29 @@ def supprimer_rdv_chaine(driver, id_rdv,date, NEO4J_DB='neo4j'):
         id_rdv (int): ID du rendez-vous à supprimer.
     """
     id_rdv = int(id_rdv) if isinstance(id_rdv, str) else id_rdv
-    if len(date) == 10:  # yyyy-MM-dd
-        date = date + "T00:00:00"
+    print("dates a supprimer : ",date)
+    if 'T' in date :
+        date =date.split("T")[0]
+        #heure=date.split("T")[1] 
+        date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+    elif ' ' in date :
+        print(date)
+        date =date.split(" ")[0]
+        #heure=date.split(" ")[1] 
+        date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+    else:
+        date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+        #heure=None  
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
             MATCH (n)-[r:Rdv]->()
-            WHERE (r.id_chain = $id_rdv AND datetime(
-                    CASE 
-                    WHEN toString(r.date) CONTAINS "T" 
-                    THEN datetime(r.date) 
-                    ELSE datetime(toString(r.date) + "T00:00:00") 
-                    END
-                ) >= datetime($date)) 
+            WHERE (r.id_chain = $id_rdv AND r.date >= date($date)) 
             WITH r, ID(r) AS id_rdv_rappel
             OPTIONAL MATCH ()-[s:Rappel]->()
             WHERE s.id_rdv = id_rdv_rappel
             DELETE r,s
         """
-        session.run(cypher_query, id_rdv=id_rdv,date=date)
+        session.run(cypher_query, id_rdv=id_rdv,date=date_iso)
 
 def imprimerMultiJours(driver,NEO4J_DB='neo4j'):
     with driver.session(database=NEO4J_DB) as session:
