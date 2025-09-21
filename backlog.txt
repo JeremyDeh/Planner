@@ -8,11 +8,10 @@
 + dans les selles : remplacer "soir" par "apres midi"  -->(Tres facile)  --- Done
 + sur la page du jour permettre de filtrer sur "personne en charge" -->(Moyen)  --- Done
 + dans la cardbox des selles, d abord afficher les multiples jour, ensuite en cliquant sur le bouton switcher pour le jour meme  -->(Tres Facile)   --- Done
-+ - dans le tableau des rendez-vous : format date dd-mm-yyyy au lieu de yyyy-mm-dd  -->(Tres facile) --- Done
++ dans le tableau des rendez-vous : format date dd-mm-yyyy au lieu de yyyy-mm-dd  -->(Tres facile) --- Done
++ ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris  -->(Dur) --- Done
 
 - corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Dur)
-
-- ajouter une coche pour les notes a la journée lorsqu'elles sont faites les afficher en gris  -->(Dur)
 
 - outil de notes sur la page pincipales, ajuouter un truc de note actives sans date (reste plusieurs jours) mais possibilité de supprimer quand c'est fait  -->(Dur)
 

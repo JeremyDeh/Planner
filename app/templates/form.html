@@ -239,6 +239,17 @@
                     });
                 }
 
+                document.getElementById('nomPatientInput').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault(); // empêche la soumission du formulaire
+                        const firstVisible = Array.from(document.querySelectorAll('#patientList .patient-item'))
+                            .find(item => item.style.display !== 'none');
+                        if (firstVisible) {
+                            selectPatient(firstVisible);
+                        }
+                    }
+                });
+
                 document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
 
                 function showMedecinList() {
