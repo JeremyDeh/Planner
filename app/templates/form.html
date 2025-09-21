@@ -201,6 +201,10 @@
                     // Vide le champ de recherche
                     document.getElementById('nomPatientInput').value = "";
 
+                    const items = document.querySelectorAll('#patientList .patient-item');
+                    items.forEach(item => item.style.display = '');
+
+                    // Ferme la liste
                     hidePatientList();
                 }
 
@@ -245,12 +249,13 @@
                         const firstVisible = Array.from(document.querySelectorAll('#patientList .patient-item'))
                             .find(item => item.style.display !== 'none');
                         if (firstVisible) {
-                            selectPatient(firstVisible);
+                            selectPatient(firstVisible,false);
+                            this.blur();
                         }
                     }
                 });
 
-                document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
+                //document.getElementById('nomPatientInput').addEventListener('blur', hidePatientList);
 
                 function showMedecinList() {
                     document.getElementById('medecinList').style.display = 'block';

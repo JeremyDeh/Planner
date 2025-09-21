@@ -16,6 +16,7 @@
 + page principale : quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre, car plusieurs peuvent avoir meme nom + prenom  -->(Facile) --- Done
 + les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple  -->(Facile) --- Done
 
+- BUG quand on fait <Entree> sur une personne a qui on ajoute un rendez vous, on a plus de menu déroulant
 
 - corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Dur)
 
