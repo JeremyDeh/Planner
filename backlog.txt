@@ -14,6 +14,8 @@
 + couleur differentes pour les titres des cardbox selon si medical vs pas medical  -->(Facile) --- Done
 + ajouter plusieurs residents d'un coup pour un meme rdv (le champs texte avec les choix de résidents selon ce qu'on commence à ecrire, fonctionnera pareil mais on peut en taper plusieurs)  -->(Moyen) --- Done
 + page principale : quand on voit un rendez-vous, il faut afficher (a cote du nom ou en hover) le numero de chambre, car plusieurs peuvent avoir meme nom + prenom  -->(Facile) --- Done
++ les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple  -->(Facile) --- Done
+
 
 - corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Dur)
 
@@ -21,7 +23,6 @@
 
 - sur page principale : 3 couleurs selon les notes (note du jour/ note permanente / rappel) d abord afficher notes et rappel, et en bas, note permanente  -->(Facile, mais depend de celle du dessus)
 
-- les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple  -->(Facile)
 
 - sur la page "fiche résident" afficher la vue calendrier pour les rendez-vous  -->(Moyen)
 
