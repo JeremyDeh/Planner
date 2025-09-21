@@ -92,7 +92,7 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
                         MATCH (n)-[r:Rappel]->(m)
                         WHERE date(r.date) = date()
                         RETURN r.date AS date, 
-                            type(r) + " " + n.nom_affichage + " " + split(toString(r.date_evt), "T")[0] + " " + m.metier + " : " + r.commentaire AS commentaire,
+                            type(r) + " " + n.nom_affichage + " " + r.date_evt + " " + m.metier + " : " + r.commentaire AS commentaire, ID(r) AS id, r.status AS status, r.heure AS heure,
                             m.metier AS metier
                         ORDER BY m.metier
                         """
@@ -359,6 +359,7 @@ def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
                 CREATE (n)-[r:Rappel {date:$date_str,
                                 date_evt:$date_evt,
                                 heure:$heure,
+                                status:1,
                                 rdv:$type_rdv,
                                 lieu:$lieu,
                                 transport:$transport,
