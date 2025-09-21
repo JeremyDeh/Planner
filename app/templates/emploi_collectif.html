@@ -150,14 +150,136 @@ th { background: #eebbc3; color: #232946; }
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Liste des rendez-vous</span>
         </div>
         <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; margin-bottom:18px;">
-            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px; max-height:120px; overflow-y:auto;">
+            <div id="rdvCheckboxes" style="width:220px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-right:18px; height:120px; max-height:200px;  position:relative;">
+                <!-- Champ texte pour filtrer RDVTypes -->
                 Rendez-vous :
-                {% for nom in RDVTypes %}
-                    <label style="display:block; margin-bottom:4px; cursor:pointer;">
-                        <input type="checkbox" class="rdv-filter" value="{{ nom }}" style="margin-right:6px;">{{ nom }}
-                    </label>
-                {% endfor %}
+                <input type="text" id="rdvTypeInput" placeholder="Tapez pour filtrer..." 
+                    onfocus="showRdvList()" oninput="filterRdvList()"
+                    style="width:100%; padding:4px; margin-bottom:6px;">
+
+                <!-- Liste déroulante filtrable -->
+                <div id="rdvTypeList" style="display:none; position:absolute; top:36px; left:8px; right:8px; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                    {% for nom in RDVTypes %}
+                        <div class="rdv-item" style="padding:6px; cursor:pointer;" onclick="selectRdvType(this)">
+                            {{ nom }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Affichage des éléments sélectionnés -->
+                <div id="selectedRdvContainer" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+
+                <!-- Champ caché pour stocker les valeurs sélectionnées -->
+                <input type="hidden" id="selectedRdvTypes" name="selectedRdvTypes">
             </div>
+
+            <script>
+            let selectedRdvTypes = [];
+
+            // Affiche la liste déroulante
+            function showRdvList() {
+                document.getElementById('rdvTypeList').style.display = 'block';
+            }
+            function hideRdvList() {
+                setTimeout(() => document.getElementById('rdvTypeList').style.display = 'none', 200);
+            }
+
+            // Filtre la liste déroulante au fur et à mesure de la saisie
+            function filterRdvList() {
+                const filter = document.getElementById('rdvTypeInput').value.toLowerCase();
+                document.querySelectorAll('#rdvTypeList .rdv-item').forEach(item => {
+                    item.style.display = item.textContent.toLowerCase().includes(filter) ? 'block' : 'none';
+                });
+            }
+
+            // Ajout ou suppression d'un RDVType
+            function updateRdvSelection() {
+                // Met à jour l'affichage des éléments sélectionnés
+                const container = document.getElementById('selectedRdvContainer');
+                container.innerHTML = '';
+                selectedRdvTypes.forEach((val, index) => {
+                    const tag = document.createElement('div');
+                    tag.style.cssText = "background:#e0e0e0; padding:2px 6px; border-radius:8px; display:flex; align-items:center; gap:4px;";
+                    tag.innerHTML = `
+                        <span>${val}</span>
+                        <span style="cursor:pointer; color:red;" onclick="removeRdvType(${index})">&times;</span>
+                    `;
+                    container.appendChild(tag);
+                });
+
+                // Met à jour l'input caché
+                document.getElementById('selectedRdvTypes').value = selectedRdvTypes.join(',');
+
+                // 🔹 Filtrage automatique du tableau
+                filterTableByRdvTypesAndEtage();
+            }
+
+            // Ajouter un RDVType
+            function selectRdvType(item) {
+                const value = item.textContent.trim();
+                if (!selectedRdvTypes.includes(value)) {
+                    selectedRdvTypes.push(value);
+                    updateRdvSelection();
+                }
+                document.getElementById('rdvTypeInput').value = '';
+                hideRdvList();
+            }
+
+            // Retirer un RDVType
+            function removeRdvType(index) {
+                selectedRdvTypes.splice(index, 1);
+                updateRdvSelection();
+            }
+
+            // Ferme la liste quand on sort du champ
+            document.getElementById('rdvTypeInput').addEventListener('blur', hideRdvList);
+
+            // Sélection du premier élément visible avec Enter
+            document.getElementById('rdvTypeInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const firstVisible = Array.from(document.querySelectorAll('#rdvTypeList .rdv-item'))
+                                            .find(item => item.style.display !== 'none');
+                    if (firstVisible) selectRdvType(firstVisible);
+                }
+            });
+
+            // Filtrage tableau existant
+            function filterTableByRdvTypesAndEtage() {
+                const checkedRDV = selectedRdvTypes.map(val => val.toLowerCase());
+                const checkedEtage = Array.from(document.querySelectorAll('.etage-filter:checked')).map(cb => cb.value);
+
+                const table = document.querySelector('table');
+                if (!table) return;
+                const rows = table.querySelectorAll('tbody tr');
+
+                const ths = Array.from(table.querySelectorAll('thead th'));
+                let rdvColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('rendez-vous'));
+                let etageColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('etage'));
+                if (rdvColIdx === -1) rdvColIdx = ths.length - 1;
+
+                rows.forEach(row => {
+                    const tds = Array.from(row.children);
+                    const cellRDV = tds[rdvColIdx]?.textContent.toLowerCase() || '';
+                    const cellEtage = etageColIdx !== -1 ? (tds[etageColIdx]?.textContent.trim() || '') : '';
+
+                    const matchRDV = checkedRDV.length === 0 || checkedRDV.some(val => cellRDV.includes(val));
+                    const matchEtage = checkedEtage.length === 0 || checkedEtage.includes(cellEtage);
+
+                    row.style.display = (matchRDV && matchEtage) ? '' : 'none';
+                });
+            }
+
+            // Ajouter écouteurs pour les étages
+            document.querySelectorAll('.etage-filter').forEach(cb => {
+                cb.addEventListener('change', filterTableByRdvTypesAndEtage);
+            });
+
+            // Initialisation
+            window.addEventListener('DOMContentLoaded', filterTableByRdvTypesAndEtage);
+            </script>
+
+
             <div id="etageCheckboxes" style="width:120px; background:#fff; border-radius:8px; border:1px solid #ccc; padding:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); max-height:120px; overflow-y:auto;">
                 Etage :
                 <label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="etage-filter" value="1" style="margin-right:6px;">1</label>
@@ -167,36 +289,58 @@ th { background: #eebbc3; color: #232946; }
         </div>
 
             <script>
-            // Filtrage dynamique du tableau selon les cases cochées du filtre sur la colonne "rendez-vous" ET "étage"
-            function filterTableByCheckboxes() {
-                const checkedRDV = Array.from(document.querySelectorAll('.rdv-filter:checked')).map(cb => cb.value.toLowerCase());
+            // Filtrage dynamique du tableau selon les RDVTypes sélectionnés ET "étage"
+            function filterTableByRdvTypesAndEtage() {
+                // Lire les RDVTypes sélectionnés depuis l'input caché
+                const checkedRDV = document.getElementById('selectedRdvTypes').value
+                                    .split(',')
+                                    .map(val => val.toLowerCase())
+                                    .filter(val => val !== '');
+
+                // Lire les étages cochés (si tu as encore des checkboxes classiques)
                 const checkedEtage = Array.from(document.querySelectorAll('.etage-filter:checked')).map(cb => cb.value);
+
                 const table = document.querySelector('table');
                 if (!table) return;
                 const rows = table.querySelectorAll('tbody tr');
-                // On cherche l'index de la colonne "rendez-vous" et "etage"
+
+                // On cherche l'index des colonnes
                 const ths = Array.from(table.querySelectorAll('thead th'));
                 let rdvColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('rendez-vous'));
                 let etageColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('etage'));
                 if (rdvColIdx === -1) rdvColIdx = ths.length - 1; // fallback: dernière colonne
+
                 rows.forEach(row => {
                     const tds = Array.from(row.children);
                     const cellRDV = tds[rdvColIdx]?.textContent.toLowerCase() || '';
                     const cellEtage = etageColIdx !== -1 ? (tds[etageColIdx]?.textContent.trim() || '') : '';
+
                     const matchRDV = checkedRDV.length === 0 || checkedRDV.some(val => cellRDV.includes(val));
                     const matchEtage = checkedEtage.length === 0 || checkedEtage.includes(cellEtage);
-                    if (matchRDV && matchEtage) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+
+                    row.style.display = (matchRDV && matchEtage) ? '' : 'none';
                 });
             }
-            document.querySelectorAll('.rdv-filter, .etage-filter').forEach(cb => {
-                cb.addEventListener('change', filterTableByCheckboxes);
+
+            // 🔹 Ajouter écouteurs
+            // Étages : toujours checkboxes classiques
+            document.querySelectorAll('.etage-filter').forEach(cb => {
+                cb.addEventListener('change', filterTableByRdvTypesAndEtage);
             });
-            window.addEventListener('DOMContentLoaded', filterTableByCheckboxes);
+
+            // RDVTypes : mettre à jour le filtre à chaque ajout ou suppression
+            function updateRdvFilterListener() {
+                updateSelectedRdvTypes(); // met à jour le hidden input
+                filterTableByRdvTypesAndEtage();
+            }
+
+            // Modifier tes fonctions select/remove pour appeler updateRdvFilterListener
+            // Exemple : dans selectRdvType() et removeRdvType():
+            // -> au lieu d'appeler juste updateSelectedRdvTypes(), appeler updateRdvFilterListener()
+
+            window.addEventListener('DOMContentLoaded', filterTableByRdvTypesAndEtage);
             </script>
+
             
             <label class="switch">
             <input type="checkbox" id="toggle-view" onchange="toggleView(this)">
