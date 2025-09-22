@@ -181,7 +181,7 @@
                                     var visibleCount = 0;
 
                                     lis.forEach(function(li) {
-                                        if (li.getAttribute('data-responsable') === selectedService) {
+                                        if (li.getAttribute('data-responsable') === selectedService || li.getAttribute('data-responsable') === 'Tous') {
                                             li.style.display = '';
                                             visibleCount++;
                                         } else {

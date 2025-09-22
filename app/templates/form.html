@@ -97,11 +97,11 @@
             <label>Heure du rendez-vous :
                 <input type="time" name="heure_prestation" style="width: 150px;"  title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
-
+            <!--
             <label>Durée du rendez-vous :
                 <input type="time" name="duree_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
-            
+            -->   
             <label>Nom(s) du résident :</label>
             <div style="position:relative;">
 
@@ -368,8 +368,7 @@
                 return {
                     name: fieldset.querySelector('[name$="_name"]')?.value || '',
                     unit: fieldset.querySelector('[name$="_unit"]')?.value || '',
-                    nombre: fieldset.querySelector('[name$="_nombre"]')?.value || '',
-                    pk: fieldset.querySelector('[name$="_pk"]')?.checked ? 'Y' : ''
+                    nombre: fieldset.querySelector('[name$="_nombre"]')?.value || ''
                 };
             });
 
@@ -393,8 +392,7 @@
                 return {
                     name: fieldset.querySelector('[name$="_name"]')?.value || '',
                     unit: fieldset.querySelector('[name$="_unit"]')?.value || '',
-                    nombre: fieldset.querySelector('[name$="_nombre"]')?.value || '',
-                    pk: fieldset.querySelector('[name$="_pk"]')?.checked ? 'Y' : ''
+                    nombre: fieldset.querySelector('[name$="_nombre"]')?.value || ''
                 };
             });
 
@@ -442,9 +440,7 @@
                         </label>
                     </div>
 
-                    <label>
-                        <input type="checkbox" name="col${index + 1}_pk" value="Y" ${col.pk === 'Y' ? 'checked' : ''}> Obligatoire
-                    </label>
+                   
 
                     <div class="delete-btn-container">
                         <button type="button" onclick="supprimerColonne(${index})" class="delete-btn">Supprimer</button>
@@ -493,7 +489,6 @@
             const name = fieldset.querySelector(`[name="col${index + 1}_name"]`)?.value.trim();
             const unit = fieldset.querySelector(`[name="col${index + 1}_unit"]`)?.value.trim();
             const nombre = fieldset.querySelector(`[name="col${index + 1}_nombre"]`)?.value.trim();
-            const pk = fieldset.querySelector(`[name="col${index + 1}_pk"]`)?.checked;
 
             return name === '' && unit === 'VARCHAR' && nombre === '' && !pk;
         }
@@ -511,8 +506,7 @@
                 return {
                     name: fieldset.querySelector(`[name="col${i + 1}_name"]`)?.value || '',
                     unit: fieldset.querySelector(`[name="col${i + 1}_unit"]`)?.value || '',
-                    nombre: fieldset.querySelector(`[name="col${i + 1}_nombre"]`)?.value || '',
-                    pk: fieldset.querySelector(`[name="col${i + 1}_pk"]`)?.checked ? 'Y' : ''
+                    nombre: fieldset.querySelector(`[name="col${i + 1}_nombre"]`)?.value || ''
                 };
             });
 
