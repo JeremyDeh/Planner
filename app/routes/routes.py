@@ -39,7 +39,8 @@ from app.services import (
     get_next_id,
     create_rappel_infini,
     imprimerMultiJours,
-    get_personnel
+    get_personnel,
+    ajouter_note_persistante
 
 )
 from app.routes.auth import login_required, role_required
@@ -161,12 +162,14 @@ def journee():
     liste_service= get_personnel(driver)
     print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
-        note = request.form.get('note', '').strip()
         date_note = request.form.get('date_note')
+        print('date_note : ', date_note,type(date_note))
+        note = request.form.get('note', '').strip()
         heure_note = request.form.get('heure_note')
-        print(note, date_note, heure_note)
-        ajout_note(driver,note, date_note, heure_note)
-        
+        if date_note!='':
+            ajout_note(driver,note, date_note, heure_note)
+        else:
+            ajouter_note_persistante(driver,note)
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
     print('notes : \n#####\n',notes)

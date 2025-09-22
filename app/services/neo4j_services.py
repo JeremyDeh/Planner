@@ -5,6 +5,9 @@ from app.services.utils_date import (generate_dates,
                                      generate_smart_weekday_recurrence)
 import pandas as pd
 
+
+
+
 def get_personnel(driver, NEO4J_DB="neo4j"):
     """
     Récupère la liste du personnel (médecins et infirmières) depuis la base Neo4j.
@@ -70,7 +73,7 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
         cypher_query = """
                         MATCH (n:Resident)-[r:Rdv]->(m)
                         WHERE date(r.date) = date()
-                        RETURN n.nom AS nom, n.prenom AS prenom, n.chambre AS chambre, r.date AS date, r.heure AS heure, r.lieu AS lieu, m.metier AS metier, m.type AS type, r.commentaire AS commentaire, r.responsable AS responsable
+                        RETURN n.nom AS nom, n.prenom AS prenom, n.chambre AS chambre, r.date AS date, r.heure AS heure, r.lieu AS lieu, m.metier AS metier, m.type AS type, r.commentaire AS commentaire, r.responsable AS responsable, 'Note' AS type_element
                         ORDER BY m.metier, n.nom, n.prenom
                         """
         neo4j_results = session.run(cypher_query)
@@ -80,9 +83,9 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
                         MATCH (n:Service)-[r]->(m)
-                        WHERE r.date = date()
-                        RETURN r.date AS date, r.heure AS heure, r.commentaire AS commentaire, m.metier AS metier, ID(r) AS id, r.status AS status
-                        ORDER BY m.metier
+                        WHERE r.date = date() OR (r.date is null and r.status=1)
+                        RETURN r.date AS date, r.heure AS heure, r.commentaire AS commentaire, m.metier AS metier, ID(r) AS id, r.status AS status, 'PermaNote' AS type_element
+                        ORDER BY r.date, m.metier
                         """
         neo4j_results = session.run(cypher_query)
         data = [record.data() for record in neo4j_results]
@@ -93,8 +96,8 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
                         WHERE date(r.date) = date()
                         RETURN r.date AS date, 
                             type(r) + " " + n.nom_affichage + " " + r.date_evt + " " + m.metier + " : " + r.commentaire AS commentaire, ID(r) AS id, r.status AS status, r.heure AS heure,
-                            m.metier AS metier
-                        ORDER BY m.metier
+                            m.metier AS metier, 'Rappel' AS type_element
+                        ORDER BY r.date, m.metier
                         """
         neo4j_results = session.run(cypher_query)
         data = [record.data() for record in neo4j_results]
@@ -104,6 +107,14 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
         
     return df_rdv,df_service
 
+def ajouter_note_persistante(driver,note, metier='Autre',NEO4J_DB="neo4j"):
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        Match (n:Service {nom:'Infirmières'})
+        match (m:Categorie{metier:$metier})
+        CREATE (n)-[r:Note { commentaire:$contenu, status:1, create_date:datetime()}]->(m)
+        """
+        session.run(cypher_query,  contenu=note,metier=metier)
 
 def ajout_note(driver,note, date_note, heure_note,metier='Autre', NEO4J_DB="neo4j"):
     """

@@ -171,17 +171,24 @@
 
                             allCardboxes.forEach(function(cardbox) {
                                 var lis = cardbox.querySelectorAll('ul li[data-responsable]');
-                                var visibleCount = 0;
-
-                                lis.forEach(function(li) {
-                                    if (li.getAttribute('data-responsable') === selectedService) {
+                                 if (selectedService === "Tous") {
+                                    // 🔹 Afficher tout sans filtrer
+                                    lis.forEach(function(li) {
                                         li.style.display = '';
-                                        visibleCount++;
-                                    } else {
-                                        li.style.display = 'none';
-                                    }
-                                });
+                                    });
+                                    cardbox.style.display = ''; // toujours visible
+                                } else {
+                                    var visibleCount = 0;
 
+                                    lis.forEach(function(li) {
+                                        if (li.getAttribute('data-responsable') === selectedService) {
+                                            li.style.display = '';
+                                            visibleCount++;
+                                        } else {
+                                            li.style.display = 'none';
+                                        }
+                                    });
+                                }
                                 // Masquer ou afficher la cardbox selon le contenu
                                 if (visibleCount === 0) {
                                     cardbox.style.display = 'none';
@@ -426,15 +433,29 @@
                     <h3 style="margin-top:0; color:#eebbc3; letter-spacing:1px; font-size:1.2em;">Notes</h3>
                     <ul class="cardbox-notes" style="list-style:none; padding-left:0; margin-top:12px;">
                         {% for _, row in notes.iterrows() %}
-                            {% set date_str_notes = row['date']|string %}
+                            
                             {% set heure_notes = row['heure']|string if row['heure'] else '--:--' %}
                             {% set heure_notes = heure_notes[:5] %}
-                            <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04); color:#232946;">
-                                <span style="display:inline-block; color:#232946; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px; background:{% if row['status'] == 0 %}#abababff{% else %}#eebbc3{% endif %};">{{ heure_notes }}</span><br>
-                                <span class="note-text" style="color:{% if row['status'] == 0 %}#abababff{% else %}#5c5859{% endif %}; font-weight:600;">{{ row['commentaire'] if 'commentaire' in row else row }}</span>
-                                <label class="custom-checkbox">
-                                <input type="checkbox"{% if row['status'] == 0 %}checked{% endif %} data-id="{{ row['id'] }}"onchange="updateStatus(this)">
-                                <span class="checkmark"></span>
+                            <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; 
+                                    box-shadow:0 1px 4px rgba(0,0,0,0.04); color:#232946; 
+                                    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+
+                                <!-- Bloc texte -->
+                                <div style="flex:1;">
+                                    <span style="display:inline-block; color:#232946; border-radius:6px; padding:2px 12px; font-size:0.95em; margin-bottom:4px; 
+                                                background:{% if row['status'] == 0 %}#abababff {% elif row['type_element']=='Rappel' %}#2AC935 {% elif row['date'] %}#eebbc3 {% else %} #3b82f6 {% endif %};">
+                                        {{ heure_notes }}
+                                    </span><br>
+                                    <span class="note-text" style="color:{% if row['status'] == 0 %}#abababff{% else %}#5c5859{% endif %}; font-weight:600;">
+                                        {{ row['commentaire'] if 'commentaire' in row else row }}
+                                    </span>
+                                </div>
+
+                                <!-- Checkbox à droite -->
+                                <label class="custom-checkbox" style="flex-shrink:0; margin-left:8px;">
+                                    <input type="checkbox" {% if row['status'] == 0 %}checked{% endif %} 
+                                        data-id="{{ row['id'] }}" onchange="updateStatus(this)">
+                                    <span class="checkmark"></span>
                                 </label>
                             </li>
                         {% endfor %}
