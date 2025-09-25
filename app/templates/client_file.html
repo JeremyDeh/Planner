@@ -29,13 +29,12 @@
         }
         /* Style de table repris de emploi_collectif.html */
         table.collectif-table {
-            border-collapse: collapse;
-            width: 100%;
-            background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 18px 0 32px 0;
+                border-collapse: separate;  /* important pour border-radius */
+        border-spacing: 0;
+        width: 100%;
+        border: 1px solid #eee;
+        border-radius: 15px;        /* arrondi global de la table */
+        overflow: hidden;     
         }
         table.collectif-table th, table.collectif-table td {
             border: 1px solid #e0e0e0;

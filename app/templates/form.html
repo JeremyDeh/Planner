@@ -18,7 +18,7 @@
                 left: 0;
                 width: 200px;
                 height: 100vh;
-                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
                 display: flex;
                 flex-direction: column;
                 align-items: stretch;
@@ -53,6 +53,19 @@
                 min-height: 100vh;
                 background: #f7f7fa;
             }
+
+            select {
+    background-color:#F2F6FC; /* bleu clair pour le select lui-même */
+    color: #000;               /* texte noir */
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+select option {
+    background-color: #F2F6FC; /* fond bleu clair pour les options */
+    color: #000;
+}
+            
         </style>
         <div class="sidebar">
             <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
@@ -62,17 +75,17 @@
             <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Adminstration</button>
         </div>
         <div class="central-panel" style="padding-top:100px;">
-        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar--v2.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Formulaire de rendez-vous</span>
         </div>
 
         <form id="monForm" method="post" onsubmit="return validerFormulaire();">
 
-            <label><input type="checkbox" name="fichierCSV" id="fichierCSV" onchange="toggleCSVFields()"> Récurrence </label>
+            <label class="noselect"><input type="checkbox" name="fichierCSV" id="fichierCSV" onchange="toggleCSVFields()"> Récurrence </label>
 
-            <div id="schemaField">
-                <label>Type de récurrence :
+            <div id="schemaField" >
+                <label class="noselect">Type de récurrence :
                     <select name="recurrence" required>
                         <option value="jour">Tout les jours</option>
                         <option value="semaine">Toutes les semaines</option>
@@ -83,18 +96,18 @@
             </div>
             
             
-            <label>Date :
+            <label class="noselect">Date :
                 <input type="date" name="date_prestation" style="width: 220px;" required title="Choisissez la date de la prestation">
             </label>
 
             <div id="dateFinField" style="display:none;">
-                <label>Date de fin :
+                <label class="noselect">Date de fin :
                     <input type="date" name="date_fin" style="width: 220px;" title="Choisissez la date de fin">
                 </label>
             </div>
             </label>
 
-            <label>Heure du rendez-vous :
+            <label class="noselect">Heure du rendez-vous :
                 <input type="time" name="heure_prestation" style="width: 150px;"  title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
             <!--
@@ -102,7 +115,7 @@
                 <input type="time" name="duree_prestation" style="width: 150px;" required title="Sélectionnez l'heure et les minutes de la prestation">
             </label>
             -->   
-            <label>Nom(s) du résident :</label>
+            <label class="noselect">Nom(s) du résident* :</label>
             <div style="position:relative;">
 
                 <!-- Champ texte pour rechercher -->
@@ -134,7 +147,7 @@
 
             <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 12px;">
                 <div style="flex:1; min-width:220px;">
-                    <label>Type de rendez-vous :</label>
+                    <label class="noselect">Type de rendez-vous* :</label>
                     <div style="position:relative;">
                         <input type="text" name="nomMedecin" id="nomMedecinInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showMedecinList()" oninput="filterMedecinList()">
                         <div id="medecinList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
@@ -145,17 +158,17 @@
                     </div>
                 </div>
                 <div style="flex:1; min-width:220px;">
-                    <label>Nom du médecin (optionnel) :</label>
+                    <label class="noselect">Nom du médecin (optionnel) :</label>
                     <input type="text" name="identiteMedecin" >
                 </div>
             </div>
-            <label>Lieu :
+            <label class="noselect">Lieu* :
                 <input type="text" name="lieu" style="width: 100%;">
             </label>
             
 
 
-            <label>Type de transport :
+            <label class="noselect">Type de transport* :
                 <select name="transport" required>
                     <option value="" disabled selected hidden>-- Sélectionnez un type de transport --</option>
                     <option value="vsl">VSL</option>
@@ -165,7 +178,7 @@
                 </select>
             </label>
 
-            <label>Visibilité dans le planning :</label>
+            <label class="noselect">Visibilité dans le planning* :</label>
             <div style="position:relative;">
                 <input type="text" name="nomService" id="nomServiceInput" autocomplete="off" placeholder="Commencez à taper..." required onfocus="showServiceList()" oninput="filterServiceList()">
                 <div id="serviceList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
@@ -307,7 +320,7 @@
                 }
                 document.getElementById('nomServiceInput').addEventListener('blur', hideServiceList);
             </script>
-            <label>Commentaire :
+            <label class="noselect">Commentaire :
                 <input type="text" name="commentaire" style="width: 100%;">
             </label>
 
@@ -321,7 +334,7 @@
                 
             </div>
 
-            <h3>Rappels</h3>
+            <h3 class="noselect">Rappels</h3>
             <div id="colonnesContainer"></div>
 
             <div style="margin-top: 10px;">
@@ -415,6 +428,8 @@
 
             colonneData.forEach((col, index) => {
                 const fieldset = document.createElement('fieldset');
+                    fieldset.style.backgroundColor = "#F2F6FC"; // bleu clair
+
 
                 fieldset.innerHTML = `
                     <legend>Rappel ${index + 1}</legend>
@@ -499,6 +514,7 @@
         function validerFormulaire() {
             const errorMsg = document.getElementById('errorMsg');
             errorMsg.style.display = 'none';
+            
 
             // 🔄 Mise à jour de colonneData à partir du DOM
             const fields = document.querySelectorAll('#colonnesContainer fieldset');
@@ -581,7 +597,7 @@
                 const div = document.createElement('div');
                 div.className = "dependance-row";
                 div.innerHTML = `
-                    <span class="dependance-label">Truc dépendant ${index + 1} :</span>
+                    <span class="dependance-label">Dépendance ${index + 1} :</span>
                     <input type="text" name="depends_on" value="${val}" required>
                     <button type="button" onclick="supprimerDependance(${index})" class="delete-btn">Supprimer</button>
                 `;
