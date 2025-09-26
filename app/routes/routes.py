@@ -299,7 +299,7 @@ def enregistre_selles():
 def client_file():
     pks,residents = get_residents_chambre(driver)
     name = ''
-    results = None
+    results = pd.DataFrame()
     node_result = []
 
     if request.method == 'POST':
@@ -313,7 +313,7 @@ def client_file():
             results = pd.DataFrame()
             node_result = []
 
-
+    print("dict : ",node_result)
     return render_template(
         'client_file.html',
         name=name,
@@ -321,6 +321,7 @@ def client_file():
         residents=residents,
         nodes=node_result,
         pks=pks
+
     )
 
 

@@ -1,7 +1,20 @@
 <!doctype html>
 <html lang="fr">
 <head>
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
+        <script>
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+        });
+        calendar.render();
+      });
+
+    </script>
     <style>
+     
         /* Affichage carte + planning côte à côte */
         .fiche-flex-container {
             display: flex;
@@ -446,7 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <p>Aucune information trouvée pour ce résident.</p>
                     {% endif %}
                 </div>
-                <div class="fiche-planning">
+                <div id="fiche-planning_id" class="fiche-planning">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; margin-top: 20px;">
                         <h3 style="margin-bottom:0;">Planning du résident</h3>
                         <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
@@ -458,7 +471,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             <thead>
                                 <tr>
                                     {% for col in nodes[0].keys() %}
-                                    <th>{{ col }}</th>
+                                        {% if col == "Date" %}
+                                            {# Ne rien afficher #}
+                                        {% elif col == "Date_Fr" %}
+                                            <th>Date</th>
+                                        {% else %}
+                                            <th>{{ col }}</th>
+                                        {% endif %}
                                     {% endfor %}
                                     <th>F.R.</th>
                                     <th>F.I.</th> <!-- Nouvelle colonne pour le second bouton -->
@@ -467,8 +486,12 @@ document.addEventListener("DOMContentLoaded", () => {
                             <tbody>
                                 {% for node in nodes %}
                                 <tr>
-                                    {% for value in node.values() %}
-                                    <td>{{ value }}</td>
+                                    {% for col in node.keys() %}
+                                        {% if col == "Date" %}
+                                            {# Ne rien afficher #}
+                                        {% else %}
+                                            <td>{{ node[col] }}</td>
+                                        {% endif %}
                                     {% endfor %}
                                     <td style="text-align:center;">
                                         <button class="dots-btn" data-row='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
@@ -707,11 +730,87 @@ document.addEventListener("DOMContentLoaded", () => {
                     {% else %}
                         <p>Aucun résultat trouvé.</p>
                     {% endif %}
+
+
+                    
                 </div>
             </div>
             {% endif %}
 
+            <div id="calendar" style="display: block;"></div>
+                
+                <script>
+                function toggleView(button) {
+                    const table = document.getElementById("fiche-planning_id");
+                    const calendar = document.getElementById("calendar");
 
+                    if (table.style.display === "none") {
+                        table.style.display = "block";
+                        calendar.style.display = "none";
+                        button.textContent = "Afficher le calendrier";
+                    } else {
+                        table.style.display = "none";
+                        calendar.style.display = "block";
+                        button.textContent = "Afficher la table";
+                    }
+                }
+            </script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const calendarEl = document.getElementById('calendar');
+                        const rawEvents = {{ nodes | tojson }};
+                        // Vérifie les clés exactes de tes objets
+                        const events = rawEvents.map(ev => ({
+                            title: ev['Rendez-vous'] || 'Rendez-vous',
+                            start: ev.Date || null,
+                            description: ev['Note'] || '<Aucun commentaire>'
+                        }));
+                        console.log(events); // Debug
+                        const calendar = new FullCalendar.Calendar(calendarEl, {
+                            initialView: 'dayGridMonth',
+                            locale: 'fr',
+                            events: events,
+                            eventDidMount: function (info) {
+                                // Tooltip personnalisé
+                                let tooltip;
+                                const desc = info.event.extendedProps.description;
+                                if (desc) {
+                                    info.el.addEventListener('mouseenter', function(e) {
+                                        tooltip = document.createElement('div');
+                                        tooltip.className = 'fc-event-custom-tooltip';
+                                        tooltip.innerText = desc;
+                                        document.body.appendChild(tooltip);
+                                        const rect = info.el.getBoundingClientRect();
+                                        tooltip.style.position = 'absolute';
+                                        tooltip.style.background = '#232946';
+                                        tooltip.style.color = '#fff';
+                                        tooltip.style.padding = '8px 14px';
+                                        tooltip.style.borderRadius = '8px';
+                                        tooltip.style.fontSize = '1em';
+                                        tooltip.style.boxShadow = '0 2px 8px rgba(35,41,70,0.18)';
+                                        tooltip.style.zIndex = '9999';
+                                        tooltip.style.pointerEvents = 'none';
+                                        tooltip.style.left = (rect.left + window.scrollX + rect.width/2 - 80) + 'px';
+                                        tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 12) + 'px';
+                                    });
+                                    info.el.addEventListener('mousemove', function(e) {
+                                        if (tooltip) {
+                                            tooltip.style.left = (e.pageX + 12) + 'px';
+                                            tooltip.style.top = (e.pageY - tooltip.offsetHeight - 12) + 'px';
+                                        }
+                                    });
+                                    info.el.addEventListener('mouseleave', function() {
+                                        if (tooltip) {
+                                            tooltip.remove();
+                                            tooltip = null;
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                        calendar.render();
+                    });
+                    </script>
 
 </body>
 </html>

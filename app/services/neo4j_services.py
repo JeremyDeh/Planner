@@ -460,7 +460,8 @@ def get_rendez_vous(driver, db_name, pk):
         results = session.run(cypher_query, pk=pk)
         return [
             {
-                'Date': record['r.date'].to_native().strftime('%d/%m/%Y'),
+                'Date_Fr': record['r.date'].to_native().strftime('%d/%m/%Y'),
+                'Date': record['r.date'].to_native().strftime('%Y-%m-%d'),
                 'Heure': record['r.heure'].to_native().strftime('%H:%M') if record['r.heure']  else '--:--',
                 'Rendez-vous': record['m.metier'],
                 'Transport': record['r.transport'],
