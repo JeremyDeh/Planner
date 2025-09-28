@@ -17,15 +17,12 @@
 + les filtres de "type de rendez-vous" de l'agenda doivent etre un champs texte avec choix multiple, plutot que checkbox choix multiple  -->(Facile) --- Done
 + outil de notes sur la page pincipales, ajuouter un truc de note actives sans date (reste plusieurs jours) mais possibilité de supprimer quand c'est fait  -->(Dur) --- Done
 + sur page principale : 3 couleurs selon les notes (note du jour/ note permanente / rappel) d abord afficher notes et rappel, et en bas, note permanente  -->(Facile, mais depend de celle du dessus)  --- Done
++ sur la page "fiche résident" afficher la vue calendrier pour les rendez-vous  -->(Moyen) --- Done
++ (BUG) gros bouton 'imprimmer' mettre sur toutes les pages (actuellement que sur page principale) -->(Très facile) --- Done
++ (BUG) suite a modif, le filtre sur l'agenda s'applique sur le tableau mais pas sur le calendrier  -->(Moyen) --- Done
 
-
-- sur la page "fiche résident" afficher la vue calendrier pour les rendez-vous  -->(Moyen)
-
-- (BUG) gros bouton 'imprimmer' mettre sur toutes les pages (actuellement que sur page principale) -->(Très facile)
 
 - (BUG) corriger reccurence tout les mois sans date de fin (bug a la validation) -->(Dur)
-
-- (BUG) suite a modif, le filtre sur l'agenda s'applique sur le tableau mais pas sur le calendrier  -->(Moyen)
 
 - (BUG) chercher les bugscreen et les gérer (element introuvable dans bdd etc... tout les cas de figures qui montrent un écran de log à l'utilisateur) -->(Très facile)
 
