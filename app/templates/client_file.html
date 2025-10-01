@@ -75,6 +75,87 @@
             font-style: italic;
             font-weight: 400;
         }
+
+                .fc-event-custom-tooltip {
+            position: absolute;
+            z-index: 9999;
+            background: #3B6FCC;;
+            color: #f7f7fa;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 1em;
+            box-shadow: 0 4px 16px rgba(35,41,70,0.18);
+            pointer-events: none;
+            opacity: 0.97;
+            white-space: pre-line;
+            max-width: 320px;
+            transition: opacity 0.15s;
+        }
+                .fc .fc-toolbar-title {
+        text-transform: capitalize; /* met la première lettre en majuscule */
+        font-size: 24px;            /* taille du titre */
+        font-weight: bold;
+        color: #f7f7fa;
+          padding: 16px 48px;
+        border-radius: 12px;
+        font-size: 18px;
+                user-select: none;       /* désactive la sélection du texte */
+        -webkit-user-select: none; /* Safari/Chrome */
+        -moz-user-select: none;    /* Firefox */
+        -ms-user-select: none;     /* IE/Edge */
+        }
+
+        /* Style de base des boutons */
+.fc .fc-button {
+  background: #5A8DEE;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+/* Effet hover */
+.fc .fc-button:hover {
+  background: #3B6FCC;
+  transform: scale(1.05);
+}
+
+/* Bouton actif (Mois / Semaine / Jour sélectionné) */
+.fc .fc-button-active {
+  background: #232946;
+  color: #fff;
+}
+
+/* Bouton Aujourd'hui */
+.fc .fc-today-button {
+  background: #1e7e34;
+  color: white;
+}
+
+.fc .fc-day-today {
+    background-color: #f0f0f0 !important;
+}
+
+
+/* Boutons flèches (précédent/suivant) */
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  background: #1e7e34;
+  color: white;
+  border-radius: 50%;   /* rond */
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 18px;
+            user-select: none;       /* désactive la sélection du texte */
+  -webkit-user-select: none; /* Safari/Chrome */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;    
+}
+
+
         
     </style>
     <meta charset="UTF-8">
@@ -768,9 +849,21 @@ document.addEventListener("DOMContentLoaded", () => {
                             description: ev['Note'] || '<Aucun commentaire>'
                         }));
                         console.log(events); // Debug
-                        const calendar = new FullCalendar.Calendar(calendarEl, {
-                            initialView: 'dayGridMonth',
-                            locale: 'fr',
+                        const calendar = new FullCalendar.Calendar(calendarEl, {initialView: 'dayGridMonth',
+                locale: 'fr',
+                firstDay: 1,
+                slotMinTime: '07:00:00',
+                slotMaxTime: '23:50:00',
+                allDaySlot: false,
+                headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth'
+    },
+    buttonText: {
+        today: "Aujourd'hui",
+        month: 'Mois',
+    },
                             events: events,
                             eventDidMount: function (info) {
                                 // Tooltip personnalisé
