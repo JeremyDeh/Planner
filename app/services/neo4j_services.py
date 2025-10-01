@@ -460,7 +460,8 @@ def get_rendez_vous(driver, db_name, pk):
         results = session.run(cypher_query, pk=pk)
         return [
             {
-                'Date': record['r.date'].to_native().strftime('%d/%m/%Y'),
+                'Date_Fr': record['r.date'].to_native().strftime('%d/%m/%Y'),
+                'Date': record['r.date'].to_native().strftime('%Y-%m-%d'),
                 'Heure': record['r.heure'].to_native().strftime('%H:%M') if record['r.heure']  else '--:--',
                 'Rendez-vous': record['m.metier'],
                 'Transport': record['r.transport'],
@@ -508,8 +509,10 @@ def get_all_rdv_events(driver, db_name):
     with driver.session(database=db_name) as session:
         cypher_query = """
         MATCH (n:Resident)-[r]->(m)
+        WHERE r.date >= date()
         RETURN n.nom, n.prenom, n.etage, n.chambre, type(r), r.date, r.heure, m.metier,
         r.commentaire, r.rdv, ID(r) as id_rdv_one, r.id_chain AS id_chain
+        
         ORDER BY toString(r.date) ASC
         """
         ## on doit order by toString() car sans le cast, il differencie les dates et les datetime etfait son tr séparémment

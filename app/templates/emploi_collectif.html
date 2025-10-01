@@ -187,6 +187,9 @@ th, td { border: 1px solid #eee; padding: 8px; text-align: left; width: 12%; }
         <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == url_for('main.form') or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
         <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
         <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
+        <div class="separator-vertical"></div>
+            <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
+        </div>
     </div>
     <div class="central-panel">
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
@@ -238,24 +241,31 @@ th, td { border: 1px solid #eee; padding: 8px; text-align: left; width: 12%; }
 
             // Ajout ou suppression d'un RDVType
             function updateRdvSelection() {
-                // Met à jour l'affichage des éléments sélectionnés
+                // maj du champ hidden
+                document.getElementById('selectedRdvTypes').value = selectedRdvTypes.join(',');
+
+                // maj de l’affichage des tags
                 const container = document.getElementById('selectedRdvContainer');
                 container.innerHTML = '';
-                selectedRdvTypes.forEach((val, index) => {
+                selectedRdvTypes.forEach((val, idx) => {
                     const tag = document.createElement('div');
-                    tag.style.cssText = "background:#e0e0e0; padding:2px 6px; border-radius:8px; display:flex; align-items:center; gap:4px;";
-                    tag.innerHTML = `
-                        <span>${val}</span>
-                        <span style="cursor:pointer; color:red;" onclick="removeRdvType(${index})">&times;</span>
-                    `;
+                    tag.style.background = '#4F8CFF';
+                    tag.style.color = 'white';
+                    tag.style.padding = '2px 8px';
+                    tag.style.borderRadius = '6px';
+                    tag.style.display = 'flex';
+                    tag.style.alignItems = 'center';
+                    tag.style.gap = '6px';
+                    tag.innerHTML = `<span>${val}</span>
+                        <span style="cursor:pointer; font-weight:bold;" onclick="removeRdvType(${idx})">&times;</span>`;
                     container.appendChild(tag);
                 });
 
-                // Met à jour l'input caché
-                document.getElementById('selectedRdvTypes').value = selectedRdvTypes.join(',');
-
-                // 🔹 Filtrage automatique du tableau
+                // applique les filtres
                 filterTableByRdvTypesAndEtage();
+                if (typeof window.filterEvents === 'function') {
+                    window.filterEvents();
+                }
             }
 
             // Ajouter un RDVType
@@ -506,21 +516,25 @@ function toggleView(button) {
 
 </script>
     <script>
-        // Filtrage dynamique des événements selon les cases cochées
+        /* variables globales utilisables depuis tout le page */
         let allEvents = [];
+        let calendar = null;
+
         document.addEventListener('DOMContentLoaded', function () {
             const calendarEl = document.getElementById('calendar');
-            const rawEvents = {{ events | tojson }};
-            allEvents = rawEvents;
-            const calendar = new FullCalendar.Calendar(calendarEl, {
+            allEvents = {{ events | tojson }} || [];
+
+            // initialise le calendar une seule fois et expose la variable globalement
+            calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'fr',
                 slotMinTime: '07:00:00',
                 slotMaxTime: '23:50:00',
                 allDaySlot: false,
-                events: rawEvents,
+                events: [], // on ajoute les events ensuite via addEventSource
+
+                // 🔹 Ajout de l'effet "hover" (tooltip)
                 eventDidMount: function (info) {
-                    // Tooltip personnalisé pour afficher le champ description
                     let tooltip;
                     const desc = info.event.extendedProps.description;
                     if (desc) {
@@ -530,15 +544,6 @@ function toggleView(button) {
                             tooltip.innerText = desc;
                             document.body.appendChild(tooltip);
                             const rect = info.el.getBoundingClientRect();
-                            tooltip.style.position = 'absolute';
-                            tooltip.style.background = '#232946';
-                            tooltip.style.color = '#fff';
-                            tooltip.style.padding = '8px 14px';
-                            tooltip.style.borderRadius = '8px';
-                            tooltip.style.fontSize = '1em';
-                            tooltip.style.boxShadow = '0 2px 8px rgba(35,41,70,0.18)';
-                            tooltip.style.zIndex = '9999';
-                            tooltip.style.pointerEvents = 'none';
                             tooltip.style.left = (rect.left + window.scrollX + rect.width/2 - 80) + 'px';
                             tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 12) + 'px';
                         });
@@ -559,40 +564,47 @@ function toggleView(button) {
             });
             calendar.render();
 
-            // Gestion du filtrage
-            document.querySelectorAll('.rdv-filter, .etage-filter').forEach(cb => {
-                cb.addEventListener('change', filterEvents);
-            });
+            // ajoute les events initiaux
+            calendar.addEventSource(allEvents);
 
-            function filterEvents() {
-                const checkedRDV = Array.from(document.querySelectorAll('.rdv-filter:checked')).map(cb => cb.value);
-                const checkedEtage = Array.from(document.querySelectorAll('.etage-filter:checked')).map(cb => cb.value);
+            // expose la fonction globalement pour pouvoir l'appeler depuis updateRdvSelection()
+            window.filterEvents = function() {
+                // récupère les RDV sélectionnés (protéger si var non définie)
+                const checkedRDV = (typeof selectedRdvTypes !== 'undefined' && selectedRdvTypes.length)
+                    ? selectedRdvTypes.map(v => v.toLowerCase())
+                    : [];
 
-                let filtered = allEvents;
+                const checkedEtage = Array.from(document.querySelectorAll('.etage-filter:checked'))
+                                        .map(cb => cb.value);
 
-                // Filtrage par type de RDV (dans description)
+                let filtered = allEvents.slice();
+
                 if (checkedRDV.length > 0) {
-                    
                     filtered = filtered.filter(ev => {
-                        console.log("description de l'événement :", ev.description);
                         if (!ev.description) return false;
-                        return checkedRDV.some(type => ev.description.startsWith(type));
+                        const desc = String(ev.description).toLowerCase();
+                        return checkedRDV.some(type => desc.includes(type));
                     });
                 }
 
-                // Filtrage par étage
                 if (checkedEtage.length > 0) {
-                    filtered = filtered.filter(ev => {
-                        console.log("Etage de l'événement :", ev.Etage);
-                        return checkedEtage.includes((ev.Etage ?? '').toString());
-                    });
+                    filtered = filtered.filter(ev => checkedEtage.includes(String(ev.Etage ?? '')));
                 }
 
+                // remplace proprement les events affichés
                 calendar.removeAllEvents();
                 calendar.addEventSource(filtered);
-            }
+            };
+
+            // rattache le filtrage aux checkbox "étage" (et aux éventuelles .rdv-filter si tu en as)
+            document.querySelectorAll('.etage-filter').forEach(cb => cb.addEventListener('change', window.filterEvents));
+            document.querySelectorAll('.rdv-filter').forEach(cb => cb.addEventListener('change', window.filterEvents));
+
+            // si tu veux appliquer le filtre au chargement (par ex. si selectedRdvTypes non vide)
+            window.filterEvents();
         });
         </script>
+
       
 
 </body>
