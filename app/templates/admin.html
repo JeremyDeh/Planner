@@ -55,8 +55,8 @@
             color: #232946;
         }
         .admin-card input[type="submit"] {
-            background: linear-gradient(90deg, #4F8CFF 0%, #232946 100%);
-            color: #eebbc3;
+            background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
+            color: #f7f7fa;
             border: none;
             border-radius: 8px;
             padding: 12px 24px;
@@ -68,7 +68,7 @@
         }
         .admin-card input[type="submit"]:hover {
             background: #232946;
-            color: #eebbc3;
+            color: #f7f7fa;
             box-shadow: 0 4px 16px rgba(35,41,70,0.12);
         }
     </style>
@@ -94,7 +94,7 @@
                 left: 0;
                 width: 200px;
                 height: 100vh;
-                background: linear-gradient(180deg, #4F8CFF 0%, #232946 100%);
+                background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
                 display: flex;
                 flex-direction: column;
                 align-items: stretch;
@@ -137,17 +137,17 @@
             <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
             <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
         </div>
-        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(90deg, #4F8CFF 0%, #232946 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
+        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);; box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Connexion</span>
             {% if session.get('user_id') %}
                 <a href="{{ url_for('auth.logout') }}"
-                style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
+                style="margin-left:60%; color:#f7f7fa; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
                 Se déconnecter
                 </a>    
             {% else %}
                 <a href="{{ url_for('auth.register') }}"
-                style="margin-left:60%; color:#eebbc3; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
+                style="margin-left:60%; color:#f7f7fa; background:#232946; border-radius:8px; padding:8px 18px; font-size:1.08em; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(35,41,70,0.08); transition:background 0.2s, color 0.2s;">
                 Register
                 </a>  
             {% endif %}
