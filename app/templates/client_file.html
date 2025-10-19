@@ -227,6 +227,45 @@
             <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
         </div>
     </div>
+    
+        <!-- Popup Impression -->
+        <div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
+            <div id="impressionPopupContent" style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
+                <button onclick="closeImpressionPopup()" style="position:absolute; top:18px; right:18px;">Fermer</button>
+                <button onclick="printImpressionContent()" style="position:absolute; top:18px; left:18px; background:#4F8CFF; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1em; font-weight:600; cursor:pointer;">Imprimer</button>
+                <div id="impressionContentInner" style="margin-top:56px;"></div>
+            </div>
+    </div>
+    
+            <!-- JS Impression Popup -->
+            <script>
+            function openImpressionPopup() {
+                document.getElementById('impressionPopup').style.display = 'flex';
+                // Charger le contenu via AJAX
+                fetch('{{ url_for('main.impression') }}', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('impressionContentInner').innerHTML = html;
+                    });
+            }
+            function closeImpressionPopup() {
+                document.getElementById('impressionPopup').style.display = 'none';
+            }
+            function printImpressionContent() {
+                var printContents = document.getElementById('impressionContentInner').innerHTML;
+                var printWindow = window.open('', '', 'height=800,width=1200');
+                printWindow.document.write('<html><head><title>Impression</title>');
+                printWindow.document.write(document.head.innerHTML);
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(printContents);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            }
+            document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
+            </script>
 
     </div>
     <div class="central-panel" style="padding-top:100px;">
@@ -249,6 +288,49 @@
     <span>Ajout d'un nouveau résident</span>
   </button>
 
+
+<!-- Nouveau bouton "-" à droite -->
+<button id="openDepartPopupBtn" class="openPopupBtn" style="position:fixed; top:40px; right:40px; z-index:1000; display:flex; align-items:center; gap:8px; background:#C82333;">
+    <!-- Icône "-" blanc -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+         fill="none" stroke="white" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    <span>Départ d'un résident</span>
+</button>
+
+
+<!-- Popup Départ résident -->
+<div id="departPopupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
+    <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
+        <h3 class="noselect">Départ d'un résident</h3>
+        <form id="departPopupFormInner" autocomplete="off" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Nom du résident à supprimer -->
+            <label class="noselect" style="font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                Nom du résident :
+                <div style="position:relative;">
+                    <input type="text" name="nomPatientEDT_affichage" id="departNomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required
+                        style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none;"
+                        onfocus="showDepartPatientList()" oninput="filterDepartPatientList()">
+                    <input type="hidden" name="nomPatientEDT" id="departNomPatientHidden">
+                    <div id="departPatientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                        {% for nom in residents %}
+                            <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;" 
+                                onclick="selectDepartPatient(this)">
+                                {{ nom }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </label>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
+                <button type="submit" class="btn-valider" style="background:#C82333;">Valider</button>
+                <button type="button" id="closeDepartPopupBtn" style="background:#232946; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 
 <div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
@@ -394,62 +476,115 @@
 </div>
 
 
-
-        <script>
+<script>
 document.addEventListener("DOMContentLoaded", () => {
+    // Ajout résident
     const openBtn    = document.getElementById("openPopupBtn");
     const closeBtn   = document.getElementById("closePopupBtn");
     const popup      = document.getElementById("popupForm");
     const form       = document.getElementById("popupFormInner");
+
+    // Départ résident
+    const openDepartBtn    = document.getElementById("openDepartPopupBtn");
+    const closeDepartBtn   = document.getElementById("closeDepartPopupBtn");
+    const departPopup      = document.getElementById("departPopupForm");
+    const departForm       = document.getElementById("departPopupFormInner");
+
+    // Message popup (unique)
     const messageBox = document.getElementById("popupMessage");
 
-    // Ouvrir formulaire
-    openBtn.onclick = () => popup.style.display = "flex";
-    // Fermer formulaire
-    closeBtn.onclick = () => popup.style.display = "none";
-
-    // Soumission formulaire
-    form.onsubmit = async function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-
-        try {
-            const response = await fetch("/add_resident", {
-                method: "POST",
-                body: formData
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                showPopup("✅ Résident ajouté avec succès !", "success");
-                popup.style.display = "none";
-                this.reset();
-            } else {
-                showPopup("❌ Erreur : " + (data.error || "Impossible d'ajouter le résident.") , "error");
-            }
-        } catch {
-            showPopup("⚠️ Erreur réseau ou serveur.", "error");
-        }
-    };
-
-    // Affichage du message
+    // Fonction d'affichage du message
     function showPopup(message, type) {
         messageBox.textContent = message;
         messageBox.style.background = type === "success" ? "#1e7e34" : "#c82333";
         messageBox.style.display = "block";
-
-        // animation fade-in
         requestAnimationFrame(() => {
             messageBox.style.opacity = "1";
         });
-
-        // disparition après 3s
         setTimeout(() => {
             messageBox.style.opacity = "0";
             setTimeout(() => {
                 messageBox.style.display = "none";
             }, 300);
         }, 3000);
+    }
+
+    // Ouvrir/Fermer popup ajout
+    if (openBtn && popup) openBtn.onclick = () => popup.style.display = "flex";
+    if (closeBtn && popup) closeBtn.onclick = () => popup.style.display = "none";
+
+    // Ouvrir/Fermer popup départ
+    if (openDepartBtn && departPopup) openDepartBtn.onclick = () => departPopup.style.display = "flex";
+    if (closeDepartBtn && departPopup) closeDepartBtn.onclick = () => departPopup.style.display = "none";
+
+    // Soumission formulaire ajout
+    if (form) {
+        form.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const response = await fetch("/add_resident", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showPopup("✅ Résident ajouté avec succès !", "success");
+                    popup.style.display = "none";
+                    this.reset();
+                } else {
+                    showPopup("❌ Erreur : " + (data.error || "Impossible d'ajouter le résident.") , "error");
+                }
+            } catch {
+                showPopup("⚠️ Erreur réseau ou serveur.", "error");
+            }
+        };
+    }
+
+    // Soumission formulaire départ
+    if (departForm) {
+        departForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const response = await fetch("/delete_resident", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showPopup("✅ Résident supprimé avec succès !", "success");
+                    departPopup.style.display = "none";
+                    this.reset();
+                } else {
+                    showPopup("❌ Erreur : " + (data.error || "Impossible de supprimer le résident.") , "error");
+                }
+            } catch {
+                showPopup("⚠️ Erreur réseau ou serveur.", "error");
+            }
+        };
+    }
+});
+</script>
+<script>
+function showDepartPatientList() {
+    document.getElementById('departPatientList').style.display = 'block';
+}
+function filterDepartPatientList() {
+    const input = document.getElementById('departNomPatientInput').value.toLowerCase();
+    document.querySelectorAll('#departPatientList .patient-item').forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(input) ? '' : 'none';
+    });
+}
+function selectDepartPatient(el) {
+    document.getElementById('departNomPatientInput').value = el.textContent.trim();
+    document.getElementById('departNomPatientHidden').value = el.getAttribute('data-pk');
+    document.getElementById('departPatientList').style.display = 'none';
+}
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('departPatientList').contains(e.target) &&
+        e.target !== document.getElementById('departNomPatientInput')) {
+        document.getElementById('departPatientList').style.display = 'none';
     }
 });
 </script>

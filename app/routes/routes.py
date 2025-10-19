@@ -338,6 +338,23 @@ def emploi_collectif():
                            RDVTypes=rdv_types,events=events2)
 
 
+@main_bp.route('/delete_resident', methods=['POST'])
+def delete_resident():
+    print("Je passe par la suppression ......")
+    pk = request.form.get('nomPatientEDT')
+    print("PK à supprimer :", pk)
+    try:
+        with driver.session(database=NEO4J_DB) as session:
+            session.run(
+                "MATCH (r:Resident {pk: $pk}) DETACH DELETE r",
+                pk=pk
+            )
+        print("ca a a marché")
+        return jsonify({'success': True, 'redirect': url_for('main.client_file')})
+    except Exception as e:
+        print("Erreur lors de la suppression :", e)
+        return jsonify({'success': False, 'error': str(e)})
+    
 @main_bp.route('/add_resident', methods=['POST'])
 def add_resident():
     nom = request.form.get('nom')

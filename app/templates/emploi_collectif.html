@@ -273,6 +273,47 @@ th, td { border: 1px solid #eee; padding: 8px; text-align: left; width: 12%; }
             <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
         </div>
     </div>
+    
+    
+        <!-- Popup Impression -->
+        <div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
+            <div id="impressionPopupContent" style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
+                <button onclick="closeImpressionPopup()" style="position:absolute; top:18px; right:18px;">Fermer</button>
+                <button onclick="printImpressionContent()" style="position:absolute; top:18px; left:18px; background:#4F8CFF; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1em; font-weight:600; cursor:pointer;">Imprimer</button>
+                <div id="impressionContentInner" style="margin-top:56px;"></div>
+            </div>
+    </div>
+    
+            <!-- JS Impression Popup -->
+            <script>
+            function openImpressionPopup() {
+                document.getElementById('impressionPopup').style.display = 'flex';
+                // Charger le contenu via AJAX
+                fetch('{{ url_for('main.impression') }}', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('impressionContentInner').innerHTML = html;
+                    });
+            }
+            function closeImpressionPopup() {
+                document.getElementById('impressionPopup').style.display = 'none';
+            }
+            function printImpressionContent() {
+                var printContents = document.getElementById('impressionContentInner').innerHTML;
+                var printWindow = window.open('', '', 'height=800,width=1200');
+                printWindow.document.write('<html><head><title>Impression</title>');
+                printWindow.document.write(document.head.innerHTML);
+                printWindow.document.write('</head><body>');
+                printWindow.document.write(printContents);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            }
+            document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
+            </script>
+
     <div class="central-panel">
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/table.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
