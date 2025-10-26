@@ -225,68 +225,67 @@
         <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
         <div class="separator-vertical"></div>
             <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
-        </div>
     </div>
-    
-        <!-- Popup Impression -->
-        <div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
-            <div id="impressionPopupContent" style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
-                <button onclick="closeImpressionPopup()" style="position:absolute; top:18px; right:18px;">Fermer</button>
-                <button onclick="printImpressionContent()" style="position:absolute; top:18px; left:18px; background:#4F8CFF; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1em; font-weight:600; cursor:pointer;">Imprimer</button>
-                <div id="impressionContentInner" style="margin-top:56px;"></div>
-            </div>
-    </div>
-    
-            <!-- JS Impression Popup -->
-            <script>
-            function openImpressionPopup() {
-                document.getElementById('impressionPopup').style.display = 'flex';
-                // Charger le contenu via AJAX
-                fetch('{{ url_for('main.impression') }}', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                    .then(response => response.text())
-                    .then(html => {
-                        document.getElementById('impressionContentInner').innerHTML = html;
-                    });
-            }
-            function closeImpressionPopup() {
-                document.getElementById('impressionPopup').style.display = 'none';
-            }
-            function printImpressionContent() {
-                var printContents = document.getElementById('impressionContentInner').innerHTML;
-                var printWindow = window.open('', '', 'height=800,width=1200');
-                printWindow.document.write('<html><head><title>Impression</title>');
-                printWindow.document.write(document.head.innerHTML);
-                printWindow.document.write('</head><body>');
-                printWindow.document.write(printContents);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
-            }
-            document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
-            </script>
 
+<div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; position:relative; display:flex; flex-direction:column;">
+        <button onclick="document.getElementById('impressionPopup').style.display='none'" 
+                style="position:absolute; top:18px; right:18px;">Fermer</button>
+        <iframe id="pdfIframe" style="width:80vw; height:80vh; border:none;"></iframe>
     </div>
+</div>
+
+    <!-- JS Impression Popup -->
+    <script>
+    function openImpressionPopup(rowData) {
+    document.getElementById('impressionPopup').style.display = 'flex';
+    const iframe = document.getElementById('pdfIframe');
+
+    // Envoyer les données au serveur pour générer le PDF
+    fetch('/popup_row_pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rowData)
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        iframe.src = url;
+    })
+    .catch(err => {
+        console.error(err);
+        iframe.srcdoc = "<p style='color:red'>Erreur lors de la génération du PDF.</p>";
+    });
+}
+
+function closeImpressionPopup() {
+    document.getElementById('impressionPopup').style.display = 'none';
+    document.getElementById('pdfIframe').src = '';
+}
+
+function printIframe() {
+    const iframe = document.getElementById('pdfIframe');
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+}
+    document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
+    </script>
+
     <div class="central-panel" style="padding-top:100px;">
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);; box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Fiche résidents</span>
         </div>
-
-
-
-
-<button id="openPopupBtn" class="openPopupBtn">
-    <!-- Icône "+" blanc toujours visible -->
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
-         fill="none" stroke="white" stroke-width="2" 
-         stroke-linecap="round" stroke-linejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    <span>Ajout d'un nouveau résident</span>
-  </button>
+        <button id="openPopupBtn" class="openPopupBtn">
+            <!-- Icône "+" blanc toujours visible -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
+                fill="none" stroke="white" stroke-width="2" 
+                stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Ajout d'un nouveau résident</span>
+        </button>
 
 
 <!-- Nouveau bouton "-" à droite -->
@@ -805,7 +804,7 @@ document.addEventListener('click', function(e) {
                                     e.stopPropagation();
                                     try {
                                         const rowData = JSON.parse(this.getAttribute('data-row'));
-                                        openRowPopup(rowData);
+                                        openPDFPopup(rowData);
                                     } catch (err) {
                                         alert('Erreur lors de l\'ouverture de la fiche : données invalides.');
                                     }
@@ -885,6 +884,60 @@ document.addEventListener('click', function(e) {
                             document.getElementById('rowPopupOverlay').style.display = 'none';
                         }
                         </script>
+                        <script>
+function openPDFPopup(rowData) {
+    // Récupère les infos du résident depuis la fiche
+    let nomResident = '';
+    let oxygen = '';
+    let diabete = '';
+
+    const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
+    if (carte) {
+        const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
+        if (titre) nomResident = titre.textContent.trim();
+
+        // Oxygen
+        const oxyDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('O₂'));
+        if (oxyDiv) {
+            const match = oxyDiv.textContent.match(/O₂\s*:\s*(Oui|Non)/i);
+            if (match) oxygen = match[1];
+        }
+
+        // Diabète
+        const diabDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('Diabète'));
+        if (diabDiv) {
+            const match = diabDiv.textContent.match(/Diabète\s*:\s*(Oui|Non)/i);
+            if (match) diabete = match[1];
+        }
+    }
+
+    // Fusionne rowData avec les nouvelles infos
+    const dataToSend = Object.assign({}, rowData, {
+        nom_resident: nomResident,
+        oxygen: oxygen,
+        diabete: diabete
+    });
+
+    // Affiche la popup et charge le PDF
+    document.getElementById('impressionPopup').style.display = 'flex';
+    const iframe = document.getElementById('pdfIframe');
+
+    fetch('/popup_row_pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        iframe.src = url;
+    })
+    .catch(() => {
+        iframe.srcdoc = "<p style='color:red'>Erreur lors de la génération du PDF.</p>";
+    });
+}
+</script>
+
                         <!-- Pop-up modale pour la nouvelle colonne -->
                         <div id="rowPopupOverlayAlt" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
                             <div id="rowPopupInnerAlt" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">

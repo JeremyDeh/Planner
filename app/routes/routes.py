@@ -1,7 +1,11 @@
 
 from neo4j import GraphDatabase
 import os
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
 import pandas as pd
+import pdfkit
 from datetime import datetime, timedelta, date
 from flask import (
     Blueprint,
@@ -375,8 +379,6 @@ def add_resident():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-
-
 @main_bp.route('/popup_content')
 def popup_content():
     """
@@ -386,7 +388,64 @@ def popup_content():
         '<h2 style="margin-top:0;">Rendez-vous</h2>'
         '<p>Ce contenu est chargé depuis Flask !</p>'
     )
+@main_bp.route('/popup_row_pdf', methods=['POST'])
+def popup_row_pdf():
+    data = request.get_json(force=True)
 
+    # Récupérer les informations du rendez-vous
+    date_parts = data.get("Date_Fr", "")
+    heure_parts = data.get("Heure", "")
+    nom_reserv = data.get("nom_resident", "")
+    rdv = data.get("Rendez-vous", "")
+    transport = data.get("Transport", "")
+    medecin = data.get("Medecin", "")
+    lieu = data.get("Lieu", "")
+    note= data.get("Note", "")
+
+    # Création du PDF en mémoire
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 100
+
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.drawString(50, y, nom_reserv)
+    y -= 40
+
+    pdf.setFont("Helvetica", 18)
+    pdf.drawString(50, y, f"Vous avez rendez-vous le : {date_parts} à {heure_parts}.")
+    y -= 30
+    pdf.drawString(50, y, f"Motif : {rdv} ")
+    y -= 30
+    if medecin:
+        pdf.drawString(50, y, f"Avec : {medecin}")
+        y -= 30
+
+    if transport != "---":
+        pdf.setFont("Helvetica", 18)
+        pdf.drawString(50, y, f"Transport : {transport}")
+    else:
+        pdf.setFont("Helvetica", 18)
+        pdf.drawString(50, y, "Transport : Aucun transport n'est prévu.")
+    y -= 40
+
+    if lieu:
+        pdf.setFont("Helvetica", 18)
+        pdf.drawString(50, y, f"Lieu du rendez-vous : {lieu}")
+        y -= 40
+
+    if lieu:
+        pdf.setFont("Helvetica", 18)
+        pdf.drawString(50, y, f"Note : {note}")
+
+    #pdf.showPage()
+    pdf.save()
+
+    buffer.seek(0)
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=impression.pdf'
+    return response
 
 @main_bp.route('/popup_row', methods=['POST'])
 def popup_row():
@@ -395,10 +454,10 @@ def popup_row():
     les données JSON.
     """
     data = request.get_json(force=True)
-    html = '<h3 style="margin-top:20px;">Détail du rendez-vous</h3>'
+    html = '<h1 style="margin-top:20px;">Détail du rendez-vous</h1>'
     html += '<table style="width:100%; border-collapse:collapse;">'
 
-    date_parts = data["Date"]
+    date_parts = data["Date_Fr"]
     heure_parts = data["Heure"]
     nom_reserv = data["nom_resident"]
     rdv = data["Rendez-vous"]
@@ -407,24 +466,67 @@ def popup_row():
 
     print('infos : ', infos)
     medecin=infos[0].get('medecin', '') if infos[0].get('medecin', '') != None else ''
-    html += f"<strong>{nom_reserv}</strong><br>"
-    intro= f"""Vous avez rendez vous  "{rdv}" prévu le {date_parts} à {heure_parts}"""
+    html += f"<strong><p style='font-size: 24px'>{nom_reserv}</p></strong><br>"
+    intro= f"""<p style='font-size: 24px'>Vous avez un rendez vous  "<strong>{rdv}</strong>" prévu le <strong>{date_parts}</strong> à <strong>{heure_parts}</strong></p>"""
     if medecin != '':
-        intro += f", avec : {medecin}. "
+        intro += f"<p style='font-size: 24px'>avec : <strong>{medecin}</strong>. </p>"
     html += intro
     if transport != '---':
-        transport_html = f"""<p style="color: #232946; font-weight: bold;">Un transport est prévu pour vous emmener à ce rendez vous : {transport}</p>"""
+        transport_html = f"""<p style="color: #232946; font-size: 24px; font-weight: bold;">Un transport est prévu pour vous emmener à ce rendez vous : {transport}</p>"""
         html += transport_html
     else:
-        transport_html = f"""<p style="color: #232946; font-weight: bold;">Aucun transport n'est prévu pour ce rendez-vous.</p>"""
+        transport_html = f"""<p style="color: #232946; font-size: 24px; font-weight: bold;">Aucun transport n'est prévu pour ce rendez-vous.</p>"""
         html += transport_html
     if len(infos) > 0:
         lieu= infos[0].get('lieu', 'Non spécifié')
-        lieu_html = f"""<p style="color: #232946; font-weight: bold;">Lieu du rendez-vous : {lieu}</p>"""
+        lieu_html = f"""<p style="color: #232946; font-size: 32px;">Lieu du rendez-vous : <strong>{lieu}</strong></p>"""
         html += lieu_html
-
-
     html += '</table>'
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 50  # position verticale de départ
+
+    pdf.setFont("Helvetica-Bold", 24)
+    pdf.drawString(50, y, nom_reserv)
+    y -= 40
+
+    pdf.setFont("Helvetica", 18)
+    pdf.drawString(50, y, f"Vous avez un rendez-vous '{rdv}' prévu le {date_parts} à {heure_parts}.")
+    y -= 30
+
+    # Médecin si présent
+    medecin = data.get("medecin", "")
+    if medecin:
+        pdf.drawString(50, y, f"Avec : {medecin}")
+        y -= 30
+
+    # Transport
+    if transport != "---":
+        pdf.setFont("Helvetica-Bold", 18)
+        pdf.drawString(50, y, f"Un transport est prévu pour vous emmener : {transport}")
+    else:
+        pdf.setFont("Helvetica-Bold", 18)
+        pdf.drawString(50, y, "Aucun transport n'est prévu pour ce rendez-vous.")
+    y -= 40
+
+    # Lieu si présent
+    lieu = data.get("lieu", "")
+    if lieu:
+        pdf.setFont("Helvetica-Bold", 20)
+        pdf.drawString(50, y, f"Lieu du rendez-vous : {lieu}")
+
+    pdf.showPage()
+    pdf.save()
+
+    buffer.seek(0)
+    response = make_response(buffer.read())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=impression.pdf'
+
+    
+
     return make_response(html)
 
 @main_bp.route('/admin', methods=['GET', 'POST'])
