@@ -67,6 +67,61 @@ select option {
 }
             
         </style>
+        <style>
+  #joursContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 3px;
+  }
+
+  /* Style de base des boutons */
+  #joursContainer label {
+    position: relative;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    font-size: 0.75rem; 
+  }
+
+  /* Effet au survol */
+  #joursContainer label:hover {
+    background: #73abe4;
+  }
+
+  /* On cache les vraies cases à cocher */
+  #joursContainer input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Quand la case est cochée → joli bouton bleu */
+  #joursContainer input[type="checkbox"]:checked + span {
+    background: #73abe4;
+    color: white;
+    border-color: #73abe4;
+  }
+
+  /* Le texte contenu dans le span doit hériter du style du label */
+  #joursContainer span {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 4px 10px;
+    transition: all 0.2s ease;
+  }
+
+  /* Bouton actif (clic visuel) */
+  #joursContainer label:active span {
+    transform: scale(0.5);
+  }
+</style>
         <div class="sidebar">
             <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
             <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
@@ -129,17 +184,29 @@ select option {
 
             <label class="noselect"><input type="checkbox" name="fichierCSV" id="fichierCSV" onchange="toggleCSVFields()"> Récurrence </label>
 
-            <div id="schemaField" >
-                <label class="noselect">Type de récurrence :
-                    <select name="recurrence" required>
-                        <option value="jour">Tout les jours</option>
-                        <option value="semaine">Toutes les semaines</option>
-                        <option value="mois">Tout les mois</option>
-
-                    </select>
-                </label>
+            <div id="schemaField">
+            <label class="noselect">Type de récurrence :
+                <select name="recurrence" required onchange="toggleJoursSpecifiques()">
+                <option value="jour">Tous les jours</option>
+                <option value="jourSpec">Jours spécifiques</option>
+                <option value="semaine">Toutes les semaines</option>
+                <option value="mois">Tous les mois</option>
+                </select>
+            </label>
             </div>
-            
+
+            <div id="joursSpecifiques" style="display:none; margin-top:10px;">
+            <label class="noselect" style="display:block; margin-bottom:6px;">Choisissez les jours :</label>
+            <div id="joursContainer">
+                <label><input type="checkbox" name="jours[]" value="lundi"><span>Lundi</span></label>
+                <label><input type="checkbox" name="jours[]" value="mardi"><span>Mardi</span></label>
+                <label><input type="checkbox" name="jours[]" value="mercredi"><span>Mercredi</span></label>
+                <label><input type="checkbox" name="jours[]" value="jeudi"><span>Jeudi</span></label>
+                <label><input type="checkbox" name="jours[]" value="vendredi"><span>Vendredi</span></label>
+                <label><input type="checkbox" name="jours[]" value="samedi"><span>Samedi</span></label>
+                <label><input type="checkbox" name="jours[]" value="dimanche"><span>Dimanche</span></label>
+            </div>
+            </div>
             
             <label class="noselect">Date :
                 <input type="date" name="date_prestation" style="width: 220px;" required title="Choisissez la date de la prestation">
@@ -401,19 +468,34 @@ select option {
             let colonneData = [{ name: '', unit: 'Jour', nombre: '', pk: '' }];
 
             function toggleCSVFields() {
-                const isChecked = document.getElementById('fichierCSV').checked;
-                document.getElementById('csvFields').style.display = isChecked ? 'block' : 'none';
-                document.querySelectorAll('#csvFields input').forEach(input => {
-                    input.required = isChecked;
-                });
+            const isChecked = document.getElementById('fichierCSV').checked;
+            document.getElementById('csvFields').style.display = isChecked ? 'block' : 'none';
+            document.querySelectorAll('#csvFields input').forEach(input => {
+                input.required = isChecked;
+            });
 
-                // Masquer le champ "schema" si fichierCSV est coché
-                document.getElementById('schemaField').style.display = isChecked ? 'block' : 'none';
-                document.getElementById('dateFinField').style.display = isChecked ? 'block' : 'none';
+            document.getElementById('schemaField').style.display = isChecked ? 'block' : 'none';
+            document.getElementById('dateFinField').style.display = isChecked ? 'block' : 'none';
+
+            if (isChecked) {
+                document.getElementById('joursSpecifiques').style.display = 'none';
+            }
+            }
+
+            function toggleJoursSpecifiques() {
+            const recurrenceSelect = document.querySelector('select[name="recurrence"]');
+            const joursDiv = document.getElementById('joursSpecifiques');
+
+            if (recurrenceSelect && recurrenceSelect.value === 'jourSpec') {
+                joursDiv.style.display = 'block';
+            } else {
+                joursDiv.style.display = 'none';
+            }
             }
 
             window.onload = function () {
                 toggleCSVFields();
+                toggleJoursSpecifiques();
                 renderColonnes();
             };
 
