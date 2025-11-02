@@ -544,7 +544,7 @@ def get_graph(driver):
 
     # --- Mise en forme ---
     fig.update_layout(
-        #title="Détail des selles sur les derniers jours",
+        title="Historique des selles",
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.5, cols-0.15]),
         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.5, rows-0.15]),
         plot_bgcolor="white",
