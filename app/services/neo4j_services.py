@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, date
 from app.services.utils_date import (generate_dates,
                                      generate_smart_weekday_recurrence)
 import pandas as pd
-
-
+import plotly.graph_objects as go
+import datetime
 
 
 def get_personnel(driver, NEO4J_DB="neo4j"):
@@ -437,6 +437,121 @@ def get_resident_properties(driver, db_name, pk):
         else:
             return pd.DataFrame()
 
+def get_recent_rdv(driver , NEO4J_DB="neo4j"):
+    """
+    Récupère les rendez-vous récents ajoutés dans la base Neo4j.
+
+    Returns:
+        list[str]: Liste des noms de services (médecins).
+    """
+    recent_rdv = []
+    nom_resident = []
+    date_heure = []
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        MATCH (n)-[r:Rdv]->(m) 
+        RETURN n.nom_affichage as nom_affichage,n.chambre as chambre,r.date as date, r.heure as heure,m.metier as metier order by r.create_date desc 
+        LIMIT 15
+        """
+        neo4j_results = session.run(cypher_query)
+        for record in neo4j_results:
+            recent_rdv.append(record['metier'])
+            nom_resident.append(record['nom_affichage'])
+            if record['heure']:
+                date_heure.append(record['date'].to_native().strftime('%d/%m/%Y') + ' ' + record['heure'].to_native().strftime('%H:%M'))
+            else:
+                date_heure.append(record['date'].to_native().strftime('%d/%m/%Y'))
+    return recent_rdv, nom_resident, date_heure
+
+def get_graph(driver):
+    def get_color(value):
+        if value == 'Liquide' or value == 'Dure':
+            return 'red'
+        elif value == 'Mou':
+            return 'orange'
+        elif value == 'Normale' or value == 'Normal':
+            return 'green'
+        else:
+            return 'black'
+
+    with driver.session(database='neo4j') as session:
+        cypher_query = """
+                    match (n:Resident {nom:'DEHORS'})-[r]-(m:Selles) return r.caracteristique, m.date, m.moment_date order by m.date desc
+                    """
+        result=session.run(cypher_query).data()
+    ordre_moment = ['nuit', 'matin', 'apres_midi', 'soir']
+    df=pd.DataFrame(result)
+    df['m.moment_date'] = pd.Categorical(df['m.moment_date'], categories=ordre_moment, ordered=True)
+    df['commentaire'] = df['m.moment_date'].astype(str) + ' : ' + df['r.caracteristique'].astype(str)
+    priorite = {'Liquide': 4, 'Dure':3, 'Mou': 2, 'Normale': 1}
+    df_grouped = (
+        df.groupby('m.date', as_index=False)
+        .agg({
+            'commentaire': lambda x: ' <br>'.join(str(v) for v in x if pd.notna(v) and v != ''),
+            'r.caracteristique': lambda x: (
+                # On garde la valeur avec la plus haute priorité
+                sorted(
+                    [v for v in x if v in priorite],
+                    key=lambda v: priorite[v],
+                    reverse=True
+                )[0] if any(v in priorite for v in x) else None
+            )
+        })
+    )
+    print('########## Date', df_grouped['m.date'])
+    df_grouped['m.date'] = df_grouped['m.date'].apply(
+        lambda d: datetime.date(d.year, d.month, d.day) if hasattr(d, 'year') else d
+    )
+    df_grouped['m.date'] = pd.to_datetime(df_grouped['m.date'])
+    full_range = pd.date_range(df_grouped['m.date'].min(), df_grouped['m.date'].max())
+    df_full = pd.DataFrame({'m.date': full_range})
+    df_full = df_full.merge(df_grouped, on='m.date', how='left')
+    df_full = df_full.fillna("Non-renseigné")
+
+    dates_formatted = [d.strftime('%d/%m') for d in df_full['m.date']]
+    texts_hover = [f"{d.strftime('%d/%m/%Y')}<br>{c or 'Aucune donnée'}"
+                for d, c in zip(df_full['m.date'], df_full['commentaire'])]
+    colors = [get_color(v) for v in df_full['r.caracteristique']]
+
+    rows, cols = 4, 7
+    grid_colors = [colors[i*cols:(i+1)*cols] for i in range(rows)]
+    grid_texts_hover = [texts_hover[i*cols:(i+1)*cols] for i in range(rows)]
+    grid_dates = [dates_formatted[i*cols:(i+1)*cols] for i in range(rows)]
+
+    # --- Création du Heatmap ---
+    fig = go.Figure()
+
+    for i in range(rows):
+        for j in range(cols):
+            idx = i * cols + j
+            if idx < len(df_full):
+                fig.add_trace(go.Scatter(
+                    x=[j],
+                    y=[rows - 1 - i],
+                    mode="markers+text",  # ajoute le texte sur le marqueur
+                    marker=dict(
+                        size=70,
+                        color=grid_colors[i][j],
+                        line=dict(color="white", width=2)
+                    ),
+                    text=[grid_dates[i][j]],         # texte affiché sur la case
+                    textposition="middle center",    # centré dans le cercle
+                    textfont=dict(color="white", size=12),
+                    hovertext=grid_texts_hover[i][j],
+                    hoverinfo="text",
+                    showlegend=False
+                ))
+
+    # --- Mise en forme ---
+    fig.update_layout(
+        #title="Détail des selles sur les derniers jours",
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.5, cols-0.15]),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.5, rows-0.15]),
+        plot_bgcolor="white",
+        width=700,
+        height=500
+    )
+    return fig
 
 def get_rendez_vous(driver, db_name, pk):
     """

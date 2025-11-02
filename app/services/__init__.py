@@ -28,7 +28,9 @@ from .neo4j_services import (
     create_rappel_infini,
     imprimerMultiJours,
     get_personnel,
-    ajouter_note_persistante
+    ajouter_note_persistante,
+    get_recent_rdv,
+    get_graph,
 )
 
 __all__ = [
@@ -62,4 +64,6 @@ __all__ = [
     'imprimerMultiJours',
     'get_personnel',
     'ajouter_note_persistante',
+    'get_recent_rdv',
+    'get_graph',
 ]

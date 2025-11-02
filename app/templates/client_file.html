@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fr">
 <head>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
         <script>
 
@@ -271,6 +272,7 @@ function printIframe() {
     document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
     </script>
 
+
     <div class="central-panel" style="padding-top:100px;">
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);; box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
@@ -331,6 +333,37 @@ function printIframe() {
     </div>
 </div>
 
+
+    <button id="show-graph">Afficher le graphique</button>
+
+    <div id="popup" style="display:none; position:fixed; top:50%; left:50%; 
+        transform:translate(-50%, -50%);
+        background:white; border:2px solid black; z-index:1000; 
+        overflow:auto; padding:10px;">
+        <span id="popup-close" style="position:absolute; top:5px; right:10px; cursor:pointer; font-weight:bold;">X</span>
+        <div id="graph-container" style="width:700px; height:500px;"></div>
+    </div>
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+    document.getElementById('show-graph').addEventListener('click', function() {
+        fetch('/graphique_selles')
+            .then(response => response.json())
+            .then(figData => {
+                const container = document.getElementById('graph-container');
+                container.innerHTML = ''; // vide le container
+                const div = document.createElement('div');
+                container.appendChild(div);
+
+                Plotly.newPlot(div, figData.data, figData.layout, {responsive:true});
+                document.getElementById('popup').style.display = 'block';
+            });
+    });
+
+    document.getElementById('popup-close').addEventListener('click', function() {
+        document.getElementById('popup').style.display = 'none';
+    });
+    </script>
 
 <div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
     <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">

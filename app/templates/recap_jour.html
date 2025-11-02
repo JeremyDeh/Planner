@@ -240,10 +240,11 @@
                                 </ul>
                             </div>
                         {% endfor %}
-                        <!-- Nouvelle cardbox Selles -->
                         
+                        <!-- Nouvelle cardbox Selles -->
                     </div>
                 {% endif %}
+            
             <div class="cardbox-modern"
                 style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:32px 32px 28px 32px; min-width:260px; min-height:140px; width:370px; margin-bottom:24px; border:1px solid #e0e0e0; position:relative;">
                 <h3 style="margin-top:0; color:#3B6FCC; cursor:pointer;" onclick="openSellesPopup()">Selles</h3>
@@ -326,6 +327,8 @@
                         <strong>{{ manquant }}</strong><br>
                     {% endfor %}
                 </div>
+
+
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                     var sliderSwitch = document.getElementById('sellesSliderSwitch');
@@ -365,7 +368,25 @@
             <div id="sellesPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:1000;">
                 <div id="sellesPopupContent" style="background:#fff; border-radius:18px; padding:0; max-width:90vw; max-height:90vh; overflow:auto;"></div>
             </div>
-
+            
+            <!-- Nouvelle cardbox: Nouveaux rendez-vous -->
+                        {% if nouveau_rdv is defined and nouveau_rdv|length > 0 %}
+                        <div class="cardbox-modern" style="background:#fff; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:20px 20px 20px 20px; min-width:220px; width:320px; max-height:50vh; overflow:auto; margin-bottom:20px; border:1px solid #e0e0e0;">
+                            <h3 style="margin-top:0; color:#2b7cff;">Nouveaux rendez-vous</h3>
+                            <ul style="list-style:none; padding-left:0; margin-top:12px;">
+                                {% for idx in range(nouveau_rdv|length) %}
+                                    <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                                        <span style="font-weight:700; color:#232946;">
+                                            {{ nom_resident[idx] if nom_resident is defined and nom_resident|length > idx else '—' }}
+                                        </span>
+                                        <div style="color:#6c6c80; margin-top:6px;">{{ nouveau_rdv[idx] }}</div>
+                                        <div style="color:#6c6c80; margin-top:6px;">{{ date_heure[idx] }}</div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            
+                        </div>
+                        {% endif %}
             <!-- JS Impression Popup -->
             <script>
             function openImpressionPopup() {

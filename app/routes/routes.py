@@ -4,6 +4,7 @@ import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
+import plotly.io as pio
 import pandas as pd
 import pdfkit
 from datetime import datetime, timedelta, date
@@ -44,7 +45,9 @@ from app.services import (
     create_rappel_infini,
     imprimerMultiJours,
     get_personnel,
-    ajouter_note_persistante
+    ajouter_note_persistante,
+    get_recent_rdv,
+    get_graph
 
 )
 from app.routes.auth import login_required, role_required
@@ -79,6 +82,15 @@ def update_status():
     print(record)
     return jsonify({"id": record["id"], "new_status": record["new_status"]})
 
+@main_bp.route('/graphique_selles', methods=['GET'])
+def graphique_selles():
+    print("j'utilise la route graphique selles")
+    fig=get_graph(driver)
+    fig_dict = fig.to_dict()  # Convertir en dict JSON
+    return jsonify(fig_dict)
+    #graph_html = fig.to_html(full_html=False, include_plotlyjs='cdn')
+    #print('graph_html : ', graph_html)
+    #return graph_html
 
 # Nouvelle route pour la popup ALT
 @main_bp.route('/popup_row_alt', methods=['POST'])
@@ -177,13 +189,19 @@ def journee():
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
     print('notes : \n#####\n',notes)
+    nouveau_rdv,nom_resident,date_heure=get_recent_rdv(driver)
+    #nouveau_rdv=['Medecin','Dentiste','Coiffeur','Kinésithérapeute','Pédicure']
+    #nom_resident=['Jean-Louis','Marie-Claire','Sophie','Paul','Lucie']
     return render_template(
         'recap_jour.html',
         rdv=rendez_vous,
         notes=notes,
         manquants=manquants,
         plusieurs_jours=plusieurs_jours,
-        liste_service=liste_service
+        liste_service=liste_service,
+        nouveau_rdv=nouveau_rdv,
+        nom_resident=nom_resident,
+        date_heure=date_heure
     )
 
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
@@ -410,16 +428,16 @@ def popup_row_pdf():
 
     pdf.setFont("Helvetica-Bold", 22)
     pdf.drawString(50, y, nom_reserv)
-    y -= 40
+    y -= 60
 
     pdf.setFont("Helvetica", 18)
     pdf.drawString(50, y, f"Vous avez rendez-vous le : {date_parts} à {heure_parts}.")
-    y -= 30
+    y -= 50
     pdf.drawString(50, y, f"Motif : {rdv} ")
-    y -= 30
+    y -= 50
     if medecin:
         pdf.drawString(50, y, f"Avec : {medecin}")
-        y -= 30
+        y -= 50
 
     if transport != "---":
         pdf.setFont("Helvetica", 18)
