@@ -1,6 +1,5 @@
 from neo4j import GraphDatabase
 import os
-from datetime import datetime, timedelta, date
 from app.services.utils_date import (generate_dates,
                                      generate_smart_weekday_recurrence)
 import pandas as pd
@@ -202,16 +201,21 @@ def extract_form_data(form):
     date_rdv = form.get('date_prestation', '')
     heure_rdv = form.get('heure_prestation', '')
     medecin = form.get('identiteMedecin', '')
+    print(date_rdv,heure_rdv)
+    print(type(date_rdv),type(heure_rdv))
+    rdv_debut = datetime.datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00') if heure_rdv != '' else datetime.date.fromisoformat(date_rdv)
+    #rdv_debut = datetime.datetime.combine(date_rdv.date(), heure_rdv) if heure_rdv not in (None, '') else date_rdv
 
-    rdv_debut = datetime.fromisoformat(date_rdv + 'T' + heure_rdv + ':00') if heure_rdv != '' else date.fromisoformat(date_rdv)
     fin=True
     if recurrence == 'on':
         date_fin = form.get('date_fin', '')
         try:
-            rdv_fin = datetime.fromisoformat(date_fin + 'T' + heure_rdv + ':00')
+            print("on a un souci avec la date")
+            rdv_fin = datetime.datetime.fromisoformat(date_fin + 'T' + heure_rdv + ':00') if heure_rdv != '' else datetime.date.fromisoformat(date_fin)
+            #rdv_fin = datetime.datetime.combine(date_fin.date() , heure_rdv) if heure_rdv not in (None, '') else date_fin
             
         except :
-            rdv_fin = rdv_debut + timedelta(days=365)  # Si pas de date fin, on prend un an par défaut
+            rdv_fin = rdv_debut + datetime.timedelta(days=365)  # Si pas de date fin, on prend un an par défaut
             fin=False
         type_recurrence = form.get('recurrence')
 
@@ -280,10 +284,10 @@ def insert_rendez_vous(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
     
     with driver.session(database=NEO4J_DB) as session:
         for rdv in data['date_rdv_list']:
-            if isinstance(rdv, datetime):
+            if isinstance(rdv, datetime.datetime):
                     date_part = rdv.date()
                     time_part = rdv.time()
-            elif isinstance(rdv, date):
+            elif isinstance(rdv, datetime.date):
                     date_part = rdv
                     time_part = None
             cypher_query = """
@@ -355,12 +359,12 @@ def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
         for rdv in data['date_rdv_list']:
             for rappel_item in data['colonnes_table'].values():
                 #rappel_rdv = rdv - timedelta(days=int(rappel_item[2]))
-                if isinstance(rdv, datetime):
-                    rappel_date_part = rdv.date() - timedelta(days=int(rappel_item[2]))
+                if isinstance(rdv, datetime.datetime):
+                    rappel_date_part = rdv.date() - datetime.timedelta(days=int(rappel_item[2]))
                     rdv_date_part = rdv.date()
                     time_part = rdv.time()
-                elif isinstance(rdv, date):
-                    rappel_date_part = rdv - timedelta(days=int(rappel_item[2]))
+                elif isinstance(rdv, datetime.date):
+                    rappel_date_part = rdv - datetime.timedelta(days=int(rappel_item[2]))
                     rdv_date_part = rdv
                     time_part = None
                 commentaire_rappel = rappel_item[0]
@@ -835,7 +839,7 @@ def get_infos_rdv(driver,date,heure, nom_full, rdv,pk='', NEO4J_DB='neo4j'):
     
     print(f"ma date : {date}")
     print('get_infos_rdv : ',date, nom, prenom, rdv)
-    date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")### reformatter la date fr en date isoo pour la BDD
+    date_iso = datetime.datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")### reformatter la date fr en date isoo pour la BDD
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
            MATCH (n:Resident {nom:$nom, prenom:$prenom})-[r:Rdv ]->(m:Categorie {metier:$rdv}) WHERE r.date = date($date) and r.heure=localtime($heure)
@@ -906,14 +910,14 @@ def supprimer_rdv_chaine(driver, id_rdv,date, NEO4J_DB='neo4j'):
     if 'T' in date :
         date =date.split("T")[0]
         #heure=date.split("T")[1] 
-        date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+        date_iso = datetime.datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
     elif ' ' in date :
         print(date)
         date =date.split(" ")[0]
         #heure=date.split(" ")[1] 
-        date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+        date_iso = datetime.datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
     else:
-        date_iso = datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
+        date_iso = datetime.datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
         #heure=None  
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
