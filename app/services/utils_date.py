@@ -143,3 +143,32 @@ def generate_day_recurrence(start_date, end_date, weekday):
         current += timedelta(weeks=1)
 
     return recurrence
+
+
+def generate_multi_days_recurrence(start_date, end_date, weekday_names):
+    """
+    Génère toutes les dates correspondant à un ou plusieurs jours de semaine fixes (ex lundi, mardi..)
+
+    Args:
+        start_date (date): Date de début.
+        end_date (date): Date de fin.
+        weekday_names (list[int]): Jour de semaine (0=lundi, ..., 6=dimanche)
+
+    Retourne une liste de datetimes entre start_date et end_date inclus si le jour est dans weekday_names.
+    """
+    mapping = {
+        'lundi': 0, 'mardi': 1, 'mercredi': 2, 'jeudi': 3,
+        'vendredi': 4, 'samedi': 5, 'dimanche': 6
+    }
+    weekdays = {mapping[w.lower()] for w in weekday_names if w and w.lower() in mapping}
+    dates = []
+    # normaliser début/fin en datetime (déjà fait en extract_form_data)
+    cur = start_date
+    # on parcourt jour par jour
+    while cur <= end_date:
+        if cur.weekday() in weekdays:
+            dates.append(cur)
+        cur = cur + timedelta(days=1)
+    return dates
+
+

@@ -1,7 +1,8 @@
 from neo4j import GraphDatabase
 import os
 from app.services.utils_date import (generate_dates,
-                                     generate_smart_weekday_recurrence)
+                                     generate_smart_weekday_recurrence,
+                                     generate_multi_days_recurrence)
 import pandas as pd
 import plotly.graph_objects as go
 import datetime
@@ -222,6 +223,10 @@ def extract_form_data(form):
         if type_recurrence == 'mois':
             date_rdv_list = generate_smart_weekday_recurrence(rdv_debut,
                                                               rdv_fin)
+        elif type_recurrence == 'jourSpec':
+            jours = form.getlist('jours[]')
+            date_rdv_list = generate_multi_days_recurrence(rdv_debut, rdv_fin, jours)
+            print(f"ICI ::: {date_rdv_list}")
         else:
             date_rdv_list = generate_dates(rdv_debut,
                                            rdv_fin,
