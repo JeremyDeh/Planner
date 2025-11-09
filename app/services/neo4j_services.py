@@ -950,3 +950,15 @@ def imprimerMultiJours(driver,NEO4J_DB='neo4j'):
         liste_rdv = [dict(record) for record in result]
         print("liste rdv impression : ", liste_rdv)
     return liste_rdv
+
+
+def infosResidentRDV(driver, pks, NEO4J_DB="neo4j"):
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+            MATCH (n:Resident) where n.pk in $pks
+            RETURN n.nom AS nom, n.prenom AS prenom, n.pk AS pk, n.deplacement AS deplacement, n.oxygen AS oxygen, n.diabete AS diabete
+
+        """
+        result = session.run(cypher_query,pks=pks)
+        liste_infos = [dict(record) for record in result]
+    return liste_infos

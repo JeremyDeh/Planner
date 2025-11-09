@@ -31,6 +31,7 @@ from .neo4j_services import (
     ajouter_note_persistante,
     get_recent_rdv,
     get_graph,
+    infosResidentRDV,
 )
 
 __all__ = [
@@ -66,4 +67,5 @@ __all__ = [
     'ajouter_note_persistante',
     'get_recent_rdv',
     'get_graph',
+    'infosResidentRDV',
 ]

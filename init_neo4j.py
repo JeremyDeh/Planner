@@ -28,7 +28,7 @@ def is_db_empty(driver):
 def init_db(driver):
     with driver.session() as session:
         session.run("""
-UNWIND ['Dentiste', 'Imagerie','Cardiologie','Ophtalmologie','Audioprothésiste','Télémédecine','Urologie','Pneumologie','Dermatologie','Consultation mémoire','Chirurgie','Kinésithérapie','Ergothérapie','Rhumatologie','Urgence','Gastrologie/Entérologie','Animation','PASA','Endoscopie','Neurologie','Gynécologie','Oncologie','Néphrologie','Orthopédie','Ambulatoire','Endocrinologie','Diabétologie','Optique','Médecine','EMPPA'] AS catego
+UNWIND ['Dentiste', 'Imagerie','Cardiologie','Ophtalmologie','Audioprothésiste','Télémédecine','Urologie','Pneumologie','Dermatologie','Consultation mémoire','Chirurgie','Kinésithérapie','Ergothérapie','Rhumatologie','Urgence','Gastrologie/Entérologie','Animation','PASA','Endoscopie','Neurologie','Gynécologie','Oncologie','Néphrologie','Orthopédie','Ambulatoire','Endocrinologie','Diabétologie','Optique','Médecine','EMPPA','Infirmière'] AS catego
 CREATE (:Categorie {metier: catego,type:'medical'});
         """)
     with driver.session() as session:

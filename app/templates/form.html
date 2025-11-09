@@ -180,6 +180,12 @@ select option {
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Formulaire de rendez-vous</span>
         </div>
 
+
+       <div id="infoAvantRDVZone"
+            style="margin-top:12px; border:1px solid #ccc; padding:8px; border-radius:6px;">
+            <em>Informations du résident apparaîtront ici...</em>
+        </div>
+
         <form id="monForm" method="post" onsubmit="return validerFormulaire();">
 
             <label class="noselect"><input type="checkbox" name="fichierCSV" id="fichierCSV" onchange="toggleCSVFields()"> Récurrence </label>
@@ -316,20 +322,19 @@ select option {
                     const pk = element.getAttribute('data-pk');
                     const name = element.textContent.trim();
 
-                    // Vérifie si déjà sélectionné
                     if (selectedPatients.some(p => p.pk === pk)) return;
 
-                    // Ajoute dans la liste
                     selectedPatients.push({ pk, name });
                     updateSelectedPatients();
 
-                    // Vide le champ de recherche
+                    // Met à jour la zone info avec tous les patients sélectionnés
+                    updateInfoAvantRDV();
+
+                    // Vide le champ pour continuer à taper
                     document.getElementById('nomPatientInput').value = "";
 
                     const items = document.querySelectorAll('#patientList .patient-item');
                     items.forEach(item => item.style.display = '');
-
-                    // Ferme la liste
                     hidePatientList();
                 }
 
@@ -463,7 +468,8 @@ select option {
 
         </form>
         </div>
-
+        
+        
         <script>
             let colonneData = [{ name: '', unit: 'Jour', nombre: '', pk: '' }];
 
@@ -823,6 +829,49 @@ function handleOutsideClick() {
   resetForm(); // Ce que tu veux faire au clic hors popup
   document.removeEventListener("click", handleOutsideClick);
 }
+function updateInfoAvantRDV() {
+    const ids = document.getElementById('nomPatientHidden').value;
+
+    if (!ids) {
+        document.getElementById('infoAvantRDVZone').innerHTML =
+            '<em>Informations du résident apparaîtront ici...</em>';
+        return;
+    }
+
+    fetch(`/infoAvantRDV?noms=${encodeURIComponent(ids)}`)
+        .then(resp => resp.json()) // <-- JSON ici
+        .then(data => {
+            const container = document.getElementById('infoAvantRDVZone');
+            container.innerHTML = ""; // Vide la div avant de remplir
+
+            data.forEach(info => {
+                // Création de la cardbox
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    border:1px solid #ccc;
+                    border-radius:6px;
+                    padding:8px;
+                    margin-bottom:6px;
+                    background:#f9f9f9;
+                `;
+
+                card.innerHTML = `
+                    <strong>NOM:</strong> ${info.nom}<br>
+                    <strong>PRENOM:</strong> ${info.prenom}<br>
+                    <strong>Déplacement:</strong> ${info.deplacement}<br>
+                    <strong>Oxygen:</strong> ${info.oxygen == 0 ? 'Non' : 'Oui'}<br>
+                    <strong>Diabète:</strong> ${info.diabete == 0 ? 'Non' : 'Oui'}
+                `;
+
+                container.appendChild(card);
+            });
+        })
+        .catch(err => {
+            document.getElementById('infoAvantRDVZone').innerHTML =
+                `<span style="color:red;">Erreur : ${err}</span>`;
+        });
+}
         </script>
+        
     </body>
 </html>

@@ -47,7 +47,8 @@ from app.services import (
     get_personnel,
     ajouter_note_persistante,
     get_recent_rdv,
-    get_graph
+    get_graph,
+    infosResidentRDV
 
 )
 from app.routes.auth import login_required, role_required
@@ -60,6 +61,15 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 
 main_bp = Blueprint('main', __name__)
+
+
+@main_bp.route("/infoAvantRDV")
+def info_avant_rdv():
+    noms = request.args.get("noms", "")
+    liste_noms = noms.split(",") if noms else []
+    infos = infosResidentRDV(driver, liste_noms)
+    ##infos = [f"{info['nom']} {info['prenom']}: Diabète={info['diabete']}, Oxygène={info['oxygen']}, Déplacement : {info['deplacement']}" for info in infos]
+    return jsonify(infos)
 
 
 @main_bp.route("/update_status", methods=["POST"])
