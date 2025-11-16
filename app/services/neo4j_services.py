@@ -6,6 +6,7 @@ from app.services.utils_date import (generate_dates,
 import pandas as pd
 import plotly.graph_objects as go
 import datetime
+import numpy as np
 
 
 def get_personnel(driver, NEO4J_DB="neo4j"):
@@ -82,9 +83,9 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
 
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-                        MATCH (n:Service)-[r]->(m)
+                        MATCH (n:Service )-[r]->(m)
                         WHERE r.date = date() OR (r.date is null and r.status=1)
-                        RETURN r.date AS date, r.heure AS heure, r.commentaire AS commentaire, m.metier AS metier, ID(r) AS id, r.status AS status, 'PermaNote' AS type_element
+                        RETURN n.nom as service, r.date AS date, r.heure AS heure, r.commentaire AS commentaire, m.metier AS metier, ID(r) AS id, r.status AS status, 'PermaNote' AS type_element
                         ORDER BY r.date, m.metier
                         """
         neo4j_results = session.run(cypher_query)
@@ -107,16 +108,16 @@ def get_rendez_vous_jour(driver, NEO4J_DB="neo4j"):
         
     return df_rdv,df_service
 
-def ajouter_note_persistante(driver,note, metier='Autre',NEO4J_DB="neo4j"):
+def ajouter_note_persistante(driver,note,service='Infirmière', metier='Autre',NEO4J_DB="neo4j"):
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-        Match (n:Service {nom:'Infirmières'})
+        Match (n:Service {nom:$service})
         match (m:Categorie{metier:$metier})
         CREATE (n)-[r:Note { commentaire:$contenu, status:1, create_date:datetime()}]->(m)
         """
-        session.run(cypher_query,  contenu=note,metier=metier)
+        session.run(cypher_query,  contenu=note,metier=metier,service=service)
 
-def ajout_note(driver,note, date_note, heure_note,metier='Autre', NEO4J_DB="neo4j"):
+def ajout_note(driver,note, date_note, heure_note, service='Infirmière',metier='Autre', NEO4J_DB="neo4j"):
     """
     Ajoute une note à la base de données Neo4j.
 
@@ -128,11 +129,11 @@ def ajout_note(driver,note, date_note, heure_note,metier='Autre', NEO4J_DB="neo4
     #date_heure = datetime.fromisoformat(f"{date_note}T{heure_note}")
     with driver.session(database=NEO4J_DB) as session:
         cypher_query = """
-        Match (n:Service {nom:'Infirmières'})
+        Match (n:Service {nom:$service})
         match (m:Categorie{metier:$metier})
         CREATE (n)-[r:Note {date:date($date),heure:$heure, commentaire:$contenu, status:1, create_date:datetime()}]->(m)
         """
-        session.run(cypher_query, date=date_note, heure=heure_note, contenu=note,metier=metier)
+        session.run(cypher_query, date=date_note, heure=heure_note, contenu=note,metier=metier,service=service)
 
 def get_medecins(driver, NEO4J_DB="neo4j"):
 
@@ -490,8 +491,10 @@ def get_graph(driver):
         result=session.run(cypher_query).data()
     ordre_moment = ['nuit', 'matin', 'apres_midi', 'soir']
     df=pd.DataFrame(result)
+    print("Liste selles 1 : ", df)
     df['m.moment_date'] = pd.Categorical(df['m.moment_date'], categories=ordre_moment, ordered=True)
     df['commentaire'] = df['m.moment_date'].astype(str) + ' : ' + df['r.caracteristique'].astype(str)
+    print("Liste selles 2 : ", df)
     priorite = {'Liquide': 4, 'Dure':3, 'Mou': 2, 'Normale': 1}
     df_grouped = (
         df.groupby('m.date', as_index=False)
@@ -507,17 +510,37 @@ def get_graph(driver):
             )
         })
     )
-    print('########## Date', df_grouped['m.date'])
+    
+    
     df_grouped['m.date'] = df_grouped['m.date'].apply(
         lambda d: datetime.date(d.year, d.month, d.day) if hasattr(d, 'year') else d
     )
     df_grouped['m.date'] = pd.to_datetime(df_grouped['m.date'])
+    df_grouped = df_grouped.sort_values('m.date', ascending=False)
+    print('########## Date sorted\n', df_grouped['m.date'])
     full_range = pd.date_range(df_grouped['m.date'].min(), df_grouped['m.date'].max())
+    print('########## Date full range\n', df_grouped['m.date'])
     df_full = pd.DataFrame({'m.date': full_range})
     df_full = df_full.merge(df_grouped, on='m.date', how='left')
     df_full = df_full.fillna("Non-renseigné")
+    df_full['info'] = np.where(
+    (df_full['commentaire'].str.contains('Dur', na=False)) & 
+    (df_full['commentaire'].str.contains('Liquide ', na=False)),
+    'D+L',
+    np.where(
+        df_full['commentaire'].str.contains('Dur', na=False),
+        'D',
+        np.where(
+            df_full['commentaire'].str.contains('Liquide', na=False),
+            'L',
+            ''
+        )
+    )
+)
+    df_full=df_full.sort_values('m.date', ascending=False)
+    print('########## Full DF', df_full)
 
-    dates_formatted = [d.strftime('%d/%m') for d in df_full['m.date']]
+    dates_formatted = [d.strftime('%d/%m')+'<br>'+ e for d,e in zip(df_full['m.date'],df_full['info'])]
     texts_hover = [f"{d.strftime('%d/%m/%Y')}<br>{c or 'Aucune donnée'}"
                 for d, c in zip(df_full['m.date'], df_full['commentaire'])]
     colors = [get_color(v) for v in df_full['r.caracteristique']]

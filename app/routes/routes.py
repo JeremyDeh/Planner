@@ -188,14 +188,16 @@ def journee():
     liste_service= get_personnel(driver)
     print('plusieurs_jours : \n#####\n',plusieurs_jours)
     if request.method == 'POST':
+        service=request.form.get('service_for_form')
+        print('## Service : ',service)
         date_note = request.form.get('date_note')
         print('date_note : ', date_note,type(date_note))
         note = request.form.get('note', '').strip()
         heure_note = request.form.get('heure_note')
         if date_note!='':
-            ajout_note(driver,note, date_note, heure_note)
+            ajout_note(driver,note, date_note, heure_note,service)
         else:
-            ajouter_note_persistante(driver,note)
+            ajouter_note_persistante(driver,note,service)
     
     rendez_vous,notes=get_rendez_vous_jour(driver, NEO4J_DB)
     print('notes : \n#####\n',notes)
@@ -252,7 +254,7 @@ def enregistre_selles():
     noms,prenoms,pks = get_residents(driver)
 
     def options_html(selected_value):
-        options = ['--', 'Normale', 'Liquide', 'Mou', 'Absence']
+        options = ['--', 'Normale', 'Liquide', 'Mou', 'Dur', 'Absence']
         return '\n'.join([
             f'<option value="{opt}"{" selected" if opt == selected_value else ""}>{opt}</option>'
             for opt in options

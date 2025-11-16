@@ -431,6 +431,7 @@
                 <div class="cardbox-modern" style="background:#f7f7fa; color:#232946; border-radius:18px; box-shadow:0 4px 16px rgba(35,41,70,0.08); padding:28px 24px 24px 24px; min-height:260px; width:320px; border:1px solid #e0e0e0;">
                     <h3 style="margin-top:0; letter-spacing:1px; font-size:1.2em;">Ajouter une note</h3>
                     <form method="POST" action="{{ url_for('main.journee') }}">
+                        <input type="hidden" name="service_for_form" id="service_for_form">
                         <label for="note" style="font-weight:500; margin-bottom:2px; display:block;">Note :</label>
                         <textarea id="note" name="note" rows="8" style="width:100%; border-radius:6px; border:1px solid #ccc; margin-bottom:8px;"></textarea>
 
@@ -448,6 +449,12 @@
 
                         <button type="submit" style="background:#3B6FCC; color:#f7f7fa;; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;">Valider</button>
                     </form>
+                    <script>
+                    document.querySelector('form').addEventListener('submit', function() {
+                        const value = document.getElementById('serviceSelect').value;
+                        document.getElementById('service_for_form').value = value;
+                    });
+                    </script>
                 </div>
                 {% if notes is defined and notes.shape[0] > 0 %}
                 <div class="cardbox-modern" style="background:#fff; color:#232946; border-radius:12px; box-shadow:0 2px 8px rgba(35,41,70,0.08); padding:24px; min-height:260px; width:320px; margin-top:24px; border:1px solid #e0e0e0; max-height:400px; overflow-y:auto;">
@@ -457,7 +464,7 @@
                             
                             {% set heure_notes = row['heure']|string if row['heure'] else '--:--' %}
                             {% set heure_notes = heure_notes[:5] %}
-                            <li style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; 
+                            <li data-service="{{ row['service'] }}" style="margin-bottom:10px; background:#f7f7fa; border-radius:6px; padding:10px; 
                                     box-shadow:0 1px 4px rgba(0,0,0,0.04); color:#232946; 
                                     display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
 
@@ -479,6 +486,26 @@
                                     <span class="checkmark"></span>
                                 </label>
                             </li>
+                            <script>
+                            function filterByService() {
+                                const selected = document.getElementById("serviceSelect").value;
+                                const items = document.querySelectorAll("li[data-service]");
+
+                                items.forEach(item => {
+                                    if (item.getAttribute("data-service") === selected) {
+                                        item.style.display = "flex";
+                                    } else {
+                                        item.style.display = "none";
+                                    }
+                                });
+                            }
+
+                            // Filtrer immédiatement au chargement
+                            document.addEventListener("DOMContentLoaded", filterByService);
+
+                            // Filtrer lorsqu'on change le service dans le menu déroulant
+                            document.getElementById("serviceSelect").addEventListener("change", filterByService);
+                            </script>
                         {% endfor %}
                     </ul>
                 </div>

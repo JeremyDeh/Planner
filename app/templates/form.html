@@ -183,7 +183,7 @@ select option {
 
        <div id="infoAvantRDVZone"
             style="margin-top:12px; border:1px solid #ccc; padding:8px; border-radius:6px; width:15%;">
-            <em>Informations du résident apparaîtront ici...</em>
+            <em>Les Informations du/des résident(s) apparaîtront ici...</em>
         </div>
 
         <form id="monForm" method="post" onsubmit="return validerFormulaire();">
@@ -577,8 +577,8 @@ select option {
                         <label class="col-unit">Unité :
                             <select name="col${index + 1}_unit">
                                 <option value="jour" ${col.unit === "Jours" ? "selected" : ""}>Jours</option>
-                                <option value="semaine" ${col.unit === "Semaines" ? "selected" : ""}>Semaines</option>
-                                <option value="mois" ${col.unit === "Mois" ? "selected" : ""}>Mois</option>
+                                <!--option value="semaine" ${col.unit === "Semaines" ? "selected" : ""}>Semaines</option-->
+                                <!--option value="mois" ${col.unit === "Mois" ? "selected" : ""}>Mois</option-->
                             </select>
                         </label>
                         <label class="col-nombre">Nombre :
@@ -856,11 +856,11 @@ function updateInfoAvantRDV() {
                 `;
 
                 card.innerHTML = `
-                    <strong>NOM:</strong> ${info.nom}<br>
-                    <strong>PRENOM:</strong> ${info.prenom}<br>
-                    <strong>Déplacement:</strong> ${info.deplacement}<br>
-                    <strong>Oxygèn:e</strong> ${info.oxygen == 0 ? 'Non' : 'Oui'}<br>
-                    <strong>Diabète:</strong> ${info.diabete == 0 ? 'Non' : 'Oui'}
+                    <strong>NOM: </strong> ${info.nom}<br>
+                    <strong>PRENOM: </strong> ${info.prenom}<br>
+                    <strong>Déplacement: </strong> ${info.deplacement}<br>
+                    <strong>Oxygène: </strong> ${info.oxygen == 0 ? 'Non' : 'Oui'}<br>
+                    <strong>Diabète: </strong> ${info.diabete == 0 ? 'Non' : 'Oui'}
                 `;
 
                 container.appendChild(card);
