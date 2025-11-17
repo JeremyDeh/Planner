@@ -487,24 +487,34 @@
                                 </label>
                             </li>
                             <script>
-                            function filterByService() {
-                                const selected = document.getElementById("serviceSelect").value;
-                                const items = document.querySelectorAll("li[data-service]");
+                                function filterByService() {
+                                    const selected = document.getElementById("serviceSelect").value;
+                                    const items = document.querySelectorAll("li[data-service]");
 
-                                items.forEach(item => {
-                                    if (item.getAttribute("data-service") === selected) {
-                                        item.style.display = "flex";
-                                    } else {
-                                        item.style.display = "none";
-                                    }
-                                });
-                            }
+                                    items.forEach(item => {
+                                        const service = item.getAttribute("data-service");
 
-                            // Filtrer immédiatement au chargement
-                            document.addEventListener("DOMContentLoaded", filterByService);
+                                        // 3. Si selected = "Tous" → on affiche tout
+                                        if (selected === "Tous") {
+                                            item.style.display = "flex";
+                                            return;
+                                        }
 
-                            // Filtrer lorsqu'on change le service dans le menu déroulant
-                            document.getElementById("serviceSelect").addEventListener("change", filterByService);
+                                        // 1. Afficher si service = selected
+                                        // 2. Afficher si service = "Tous"
+                                        if (service === selected || service === "Tous") {
+                                            item.style.display = "flex";
+                                        } else {
+                                            item.style.display = "none";
+                                        }
+                                    });
+                                }
+
+                                // Filtrer immédiatement au chargement
+                                document.addEventListener("DOMContentLoaded", filterByService);
+
+                                // Filtrer lorsqu'on change le service dans le menu déroulant
+                                document.getElementById("serviceSelect").addEventListener("change", filterByService);
                             </script>
                         {% endfor %}
                     </ul>
