@@ -4,116 +4,10 @@
         <meta charset="UTF-8">
         <title>Ordre du jour</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/recap_jour.css') }}">
     </head>
     <body>
-        <style>
-            .cardbox-modern {
-                transition: box-shadow 0.2s, transform 0.2s;
-            }
-            .cardbox-modern:hover {
-                box-shadow: 0 12px 32px rgba(35,41,70,0.18);
-                transform: scale(1.04);
-                z-index: 2;
-            }
-            body {
-                margin: 0;
-                font-family: 'Segoe UI', Arial, sans-serif;
-                background: #f7f7fa;
-            }
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 200px;
-                height: 100vh;
-                background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
-                padding-top: 40px;
-                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
-                border-radius: 0 24px 24px 0;
-                z-index: 100;
-            }
-            .menu-btn {
-                background: rgba(255,255,255,0.08);
-                color: #fff;
-                border: none;
-                padding: 16px 0;
-                margin: 0 18px 16px 18px;
-                border-radius: 10px;
-                font-size: 1.08em;
-                font-weight: 500;
-                cursor: pointer;
-                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
-                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
-                letter-spacing: 1px;
-            }
-            .menu-btn:hover, .menu-btn.active {
-                background: #fff;
-                color: #232946;
-                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
-                transform: scale(1.04);
-            }
-            .central-panel {
-                margin-left: 220px;
-                padding: 40px 40px 40px 40px;
-                min-height: 100vh;
-                background: #f7f7fa;
-            }
-            /* Cacher la checkbox native */
-            .custom-checkbox {
-            position: relative;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            }
-
-            .custom-checkbox input[type="checkbox"] {
-            opacity: 0;
-            position: absolute;
-            left: 0;
-            width: 0;
-            height: 0;
-            }
-
-            /* Boîte personnalisée */
-            .custom-checkbox .checkmark {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #5c5859;
-            border-radius: 6px;
-            display: inline-block;
-            transition: all 0.2s ease;
-            background-color: white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            }
-
-            /* État coché */
-            .custom-checkbox input[type="checkbox"]:checked + .checkmark {
-            background-color: #4CAF50; /* vert par exemple */
-            border-color: #4CAF50;
-            }
-
-            /* Coche (pseudo-element) */
-            .custom-checkbox .checkmark::after {
-            content: "";
-            position: absolute;
-            display: none;
-            }
-
-            .custom-checkbox input[type="checkbox"]:checked + .checkmark::after {
-            display: block;
-            left: 6px;
-            top: 2px;
-            width: 6px;
-            height: 12px;
-            border: solid white;
-            border-width: 0 3px 3px 0;  /* ← ici j’ai augmenté l’épaisseur */
-            transform: rotate(45deg);
-            }
-        </style>
+        <!-- styles moved to static/css/recap_jour.css -->
         <div class="sidebar">
             <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
             <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
@@ -136,7 +30,7 @@
         </div>
         <!-- Bannière moderne en haut -->
         <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background:linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
-            <img src="https://img.icons8.com/ios-filled/50/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+            <img src="https://img.icons8.com/ios-filled/48/ffffff/planner.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
             <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Ordre du jour</span>
             {% if session.get('user_id') %}
                 <a href="{{ url_for('auth.logout') }}"
@@ -161,49 +55,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        var select = document.getElementById('serviceSelect');
-
-                        function appliquerFiltre() {
-                            var selectedService = select.value;
-                            var allCardboxes = document.querySelectorAll('.cardbox-modern.filterable');
-
-                            allCardboxes.forEach(function(cardbox) {
-                                var lis = cardbox.querySelectorAll('ul li[data-responsable]');
-                                 if (selectedService === "Tous") {
-                                    // 🔹 Afficher tout sans filtrer
-                                    lis.forEach(function(li) {
-                                        li.style.display = '';
-                                    });
-                                    cardbox.style.display = ''; // toujours visible
-                                } else {
-                                    var visibleCount = 0;
-
-                                    lis.forEach(function(li) {
-                                        if (li.getAttribute('data-responsable') === selectedService || li.getAttribute('data-responsable') === 'Tous') {
-                                            li.style.display = '';
-                                            visibleCount++;
-                                        } else {
-                                            li.style.display = 'none';
-                                        }
-                                    });
-                                }
-                                // Masquer ou afficher la cardbox selon le contenu
-                                if (visibleCount === 0) {
-                                    cardbox.style.display = 'none';
-                                } else {
-                                    cardbox.style.display = '';
-                                }
-                            });
-                        }
-
-                        select.addEventListener('change', appliquerFiltre);
-
-                        // Appliquer le filtre au chargement
-                        appliquerFiltre();
-                    });
-                </script>
+                <!-- service filter handled by external JS recap_jour.js -->
                 {% endif %}
                 {# Cardbox pour chaque métier distinct #}
                 {% if rdv is defined and rdv.shape[0] > 0 %}
@@ -329,39 +181,7 @@
                 </div>
 
 
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                    var sliderSwitch = document.getElementById('sellesSliderSwitch');
-                    var normalDiv = document.getElementById('sellesContentNormal');
-                    var derniersDiv = document.getElementById('sellesContentDerniersJours');
-                    var labelAuj = document.getElementById('sliderLabelAuj');
-                    var labelDerniers = document.getElementById('sliderLabelDerniers');
-
-                    function updateDisplay() {
-                        if (sliderSwitch.checked) {
-                            // → Normal (inversé)
-                            normalDiv.style.display = '';
-                            derniersDiv.style.display = 'none';
-                            labelAuj.style.display = '';
-                            labelDerniers.style.display = 'none';
-                        } else {
-                            // → Derniers jours (par défaut)
-                            normalDiv.style.display = 'none';
-                            derniersDiv.style.display = '';
-                            labelAuj.style.display = 'none';
-                            labelDerniers.style.display = '';
-                        }
-                    }
-
-                    sliderSwitch.addEventListener('click', function(event) {
-                        event.stopPropagation();
-                        updateDisplay();
-                    });
-
-                    // état initial inversé
-                    updateDisplay();
-                });
-                </script>
+                <!-- slider behavior moved to static/js/recap_jour.js -->
             </div>
 
             <!-- LA DIV POPUP (initialement cachée) -->
@@ -387,35 +207,7 @@
                             
                         </div>
                         {% endif %}
-            <!-- JS Impression Popup -->
-            <script>
-            function openImpressionPopup() {
-                document.getElementById('impressionPopup').style.display = 'flex';
-                // Charger le contenu via AJAX
-                fetch('{{ url_for('main.impression') }}', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                    .then(response => response.text())
-                    .then(html => {
-                        document.getElementById('impressionContentInner').innerHTML = html;
-                    });
-            }
-            function closeImpressionPopup() {
-                document.getElementById('impressionPopup').style.display = 'none';
-            }
-            function printImpressionContent() {
-                var printContents = document.getElementById('impressionContentInner').innerHTML;
-                var printWindow = window.open('', '', 'height=800,width=1200');
-                printWindow.document.write('<html><head><title>Impression</title>');
-                printWindow.document.write(document.head.innerHTML);
-                printWindow.document.write('</head><body>');
-                printWindow.document.write(printContents);
-                printWindow.document.write('</body></html>');
-                printWindow.document.close();
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
-            }
-            document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
-            </script>
+            <!-- impression popup behavior moved to static/js/recap_jour.js -->
             <script src="{{ url_for('static', filename='js/selles.js') }}"></script>
 
         <!-- Popup Selles -->
@@ -449,12 +241,7 @@
 
                         <button type="submit" style="background:#3B6FCC; color:#f7f7fa;; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;">Valider</button>
                     </form>
-                    <script>
-                    document.querySelector('form').addEventListener('submit', function() {
-                        const value = document.getElementById('serviceSelect').value;
-                        document.getElementById('service_for_form').value = value;
-                    });
-                    </script>
+                    <!-- form wiring moved to static/js/recap_jour.js -->
                 </div>
                 {% if notes is defined and notes.shape[0] > 0 %}
                 <div class="cardbox-modern" style="background:#fff; color:#232946; border-radius:12px; box-shadow:0 2px 8px rgba(35,41,70,0.08); padding:24px; min-height:260px; width:320px; margin-top:24px; border:1px solid #e0e0e0; max-height:400px; overflow-y:auto;">
@@ -486,73 +273,20 @@
                                     <span class="checkmark"></span>
                                 </label>
                             </li>
-                            <script>
-                                function filterByService() {
-                                    const selected = document.getElementById("serviceSelect").value;
-                                    const items = document.querySelectorAll("li[data-service]");
-
-                                    items.forEach(item => {
-                                        const service = item.getAttribute("data-service");
-
-                                        // 3. Si selected = "Tous" → on affiche tout
-                                        if (selected === "Tous") {
-                                            item.style.display = "flex";
-                                            return;
-                                        }
-
-                                        // 1. Afficher si service = selected
-                                        // 2. Afficher si service = "Tous"
-                                        if (service === selected || service === "Tous") {
-                                            item.style.display = "flex";
-                                        } else {
-                                            item.style.display = "none";
-                                        }
-                                    });
-                                }
-
-                                // Filtrer immédiatement au chargement
-                                document.addEventListener("DOMContentLoaded", filterByService);
-
-                                // Filtrer lorsqu'on change le service dans le menu déroulant
-                                document.getElementById("serviceSelect").addEventListener("change", filterByService);
-                            </script>
+                            <!-- notes filter moved to static/js/recap_jour.js -->
                         {% endfor %}
                     </ul>
                 </div>
                 {% endif %}
             </div>
         </div>
-       <script>
-        function updateStatus(checkbox) {
-            const rowId = checkbox.getAttribute("data-id");
-            const newStatus = checkbox.checked ? 0 : 1;
-            // 🔹 Mise à jour immédiate de la couleur du texte
-            const liElement = checkbox.closest("li");
-            const textElement = checkbox.closest("li").querySelector(".note-text");
-            const heureElement = liElement.querySelector("span:first-child"); // span contenant l'heure
-
-            if (checkbox.checked) {
-                textElement.style.color = "#abababff";  // gris si coché
-                heureElement.style.background = "#abababff"; // background de l'heure gris
-            } else {
-                textElement.style.color = "#5c5859";    // normal si décoché
-                heureElement.style.background = "#eebbc3";  // background de l'heure original
-            }
-            fetch("/update_status", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    id: rowId,
-                    status: newStatus
-                })
-            })
-            .then(res => res.json())
-            .then(data => console.log("Mise à jour :", data))
-            .catch(err => console.error(err));
-        }
-        </script> 
+        <!-- runtime config for external JS -->
+        <script>
+            window.recapConfig = window.recapConfig || {};
+            window.recapConfig.impression = "{{ url_for('main.impression') }}";
+            window.recapConfig.update_status = "{{ url_for('main.update_status') }}";
+        </script>
+        <script src="{{ url_for('static', filename='js/recap_jour.js') }}"></script>
         
 
     </body>

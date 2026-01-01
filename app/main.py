@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 import json, datetime
 import base64
-
+import os
 
 # Charger clé publique
 with open("app/licences/public.pem", "rb") as f:
@@ -40,6 +40,7 @@ licence_json = base64.b64decode(licence_json_b64)
 
 def create_app():
     app = Flask(__name__)
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
     app.secret_key = "change_me_secret"  # à mettre en variable d'env
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)

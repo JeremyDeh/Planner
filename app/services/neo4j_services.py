@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import datetime
 import numpy as np
+from werkzeug.utils import secure_filename
 
 
 def get_personnel(driver, NEO4J_DB="neo4j"):
@@ -193,7 +194,6 @@ def extract_form_data(form):
     """
     recurrence = form.get('fichierCSV', '0')
 
-
     pk = form['nomPatients'].split(",")
     metier = form.get('nomMedecin', '')
     service = form.get('nomService', '')
@@ -309,7 +309,8 @@ def insert_rendez_vous(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
                 responsable: $responsable,
                 medecin: $medecin,
                 create_date: datetime(),
-                id_chain: $next_id
+                id_chain: $next_id,
+                piece_jointe: $attachment
             }]->(m)
             """
             session.run(
@@ -325,6 +326,7 @@ def insert_rendez_vous(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
                 responsable=data['service'],
                 pk= individu_pk,
                 medecin= data['medecin'],
+                attachment=data.get('uploaded',''),
                 next_id=next_id
             )
 
@@ -387,6 +389,7 @@ def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
                                 commentaire:$commentaire,
                                 create_date:datetime(),
                                 id_chain: $next_id,
+                                piece_jointe: $attachment,
                                 id_rdv:id_rdv
                             }]->(o)
                 """
@@ -401,6 +404,7 @@ def create_rappels(driver,data,individu_pk, next_id, NEO4J_DB="neo4j"):
                     commentaire=commentaire_rappel,
                     transport=data['transport'],
                     lieu=data['lieu'],
+                    attachment=data.get('uploaded',''),
                     next_id=next_id
                 )
 
@@ -422,6 +426,33 @@ def create_rappel_infini(driver, data, individu_pk, next_id, NEO4J_DB="neo4j"):
         )
         session.run(cypher_query, pk=pk,next_id=next_id,date_fin=date_fin, metier=metier)
 
+def update_resident(driver,resident_id,sexe,etage,chambre,oxygen,diabete,commentaire,deplacement, NEO4J_DB="neo4j"):
+    """
+    Met à jour les informations d'un résident dans la base Neo4j.
+    """
+
+    with driver.session(database=NEO4J_DB) as session:
+        cypher_query = """
+        MATCH (n:Resident {pk:$resident_id})
+        SET n.sexe = $sexe,
+            n.etage = $etage,
+            n.chambre = $chambre,
+            n.oxygen = $oxygen,
+            n.diabete = $diabete,
+            n.commentaire = $commentaire,
+            n.deplacement = $deplacement
+        """
+        session.run(
+            cypher_query,
+            resident_id=resident_id,
+            sexe=sexe,
+            etage=etage,
+            chambre=chambre,
+            oxygen=str(oxygen),
+            diabete=str(diabete),
+            commentaire=commentaire,
+            deplacement=deplacement
+        )
 def get_resident_properties(driver, db_name, pk):
     """
     Récupère les propriétés d'un résident spécifique.
@@ -473,7 +504,7 @@ def get_recent_rdv(driver , NEO4J_DB="neo4j"):
                 date_heure.append(record['date'].to_native().strftime('%d/%m/%Y'))
     return recent_rdv, nom_resident, date_heure
 
-def get_graph(driver):
+def get_graph(pk,driver):
     def get_color(value):
         if value == 'Liquide' or value == 'Dure':
             return 'red'
@@ -486,9 +517,9 @@ def get_graph(driver):
 
     with driver.session(database='neo4j') as session:
         cypher_query = """
-                    match (n:Resident {nom:'DEHORS'})-[r]-(m:Selles) return r.caracteristique, m.date, m.moment_date order by m.date desc
+                    match (n:Resident {pk:$pk})-[r]-(m:Selles) return r.caracteristique, m.date, m.moment_date order by m.date desc
                     """
-        result=session.run(cypher_query).data()
+        result=session.run(cypher_query, pk=pk).data()
     ordre_moment = ['nuit', 'matin', 'apres_midi', 'soir']
     df=pd.DataFrame(result)
     print("Liste selles 1 : ", df)
@@ -601,7 +632,7 @@ def get_rendez_vous(driver, db_name, pk):
     with driver.session(database=db_name) as session:
         cypher_query = ("""
             MATCH (n:Resident {pk:$pk})-[r:Rdv]->(m) 
-            RETURN n.nom, n.prenom, r.date, r.heure, m.metier, r.commentaire, r.transport , r.medecin, r.lieu
+            RETURN n.nom, n.prenom, r.date, r.heure, m.metier, r.commentaire, r.transport , r.medecin, r.lieu, r.piece_jointe
             ORDER BY r.date ASC"""
         )
         results = session.run(cypher_query, pk=pk)
@@ -615,6 +646,7 @@ def get_rendez_vous(driver, db_name, pk):
                 'Note': record['r.commentaire'],
                 'Medecin': record['r.medecin'],
                 'Lieu': record['r.lieu'],
+                'Fichier': record['r.piece_jointe']
             } for record in results
         ]
 
@@ -985,3 +1017,19 @@ def infosResidentRDV(driver, pks, NEO4J_DB="neo4j"):
         result = session.run(cypher_query,pks=pks)
         liste_infos = [dict(record) for record in result]
     return liste_infos
+
+def get_unique_filename(upload_folder, original_filename):
+    """
+    Retourne un nom de fichier unique dans upload_folder
+    en suffixant _1, _2, ...
+    """
+    filename = secure_filename(original_filename)
+    name, ext = os.path.splitext(filename)
+
+    counter = 1
+    unique_filename = filename
+    while os.path.exists(os.path.join(upload_folder, unique_filename)):
+        unique_filename = f"{name}_{counter}{ext}"
+        counter += 1
+
+    return unique_filename

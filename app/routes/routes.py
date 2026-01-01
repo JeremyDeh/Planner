@@ -7,9 +7,15 @@ from io import BytesIO
 import plotly.io as pio
 import pandas as pd
 import pdfkit
+from werkzeug.utils import secure_filename
+from pathlib import Path
 from datetime import datetime, timedelta, date
 from flask import (
     Blueprint,
+    app,
+    abort,
+    send_file,
+    current_app,
     request,
     render_template,
     jsonify,
@@ -48,7 +54,9 @@ from app.services import (
     ajouter_note_persistante,
     get_recent_rdv,
     get_graph,
-    infosResidentRDV
+    infosResidentRDV,
+    update_resident,
+    get_unique_filename
 
 )
 from app.routes.auth import login_required, role_required
@@ -61,6 +69,35 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 
 main_bp = Blueprint('main', __name__)
+
+
+@main_bp.route("/resident/edit", methods=["POST"])
+def edit_resident():
+    # Récupération de la PK depuis le formulaire
+    resident_id = request.form.get('resident_id')
+    # Récupération des données du formulaire
+    sexe = request.form.get('gender')
+    etage = request.form.get('etage')
+    chambre = request.form.get('chambre')
+    oxygen = 1 if request.form.get('O2') == '1' else 0
+    diabete = 1 if request.form.get('diabete') == '1' else 0
+    commentaire = request.form.get('commentaire')
+    deplacement = request.form.get('deplacement')
+    print(f"Modification du résident '{resident_id}' : sexe={sexe}, etage={etage}, chambre={chambre}, oxygen={oxygen}, diabete={diabete}, commentaire={commentaire}, deplacement={deplacement}")
+    # Ici vous mettez à jour votre base de données ou votre DataFrame
+    update_resident(driver=driver,
+        resident_id=resident_id,
+        sexe=sexe,
+        etage=etage,
+        chambre=chambre,
+        oxygen=oxygen,
+        diabete=diabete,
+        commentaire=commentaire,
+        deplacement=deplacement
+    )
+
+    # Redirection vers la page du résident (ou vers la liste)
+    return redirect(url_for('main.client_file'))
 
 
 @main_bp.route("/infoAvantRDV")
@@ -94,9 +131,11 @@ def update_status():
 
 @main_bp.route('/graphique_selles', methods=['GET'])
 def graphique_selles():
-    print("j'utilise la route graphique selles")
-    fig=get_graph(driver)
+    pk = request.args.get('pk') or request.args.get('resident_id')
+    print("l utilisateur est : ", pk)
+    fig=get_graph(pk, driver)
     fig_dict = fig.to_dict()  # Convertir en dict JSON
+    print("on envoie le graphique")
     return jsonify(fig_dict)
     #graph_html = fig.to_html(full_html=False, include_plotlyjs='cdn')
     #print('graph_html : ', graph_html)
@@ -156,7 +195,16 @@ def popup_row_alt():
 def form():
     if request.method == 'POST':
         form_data = extract_form_data(request.form)
-        
+        uploaded= request.files.get('attachment')
+        if uploaded and uploaded.filename:
+            upload_folder= current_app.config['UPLOAD_FOLDER']
+            filename = get_unique_filename(upload_folder, uploaded.filename)
+            os.makedirs(upload_folder, exist_ok=True)
+            upload_path = os.path.join(upload_folder, filename)
+            uploaded.save(upload_path)
+            form_data['uploaded'] = upload_path
+        print('piece jointe : ')
+        print(upload_path, filename)
         next_id = get_next_id(driver)
         for individu_pk in form_data['pk']:
             insert_rendez_vous(driver,form_data,individu_pk, next_id, NEO4J_DB)
@@ -215,6 +263,21 @@ def journee():
         nom_resident=nom_resident,
         date_heure=date_heure
     )
+
+
+@main_bp.route("/download", methods=["POST"])
+def download_file():
+    file_path=request.form.get("file_path")
+    upload_root=Path(current_app.config['UPLOAD_FOLDER']).resolve()
+    requested_path=Path(file_path).resolve()
+    try:# Ensure the requested path is within the upload directory , for security
+        requested_path.relative_to(upload_root)
+    except ValueError:
+        abort(403)
+    if not requested_path.is_file():
+        abort(404)
+    return send_file(requested_path, as_attachment=True, download_name=requested_path.name)
+
 
 @main_bp.route('/enregistre_selles', methods=['GET','POST'])
 def enregistre_selles():

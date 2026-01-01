@@ -1,0 +1,195 @@
+/* Styles moved from client_file.html */
+
+/* Affichage carte + planning côte à côte */
+.fiche-flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: flex-start;
+}
+.fiche-carte {
+    flex: 0 0 370px;
+    min-width: 320px;
+    max-width: 420px;
+}
+.fiche-planning {
+    flex: 1 1 400px;
+    min-width: 320px;
+}
+@media (max-width: 900px) {
+    .fiche-flex-container {
+        flex-direction: column;
+    }
+    .fiche-carte, .fiche-planning {
+        max-width: 100%;
+        min-width: 0;
+    }
+}
+
+/* Style de table repris de emploi_collectif.html */
+table.collectif-table {
+    border-collapse: separate;  /* important pour border-radius */
+    border-spacing: 0;
+    width: 100%;
+    border: 1px solid #eee;
+    border-radius: 15px;        /* arrondi global de la table */
+    overflow: hidden;
+}
+table.collectif-table th, table.collectif-table td {
+    border: 1px solid #e0e0e0;
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 1em;
+}
+table.collectif-table th {
+    background: #F2F6FC;
+    color:  #000000;
+    font-weight: 700;
+}
+table.collectif-table tr:nth-child(even) {
+    background: #f7f7fa;
+}
+table.collectif-table tr:hover {
+    background: #A3C2FF;
+    color: #232946;
+}
+/* Lignes passées en mode historique */
+tr.past-row {
+    background: #FFCFA0 !important;
+    color: #232946 !important;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.fc-event-custom-tooltip {
+    position: absolute;
+    z-index: 9999;
+    background: #3B6FCC;
+    color: #f7f7fa;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 1em;
+    box-shadow: 0 4px 16px rgba(35,41,70,0.18);
+    pointer-events: none;
+    opacity: 0.97;
+    white-space: pre-line;
+    max-width: 320px;
+    transition: opacity 0.15s;
+}
+
+.fc .fc-toolbar-title {
+    text-transform: capitalize; /* met la première lettre en majuscule */
+    font-size: 24px;            /* taille du titre */
+    font-weight: bold;
+    color: #f7f7fa;
+    padding: 16px 48px;
+    border-radius: 12px;
+    font-size: 18px;
+    user-select: none;       /* désactive la sélection du texte */
+    -webkit-user-select: none; /* Safari/Chrome */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+}
+
+/* Style de base des boutons */
+.fc .fc-button {
+  background: #5A8DEE;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+/* Effet hover */
+.fc .fc-button:hover {
+  background: #3B6FCC;
+  transform: scale(1.05);
+}
+
+/* Bouton actif (Mois / Semaine / Jour sélectionné) */
+.fc .fc-button-active {
+  background: #232946;
+  color: #fff;
+}
+
+/* Bouton Aujourd'hui */
+.fc .fc-today-button {
+  background: #1e7e34;
+  color: white;
+}
+
+.fc .fc-day-today {
+    background-color: #f0f0f0 !important;
+}
+
+/* Boutons flèches (précédent/suivant) */
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  background: #1e7e34;
+  color: white;
+  border-radius: 50%;   /* rond */
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 18px;
+  user-select: none;       /* désactive la sélection du texte */
+  -webkit-user-select: none; /* Safari/Chrome */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;    
+}
+
+/* small helpers from template */
+.central-panel { margin-left: 200px; padding: 30px; }
+.client-list { margin-top: 20px; }
+.client-list ul { list-style: none; padding: 0; }
+.client-list li { padding: 6px 0; border-bottom: 1px solid #eee; }
+
+/* body / sidebar / menu styles */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f7f7fa;
+}
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100vh;
+    background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 40px;
+    box-shadow: 2px 0 16px rgba(35,41,70,0.10);
+    border-radius: 0 24px 24px 0;
+    z-index: 100;
+}
+.menu-btn {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: none;
+    padding: 16px 0;
+    margin: 0 18px 16px 18px;
+    border-radius: 10px;
+    font-size: 1.08em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(35,41,70,0.04);
+    letter-spacing: 1px;
+}
+.menu-btn:hover, .menu-btn.active {
+    background: #fff;
+    color: #232946;
+    box-shadow: 0 4px 16px rgba(35,41,70,0.12);
+    transform: scale(1.04);
+}
+.central-panel.main {
+    margin-left: 200px;
+    padding: 40px 40px 40px 40px;
+    min-height: 100vh;
+    background: #f7f7fa;
+}

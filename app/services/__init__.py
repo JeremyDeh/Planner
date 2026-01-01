@@ -32,6 +32,8 @@ from .neo4j_services import (
     get_recent_rdv,
     get_graph,
     infosResidentRDV,
+    update_resident,
+    get_unique_filename
 )
 
 __all__ = [
@@ -68,4 +70,6 @@ __all__ = [
     'get_recent_rdv',
     'get_graph',
     'infosResidentRDV',
+    'update_resident',
+    'get_unique_filename',
 ]

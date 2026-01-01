@@ -1,1135 +1,666 @@
 <!doctype html>
 <html lang="fr">
+
 <head>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
-        <script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js'></script>
 
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-        });
-        calendar.render();
-      });
-
-    </script>
-    <style>
-     
-        /* Affichage carte + planning côte à côte */
-        .fiche-flex-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 32px;
-            align-items: flex-start;
-        }
-        .fiche-carte {
-            flex: 0 0 370px;
-            min-width: 320px;
-            max-width: 420px;
-        }
-        .fiche-planning {
-            flex: 1 1 400px;
-            min-width: 320px;
-        }
-        @media (max-width: 900px) {
-            .fiche-flex-container {
-                flex-direction: column;
-            }
-            .fiche-carte, .fiche-planning {
-                max-width: 100%;
-                min-width: 0;
-            }
-        }
-        /* Style de table repris de emploi_collectif.html */
-        table.collectif-table {
-                border-collapse: separate;  /* important pour border-radius */
-        border-spacing: 0;
-        width: 100%;
-        border: 1px solid #eee;
-        border-radius: 15px;        /* arrondi global de la table */
-        overflow: hidden;     
-        }
-        table.collectif-table th, table.collectif-table td {
-            border: 1px solid #e0e0e0;
-            padding: 10px 8px;
-            text-align: left;
-            font-size: 1em;
-        }
-        table.collectif-table th {
-            background: #F2F6FC;
-            color:  #000000;
-            font-weight: 700;
-        }
-        table.collectif-table tr:nth-child(even) {
-            background: #f7f7fa;
-        }
-        table.collectif-table tr:hover {
-            background: #A3C2FF;
-            color: #232946;
-            
-        }
-        /* Lignes passées en mode historique */
-        tr.past-row {
-            background: #FFCFA0 !important;
-            color: #232946 !important;
-            font-style: italic;
-            font-weight: 400;
-        }
-
-                .fc-event-custom-tooltip {
-            position: absolute;
-            z-index: 9999;
-            background: #3B6FCC;;
-            color: #f7f7fa;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 1em;
-            box-shadow: 0 4px 16px rgba(35,41,70,0.18);
-            pointer-events: none;
-            opacity: 0.97;
-            white-space: pre-line;
-            max-width: 320px;
-            transition: opacity 0.15s;
-        }
-                .fc .fc-toolbar-title {
-        text-transform: capitalize; /* met la première lettre en majuscule */
-        font-size: 24px;            /* taille du titre */
-        font-weight: bold;
-        color: #f7f7fa;
-          padding: 16px 48px;
-        border-radius: 12px;
-        font-size: 18px;
-                user-select: none;       /* désactive la sélection du texte */
-        -webkit-user-select: none; /* Safari/Chrome */
-        -moz-user-select: none;    /* Firefox */
-        -ms-user-select: none;     /* IE/Edge */
-        }
-
-        /* Style de base des boutons */
-.fc .fc-button {
-  background: #5A8DEE;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
-
-/* Effet hover */
-.fc .fc-button:hover {
-  background: #3B6FCC;
-  transform: scale(1.05);
-}
-
-/* Bouton actif (Mois / Semaine / Jour sélectionné) */
-.fc .fc-button-active {
-  background: #232946;
-  color: #fff;
-}
-
-/* Bouton Aujourd'hui */
-.fc .fc-today-button {
-  background: #1e7e34;
-  color: white;
-}
-
-.fc .fc-day-today {
-    background-color: #f0f0f0 !important;
-}
-
-
-/* Boutons flèches (précédent/suivant) */
-.fc .fc-prev-button,
-.fc .fc-next-button {
-  background: #1e7e34;
-  color: white;
-  border-radius: 50%;   /* rond */
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  font-size: 18px;
-            user-select: none;       /* désactive la sélection du texte */
-  -webkit-user-select: none; /* Safari/Chrome */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;    
-}
-
-
-        
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/client_file.css') }}">
     <meta charset="UTF-8">
     <title>Fiche résident</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        .central-panel { margin-left: 220px; padding: 30px; }
-        .client-list { margin-top: 20px; }
-        .client-list ul { list-style: none; padding: 0; }
-        .client-list li { padding: 6px 0; border-bottom: 1px solid #eee; }
-    </style>
+    <!-- central-panel + client-list helpers moved to client_file.css -->
 </head>
+
 <body>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f7f7fa;
-        }
-        .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 200px;
-                height: 100vh;
-                background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
-                padding-top: 40px;
-                box-shadow: 2px 0 16px rgba(35,41,70,0.10);
-                border-radius: 0 24px 24px 0;
-                z-index: 100;
-            }
-            .menu-btn {
-                background: rgba(255,255,255,0.08);
-                color: #fff;
-                border: none;
-                padding: 16px 0;
-                margin: 0 18px 16px 18px;
-                border-radius: 10px;
-                font-size: 1.08em;
-                font-weight: 500;
-                cursor: pointer;
-                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
-                box-shadow: 0 2px 8px rgba(35,41,70,0.04);
-                letter-spacing: 1px;
-            }
-            .menu-btn:hover, .menu-btn.active {
-                background: #fff;
-                color: #232946;
-                box-shadow: 0 4px 16px rgba(35,41,70,0.12);
-                transform: scale(1.04);
-            }  
-        .central-panel {
-            margin-left: 220px;
-            padding: 40px 40px 40px 40px;
-            min-height: 100vh;
-            background: #f7f7fa;
-        }
-    </style>
+    <!-- page-specific styles moved to client_file.css -->
     <div class="sidebar">
-        <button onclick="window.location.href='{{ url_for('main.journee') }}'" class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
-        <button onclick="window.location.href='{{ url_for('main.client_file') }}'" class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche résident</button>
-        <button onclick="window.location.href='{{ url_for('main.form') }}'" class="menu-btn{% if request.path == 'main.form' or request.path == '/' %} active{% endif %}">Prise de rendez-vous</button>
-        <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'" class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps collectif</button>
-        <button onclick="window.location.href='{{ url_for('main.admin') }}'" class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
+        <button onclick="window.location.href='{{ url_for('main.journee') }}'"
+            class="menu-btn{% if request.path == url_for('main.journee') %} active{% endif %}">Page principale</button>
+        <button onclick="window.location.href='{{ url_for('main.client_file') }}'"
+            class="menu-btn{% if request.path == url_for('main.client_file') %} active{% endif %}">Fiche
+            résident</button>
+        <button onclick="window.location.href='{{ url_for('main.form') }}'"
+            class="menu-btn{% if request.path == 'main.form' or request.path == '/' %} active{% endif %}">Prise de
+            rendez-vous</button>
+        <button onclick="window.location.href='{{ url_for('main.emploi_collectif') }}'"
+            class="menu-btn{% if request.path == url_for('main.emploi_collectif') %} active{% endif %}">Emploi du temps
+            collectif</button>
+        <button onclick="window.location.href='{{ url_for('main.admin') }}'"
+            class="menu-btn{% if request.path == url_for('main.admin') %} active{% endif %}">Administration</button>
         <div class="separator-vertical"></div>
-            <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
+        <button id="imprimerBtn" class="menu-btn" style="margin-top: 40px;">Imprimer</button>
     </div>
 
-<div id="impressionPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; position:relative; display:flex; flex-direction:column;">
-        <button onclick="document.getElementById('impressionPopup').style.display='none'" 
-                style="position:absolute; top:18px; right:18px;">Fermer</button>
-        <iframe id="pdfIframe" style="width:80vw; height:80vh; border:none;"></iframe>
-    </div>
-</div>
-
-    <!-- JS Impression Popup -->
-    <script>
-    function openImpressionPopup(rowData) {
-    document.getElementById('impressionPopup').style.display = 'flex';
-    const iframe = document.getElementById('pdfIframe');
-
-    // Envoyer les données au serveur pour générer le PDF
-    fetch('/popup_row_pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rowData)
-    })
-    .then(res => res.blob())
-    .then(blob => {
-        const url = URL.createObjectURL(blob);
-        iframe.src = url;
-    })
-    .catch(err => {
-        console.error(err);
-        iframe.srcdoc = "<p style='color:red'>Erreur lors de la génération du PDF.</p>";
-    });
-}
-
-function closeImpressionPopup() {
-    document.getElementById('impressionPopup').style.display = 'none';
-    document.getElementById('pdfIframe').src = '';
-}
-
-function printIframe() {
-    const iframe = document.getElementById('pdfIframe');
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-}
-    document.getElementById('imprimerBtn').addEventListener('click', openImpressionPopup);
-    </script>
-
-
-    <div class="central-panel" style="padding-top:100px;">
-        <div style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%);; box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:220px; z-index:101;">
-            <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Logo" style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
-            <span style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Fiche résidents</span>
-        </div>
-        <button id="openPopupBtn" class="openPopupBtn">
-            <!-- Icône "+" blanc toujours visible -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" 
-                fill="none" stroke="white" stroke-width="2" 
-                stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span>Ajout d'un nouveau résident</span>
-        </button>
-
-
-<!-- Nouveau bouton "-" à droite -->
-<button id="openDepartPopupBtn" class="openPopupBtn" style="position:fixed; top:40px; right:40px; z-index:1000; display:flex; align-items:center; gap:8px; background:#C82333;">
-    <!-- Icône "-" blanc -->
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-         fill="none" stroke="white" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    <span>Départ d'un résident</span>
-</button>
-
-
-<!-- Popup Départ résident -->
-<div id="departPopupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
-    <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
-        <h3 class="noselect">Départ d'un résident</h3>
-        <form id="departPopupFormInner" autocomplete="off" style="display:flex; flex-direction:column; gap:12px;">
-            <!-- Nom du résident à supprimer -->
-            <label class="noselect" style="font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                Nom du résident :
-                <div style="position:relative;">
-                    <input type="text" name="nomPatientEDT_affichage" id="departNomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required
-                        style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none;"
-                        onfocus="showDepartPatientList()" oninput="filterDepartPatientList()">
-                    <input type="hidden" name="nomPatientEDT" id="departNomPatientHidden">
-                    <div id="departPatientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
-                        {% for nom in residents %}
-                            <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;" 
-                                onclick="selectDepartPatient(this)">
-                                {{ nom }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </label>
-            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
-                <button type="submit" class="btn-valider" style="background:#C82333;">Valider</button>
-                <button type="button" id="closeDepartPopupBtn" style="background:#232946; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+    <div class="central-panel">
+        <!-- Popup Impression -->
+        <div id="impressionPopup"
+            style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:9999; justify-content:center; align-items:center;">
+            <div id="impressionPopupContent"
+                style="background:#fff; border-radius:18px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:32px; max-width:90vw; max-height:80vh; overflow:auto; position:relative;">
+                <button onclick="closeImpressionPopup()"
+                    style="position:absolute; top:18px; right:18px;">Fermer</button>
+                <button onclick="printImpressionContent()"
+                    style="position:absolute; top:18px; left:18px; background:#4F8CFF; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1em; font-weight:600; cursor:pointer;">Imprimer</button>
+                <div id="impressionContentInner" style="margin-top:56px;"></div>
             </div>
-        </form>
-    </div>
-</div>
+        </div>
+
+        <!-- Popup DF (PDF iframe) for row/pdf printing -->
+        <div id="impressionPopupDF"
+            style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(35,41,70,0.18); z-index:100000; justify-content:center; align-items:center;">
+            <div
+                style="background:#fff; border-radius:12px; box-shadow:0 8px 32px rgba(35,41,70,0.18); padding:20px; max-width:90vw; max-height:90vh; width:100%; position:relative;">
+                <button onclick="closeImpressionPopupDF()"
+                    style="position:absolute; top:12px; right:12px;">Fermer</button>
+                <button onclick="printIframe()"
+                    style="position:absolute; top:12px; left:12px; background:#4F8CFF; color:#fff; border:none; border-radius:8px; padding:8px 14px; cursor:pointer;">Imprimer</button>
+                <iframe id="pdfIframe" style="width:100%; height:78vh; border:none; margin-top:48px;"></iframe>
+            </div>
+        </div>
 
 
-    <button id="show-graph">Historique des selles</button>
 
-    <div id="popup" style="display:none; position:fixed; top:50%; left:50%; 
+        <div style="padding-top:100px; margin-left:0;">
+            <div
+                style="width:calc(100vw - 200px); margin-left:0; margin-top:0; margin-bottom:32px; height:80px; background: linear-gradient(135deg, #5A8DEE 0%, #3B6FCC 100%); box-shadow:0 4px 24px rgba(35,41,70,0.10); border-radius:0 0 32px 32px; display:flex; align-items:center; padding-left:48px; position:fixed; top:0; left:200px; z-index:101;">
+                <img src="https://img.icons8.com/ios-filled/48/ffffff/user-male-circle.png" alt="Logo"
+                    style="height:48px; width:48px; margin-right:24px; filter:drop-shadow(0 2px 8px #23294655);">
+                <span
+                    style="font-size:2.2em; font-weight:700; color:#fff; letter-spacing:2px; text-shadow:0 2px 8px #23294655;">Fiche
+                    résidents</span>
+            </div>
+
+            <!-- Remplacement : conteneur fixe pour aligner les 3 boutons -->
+            <div class="top-actions"
+                style="position:fixed; top:130px; left:200px; right:40px; z-index:1000; display:flex; align-items:center; justify-content:center; ">
+                <!-- bouton gauche (ancré à gauche du conteneur) -->
+                <button id="openPopupBtn" class="openPopupBtn" style="position:absolute; left:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Ajout d'un nouveau résident</span>
+                </button>
+
+                <!-- bouton centré -->
+                <button id="show-graph"
+                    style="pointer-events:auto; background:#3B6FCC; color:#f7f7fa; border:none; border-radius:6px; padding:10px 24px; font-size:1em; font-weight:600; cursor:pointer;">Historique
+                    des selles</button>
+
+                <!-- bouton droit (ancré à droite du conteneur) -->
+                <button id="openDepartPopupBtn" class="openPopupBtn"
+                    style="position:fixed; top:130px; right:40px; z-index:1000; display:flex; align-items:center; gap:8px; background:#C82333;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Départ d'un résident</span>
+                </button>
+            </div>
+
+            <!-- Popup Départ résident -->
+            <div id="departPopupForm" class="popup-overlay"
+                style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
+                <div class="popup-content noselect"
+                    style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
+                    <h3 class="noselect">Départ d'un résident</h3>
+                    <form id="departPopupFormInner" autocomplete="off"
+                        style="display:flex; flex-direction:column; gap:12px;">
+                        <!-- Nom du résident à supprimer -->
+                        <label class="noselect" style="font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                            Nom du résident :
+                            <div style="position:relative;">
+                                <input type="text" name="nomPatientEDT_affichage" id="departNomPatientInput"
+                                    autocomplete="off" placeholder="Commencez à taper..." required
+                                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none;"
+                                    onfocus="showDepartPatientList()" oninput="filterDepartPatientList()">
+                                <input type="hidden" name="nomPatientEDT" id="departNomPatientHidden">
+                                <div id="departPatientList"
+                                    style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                                    {% for nom in residents %}
+                                    <div class="patient-item" data-pk="{{ pks[loop.index0] }}"
+                                        style="padding:8px; cursor:pointer;" onclick="selectDepartPatient(this)">
+                                        {{ nom }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </label>
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
+                            <button type="submit" class="btn-valider" style="background:#C82333;">Valider</button>
+                            <button type="button" id="closeDepartPopupBtn"
+                                style="background:#232946; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+
+            <div id="popup" style="display:none; position:fixed; top:50%; left:50%; 
         transform:translate(-50%, -50%);
         background:white; border:2px solid black; z-index:1000; 
         overflow:auto; padding:10px;">
-        <span id="popup-close" 
-            style="position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:18px; z-index:2000; color:black;">
-            X
-        </span>
-        <div id="graph-container" style="width:700px; height:500px;"></div>
-    </div>
-
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script>
-    document.getElementById('show-graph').addEventListener('click', function() {
-        fetch('/graphique_selles')
-            .then(response => response.json())
-            .then(figData => {
-                const container = document.getElementById('graph-container');
-                container.innerHTML = ''; // vide le container
-                const div = document.createElement('div');
-                container.appendChild(div);
-
-                Plotly.newPlot(div, figData.data, figData.layout, {responsive:true,displayModeBar:false});
-                document.getElementById('popup').style.display = 'block';
-            });
-    });
-
-    document.getElementById('popup-close').addEventListener('click', function() {
-        document.getElementById('popup').style.display = 'none';
-    });
-    </script>
-
-<div id="popupForm" class="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
-    <div class="popup-content noselect" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
-        <h3 class="noselect">Ajouter un nouveau résident</h3>
-        <form id="popupFormInner" autocomplete="off" style="display:flex; flex-direction:column; gap:12px;">
-
-            <!-- Nom -->
-            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                Nom:
-                <input type="text" name="nom" required
-                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
-                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                >
-            </label>
-
-            <!-- Prénom -->
-            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                Prénom:
-                <input type="text" name="prenom" required
-                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
-                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                >
-            </label>
-
-            <!-- Date de naissance -->
-            <label class="noselect" style="display:flex; flex-direction:row; gap:8px; justify-content:center; align-items:center; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                Date de naissance:
-                <input type="date" name="date_naissance" required
-                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
-                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                >
-            </label>
-
-            <!-- Sexe, Étage, Chambre -->
-            <div class="noselect" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
-
-                <!-- Sexe -->
-                <label style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946; justify-content:center;">
-                    Sexe:
-                    <select name="gender" required
-                        style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
-                        onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                        onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                    >
-                        <option value="homme">Homme</option>
-                        <option value="femme">Femme</option>
-                    </select>
-                </label>
-
-                <!-- Étage -->
-                <label style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946; justify-content:center;">
-                    Étage:
-                    <select name="etage" required
-                        style="width:100px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
-                        onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                        onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                    >
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                </label>
-
-                <!-- Chambre -->
-                <label style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                    Chambre:
-                    <input type="text" name="chambre" required
-                        style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
-                        onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                        onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                    >
-                </label>
-
+                <span id="popup-close"
+                    style="position:absolute; top:5px; right:5px; cursor:pointer; font-weight:bold; font-size:18px; z-index:2000; color:black;">
+                    X
+                </span>
+                <div id="graph-container" style="width:700px; height:500px;"></div>
             </div>
 
-            <!-- Mode de déplacement -->
-            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                Mode de déplacement:
-                <select name="deplacement" required
-                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
-                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                >
-                    <option value="Seul">Seul</option>
-                    <option value="Canne">Canne</option>
-                    <option value="Deambulateur">Déambulateur</option>
-                    <option value="Fauteil">Fauteil roulant</option>
-                    <option value="Lit">Alité</option>
-                </select>
-            </label>
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-            <!-- O2 et Diabète -->
-            <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                <label style="display:flex; align-items:center; gap:4px; font-family:Arial, sans-serif; font-size:14px; color:#232946; cursor:pointer;">
-                    O2:
-                    <input type="checkbox" name="O2" value="1"
-                        style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; appearance:none; position:relative;"
-                        onclick="this.style.background=this.checked?'#003366':'#f0f0f5';"
-                    >
-                </label>
 
-                <label style="display:flex; align-items:center; gap:4px; font-family:Arial, sans-serif; font-size:14px; color:#232946; cursor:pointer;">
-                    Diabète:
-                    <input type="checkbox" name="diabete" value="1"
-                        style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; appearance:none; position:relative;"
-                        onclick="this.style.background=this.checked?'#003366':'#f0f0f5';"
-                    >
-                </label>
+            <div id="popupForm" class="popup-overlay"
+                style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:999; justify-content:center; align-items:center;">
+                <div class="popup-content noselect"
+                    style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0px 8px 32px rgba(0,0,0,0.18); min-width:500px; max-width:1728px;">
+                    <h3 class="noselect">Ajouter un nouveau résident</h3>
+                    <form id="popupFormInner" autocomplete="off" style="display:flex; flex-direction:column; gap:12px;">
+
+                        <!-- Nom -->
+                        <label class="noselect"
+                            style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                            Nom:
+                            <input type="text" name="nom" required
+                                style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                        </label>
+
+                        <!-- Prénom -->
+                        <label class="noselect"
+                            style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                            Prénom:
+                            <input type="text" name="prenom" required
+                                style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                        </label>
+
+                        <!-- Date de naissance -->
+                        <label class="noselect"
+                            style="display:flex; flex-direction:row; gap:8px; justify-content:center; align-items:center; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                            Date de naissance:
+                            <input type="date" name="date_naissance" required
+                                style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                        </label>
+
+                        <!-- Sexe, Étage, Chambre -->
+                        <div class="noselect" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
+
+                            <!-- Sexe -->
+                            <label
+                                style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946; justify-content:center;">
+                                Sexe:
+                                <select name="gender" required
+                                    style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                                    <option value="homme">Homme</option>
+                                    <option value="femme">Femme</option>
+                                </select>
+                            </label>
+
+                            <!-- Étage -->
+                            <label
+                                style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946; justify-content:center;">
+                                Étage:
+                                <select name="etage" required
+                                    style="width:100px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                            </label>
+
+                            <!-- Chambre -->
+                            <label
+                                style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                                Chambre:
+                                <input type="text" name="chambre" required
+                                    style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                            </label>
+
+                        </div>
+
+                        <!-- Mode de déplacement -->
+                        <label class="noselect"
+                            style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                            Mode de déplacement:
+                            <select name="deplacement" required
+                                style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                                <option value="Seul">Seul</option>
+                                <option value="Canne">Canne</option>
+                                <option value="Deambulateur">Déambulateur</option>
+                                <option value="Fauteil">Fauteil roulant</option>
+                                <option value="Lit">Alité</option>
+                            </select>
+                        </label>
+
+                        <!-- O2 et Diabète -->
+                        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                            <label
+                                style="display:flex; align-items:center; gap:4px; font-family:Arial, sans-serif; font-size:14px; color:#232946; cursor:pointer;">
+                                O2:
+                                <input type="checkbox" name="O2" value="1"
+                                    style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; appearance:none; position:relative;"
+                                    onclick="this.style.background=this.checked?'#003366':'#f0f0f5';">
+                            </label>
+
+                            <label
+                                style="display:flex; align-items:center; gap:4px; font-family:Arial, sans-serif; font-size:14px; color:#232946; cursor:pointer;">
+                                Diabète:
+                                <input type="checkbox" name="diabete" value="1"
+                                    style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; appearance:none; position:relative;"
+                                    onclick="this.style.background=this.checked?'#003366':'#f0f0f5';">
+                            </label>
+                        </div>
+
+                        <!-- Commentaire -->
+                        <label class="noselect"
+                            style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
+                            Commentaire:
+                            <input type="text" name="commentaire" required
+                                style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                        </label>
+
+                        <!-- Boutons -->
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
+                            <button type="submit" class="btn-valider">Valider</button>
+                            <button type="button" id="closePopupBtn"
+                                style="background:#C82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
+                        </div>
+
+                    </form>
+                </div>
             </div>
 
-            <!-- Commentaire -->
-            <label class="noselect" style="display:flex; flex-direction:column; gap:5px; font-family:Arial, sans-serif; font-size:14px; color:#232946;">
-                Commentaire:
-                <input type="text" name="commentaire" required
-                    style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
-                    onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
-                    onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';"
-                >
-            </label>
 
-            <!-- Boutons -->
-            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; justify-content:center;">
-                <button type="submit" class="btn-valider">Valider</button>
-                <button type="button" id="closePopupBtn" style="background:#C82333; font-weight:bold; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:16px; cursor:pointer;">Annuler</button>
-            </div>
-
-        </form>
-    </div>
-</div>
-
-
-<div id="popupMessage"
-     style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+            <div id="popupMessage" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
             background:#1e7e34; color:#fff; padding:32px 48px; border-radius:16px;
             font-size:20px; min-width:320px; text-align:center;
             font-weight:bold; box-shadow:0 8px 32px rgba(0,0,0,0.35);
             z-index:2000; opacity:0; transition:opacity 0.3s ease;">
-</div>
+            </div>
 
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    // Ajout résident
-    const openBtn    = document.getElementById("openPopupBtn");
-    const closeBtn   = document.getElementById("closePopupBtn");
-    const popup      = document.getElementById("popupForm");
-    const form       = document.getElementById("popupFormInner");
 
-    // Départ résident
-    const openDepartBtn    = document.getElementById("openDepartPopupBtn");
-    const closeDepartBtn   = document.getElementById("closeDepartPopupBtn");
-    const departPopup      = document.getElementById("departPopupForm");
-    const departForm       = document.getElementById("departPopupFormInner");
 
-    // Message popup (unique)
-    const messageBox = document.getElementById("popupMessage");
-
-    // Fonction d'affichage du message
-    function showPopup(message, type) {
-        messageBox.textContent = message;
-        messageBox.style.background = type === "success" ? "#1e7e34" : "#c82333";
-        messageBox.style.display = "block";
-        requestAnimationFrame(() => {
-            messageBox.style.opacity = "1";
-        });
-        setTimeout(() => {
-            messageBox.style.opacity = "0";
-            setTimeout(() => {
-                messageBox.style.display = "none";
-            }, 300);
-        }, 3000);
-    }
-
-    // Ouvrir/Fermer popup ajout
-    if (openBtn && popup) openBtn.onclick = () => popup.style.display = "flex";
-    if (closeBtn && popup) closeBtn.onclick = () => popup.style.display = "none";
-
-    // Ouvrir/Fermer popup départ
-    if (openDepartBtn && departPopup) openDepartBtn.onclick = () => departPopup.style.display = "flex";
-    if (closeDepartBtn && departPopup) closeDepartBtn.onclick = () => departPopup.style.display = "none";
-
-    // Soumission formulaire ajout
-    if (form) {
-        form.onsubmit = async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            try {
-                const response = await fetch("/add_resident", {
-                    method: "POST",
-                    body: formData
-                });
-                const data = await response.json();
-                if (data.success) {
-                    showPopup("✅ Résident ajouté avec succès !", "success");
-                    popup.style.display = "none";
-                    this.reset();
-                } else {
-                    showPopup("❌ Erreur : " + (data.error || "Impossible d'ajouter le résident.") , "error");
-                }
-            } catch {
-                showPopup("⚠️ Erreur réseau ou serveur.", "error");
-            }
-        };
-    }
-
-    // Soumission formulaire départ
-    if (departForm) {
-        departForm.onsubmit = async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            try {
-                const response = await fetch("/delete_resident", {
-                    method: "POST",
-                    body: formData
-                });
-                const data = await response.json();
-                if (data.success) {
-                    showPopup("✅ Résident supprimé avec succès !", "success");
-                    departPopup.style.display = "none";
-                    this.reset();
-                } else {
-                    showPopup("❌ Erreur : " + (data.error || "Impossible de supprimer le résident.") , "error");
-                }
-            } catch {
-                showPopup("⚠️ Erreur réseau ou serveur.", "error");
-            }
-        };
-    }
-});
-</script>
-<script>
-function showDepartPatientList() {
-    document.getElementById('departPatientList').style.display = 'block';
-}
-function filterDepartPatientList() {
-    const input = document.getElementById('departNomPatientInput').value.toLowerCase();
-    document.querySelectorAll('#departPatientList .patient-item').forEach(item => {
-        item.style.display = item.textContent.toLowerCase().includes(input) ? '' : 'none';
-    });
-}
-function selectDepartPatient(el) {
-    document.getElementById('departNomPatientInput').value = el.textContent.trim();
-    document.getElementById('departNomPatientHidden').value = el.getAttribute('data-pk');
-    document.getElementById('departPatientList').style.display = 'none';
-}
-document.addEventListener('click', function(e) {
-    if (!document.getElementById('departPatientList').contains(e.target) &&
-        e.target !== document.getElementById('departNomPatientInput')) {
-        document.getElementById('departPatientList').style.display = 'none';
-    }
-});
-</script>
-    
             <form method="post" action="{{ url_for('main.client_file') }}" class="">
                 <label>Nom du résident :</label>
-                
-                <div style="position:relative;">
-                <input type="text" name="nomPatientEDT_affichage" id="nomPatientInput" autocomplete="off" placeholder="Commencez à taper..." required
-                onfocus="showPatientList()" oninput="filterPatientList()">
-                <input type="hidden" name="nomPatientEDT" id="nomPatientHidden"> <!-- ici la pk envoyée -->
 
-                <div id="patientList" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
-                {% for nom in residents %}
-                    <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;" 
-                        onclick="selectPatient(this)">
-                    {{ nom }}
+                <div style="position:relative;">
+                    <input type="text" name="nomPatientEDT_affichage" id="nomPatientInput" autocomplete="off"
+                        placeholder="Commencez à taper..." required onfocus="showPatientList()"
+                        oninput="filterPatientList()">
+                    <input type="hidden" name="nomPatientEDT" id="nomPatientHidden"> <!-- ici la pk envoyée -->
+
+                    <div id="patientList"
+                        style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #ccc; max-height:200px; overflow-y:auto; z-index:10;">
+                        {% for nom in residents %}
+                        <div class="patient-item" data-pk="{{ pks[loop.index0] }}" style="padding:8px; cursor:pointer;"
+                            onclick="selectPatient(this)">
+                            {{ nom }}
+                        </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
                 </div>
-            </div>
 
                 <button type="submit" id="validerBtn" class="btn-valider">Valider</button>
 
             </form>
 
             <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
-            <script>
-                initAutocomplete('nomPatientInput', 'patientList', 'patient-item', 'nomPatientHidden');
-            </script>
 
 
 
 
             {% if results is not none or (nodes is defined and nodes|length > 0) %}
             <div class="fiche-flex-container" style="margin-top:32px;">
+
+
+
+
+
                 <div class="client-list fiche-carte">
                     <h3>Informations du résident</h3>
                     {% if results is not none and results.shape[0] > 0 %}
-                        {% set row = results.iloc[0] %}
-                        <div style="background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(35,41,70,0.08); padding: 32px 28px; min-width: 320px; max-width: 420px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center;">
-                            
-                            <div style="font-size: 1.5em; font-weight: 600; color: #232946; margin-bottom: 8px; text-align: center;">
+                    {% set row = results.iloc[0] %}
+                    <form id="editResidentForm" method="POST" action="{{ url_for('main.edit_resident') }}">
+                        <!-- Votre champ hidden contenant la PK -->
+                        <input type="hidden" name="resident_id" id="residentIdHidden" value="{{ row['pk'] }}">
+                        <!-- MODE LECTURE -->
+                        <div class="view-mode">
+                            <div
+                                style="font-size: 1.5em; font-weight: 600; color: #232946; margin-bottom: 8px; text-align: center;">
                                 {{ row['nom'] if 'nom' in row else '' }} {{ row['prenom'] if 'prenom' in row else '' }}
                             </div>
                             {% if 'sexe' in row %}
-                                <div style="font-size: 1.1em; color: #555; margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Sexe : <b>{{ row['sexe']|capitalize }}</b>
-                                </div>
+                            <div
+                                style="font-size: 1.1em; color: #555; margin-bottom: 8px; width: 100%; text-align: center;">
+                                Sexe : <b>{{ row['sexe']|capitalize }}</b>
+                            </div>
                             {% endif %}
                             {% if 'etage' in row %}
-                                <div style="font-size: 1.1em; color: #555; margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Étage : <b>{{ row['etage'] }}</b>
-                                </div>
+                            <div
+                                style="font-size: 1.1em; color: #555; margin-bottom: 8px; width: 100%; text-align: center;">
+                                Étage : <b>{{ row['etage'] }}</b>
+                            </div>
                             {% endif %}
                             {% if 'chambre' in row %}
-                                <div style="font-size: 1.1em; color: #555; margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Chambre : <b>{{ row['chambre'] }}</b>
-                                </div>
+                            <div
+                                style="font-size: 1.1em; color: #555; margin-bottom: 8px; width: 100%; text-align: center;">
+                                Chambre : <b>{{ row['chambre'] }}</b>
+                            </div>
                             {% endif %}
                             {% if 'oxygen' in row %}
-                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                    O₂ : <b>{{ 'Oui' if row['oxygen']=='1' else 'Non' }}</b>
-                                </div>
+                            <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                O₂ : <b>{{ 'Oui' if row['oxygen']=='1' else 'Non' }}</b>
+                            </div>
                             {% endif %}
                             {% if 'diabete' in row %}
-                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Diabète : <b>{{ 'Oui' if row['diabete']=='1' else 'Non' }}</b>
-                                </div>
+                            <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                Diabète : <b>{{ 'Oui' if row['diabete']=='1' else 'Non' }}</b>
+                            </div>
                             {% endif %}
                             {% if 'commentaire' in row %}
-                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Note : <b>{{ row['commentaire'] }}</b>
-                                </div>
+                            <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                Note : <b>{{ row['commentaire'] }}</b>
+                            </div>
                             {% endif %}
                             {% if 'naissance' in row %}
-                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                Date de naissance : 
+                            <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                Date de naissance :
                                 <b id="naissance">{{ row['naissance'] }}</b>
                             </div>
                             {% endif %}
                             {% if 'deplacement' in row %}
-                                <div style="margin-bottom: 8px; width: 100%; text-align: center;">
-                                    Déplacement : <b>{{ row['deplacement'] }}</b>
-                                </div>
+                            <div style="margin-bottom: 8px; width: 100%; text-align: center;">
+                                Déplacement : <b>{{ row['deplacement'] }}</b>
+                            </div>
                             {% endif %}
-                            
+
                         </div>
+
+                        <!-- MODE ÉDITION -->
+                        <div class="edit-mode" style="display:none;">
+                            <div
+                                style="font-size: 1.5em; font-weight: 600; color: #232946; margin-bottom: 8px; text-align: center;">
+                                {{ row['nom'] if 'nom' in row else '' }} {{ row['prenom'] if 'prenom' in row else '' }}
+                            </div>
+                            Sexe: <select name="gender" required
+                                style="width:100px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                                <option value="homme">Homme</option>
+                                <option value="femme">Femme</option>
+                            </select>
+                            <br>
+                            Étage:
+                            <select name="etage" required
+                                style="width:100px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                                <option value="0" {% if row['etage']==0 or row['etage']=='0' %}selected{% endif %}>0
+                                </option>
+                                <option value="1" {% if row['etage']==1 or row['etage']=='1' %}selected{% endif %}>1
+                                </option>
+                                <option value="2" {% if row['etage']==2 or row['etage']=='2' %}selected{% endif %}>2
+                                </option>
+                                <option value="3" {% if row['etage']==3 or row['etage']=='3' %}selected{% endif %}>3
+                                </option>
+                            </select>
+                            <br>
+                            Chambre:
+                            <input type="text" name="chambre" required
+                                value="{{ row['chambre'] if 'chambre' in row else '' }}"
+                                style="width:200px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                            <br>
+                            O2:
+                            <input type="checkbox" name="O2" value="1" {% if row['oxygen']=='1' %}checked{% endif %}
+                                style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer;  position:relative;"
+                                onclick="this.style.background=this.checked?'#003366':'#f0f0f5';">
+
+                            Diabète:
+                            <input type="checkbox" name="diabete" value="1" {% if row['diabete']=='1' %}checked{% endif
+                                %}
+                                style="width:12px; height:12px; border:1px solid #ccc; background:#f0f0f5; cursor:pointer; position:relative;"
+                                onclick="this.style.background=this.checked?'#003366':'#f0f0f5';">
+                            <br>
+                            Mode de déplacement:
+                            <select name="deplacement" required
+                                style="width:100px; padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; cursor:pointer; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+                                <option value="Seul" {% if row['deplacement']=='Seul' %}selected{% endif %}>Seul
+                                </option>
+                                <option value="Canne" {% if row['deplacement']=='Canne' %}selected{% endif %}>Canne
+                                </option>
+                                <option value="Deambulateur" {% if row['deplacement']=='Deambulateur' %}selected{% endif
+                                    %}>Déambulateur</option>
+                                <option value="Fauteil" {% if row['deplacement']=='Fauteil' %}selected{% endif %}>
+                                    Fauteuil roulant</option>
+                                <option value="Lit" {% if row['deplacement']=='Lit' %}selected{% endif %}>Alité</option>
+                            </select>
+                            <br>
+                            Note:
+                            <input type="text" name="commentaire" required
+                                value="{{ row['commentaire'] if 'commentaire' in row else '' }}"
+                                style="padding:8px 16px; border-radius:10px; border:1px solid #ccc; background:#f0f0f5; font-size:14px; font-family:inherit; color:#232946; outline:none; transition: border 0.3s, box-shadow 0.3s;"
+                                onfocus="this.style.border='1px solid #003366'; this.style.boxShadow='0 0 5px rgba(0, 51, 102, 0.5)';"
+                                onblur="this.style.border='1px solid #ccc'; this.style.boxShadow='none';">
+
+
+                        </div>
+
+                        <!-- BOUTONS -->
+                        <button type="button" class="view-mode" onclick="enableEditMode()">
+                            Modifier
+                        </button>
+
+                        <button type="submit" class="edit-mode" style="display:none;">
+                            Valider
+                        </button>
+
+                        <button type="button" class="edit-mode" style="display:none;" onclick="cancelEditMode()">
+                            Annuler
+                        </button>
+                    </form>
+                    <script>
+                        function enableEditMode() {
+                            document.querySelectorAll('.view-mode').forEach(e => e.style.display = 'none');
+                            document.querySelectorAll('.edit-mode').forEach(e => e.style.display = 'inline');
+                        }
+
+                        function cancelEditMode() {
+                            document.querySelectorAll('.edit-mode').forEach(e => e.style.display = 'none');
+                            document.querySelectorAll('.view-mode').forEach(e => e.style.display = 'inline');
+
+                            // Optionnel : réinitialiser les champs à leur valeur initiale
+                            document.querySelectorAll('form')[0].reset();
+                        }
+                    </script>
+
+
+
                     {% else %}
-                        <p>Aucune information trouvée pour ce résident.</p>
+                    <p>Aucune information trouvée pour ce résident.</p>
                     {% endif %}
                 </div>
                 <div id="fiche-planning_id" class="fiche-planning">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; margin-top: 20px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; margin-top: 20px;">
                         <h3 style="margin-bottom:0;">Planning du résident</h3>
-                        <label style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
-                            <input type="checkbox" id="toggleHistoriqueBtn" style="width:18px; height:18px; accent-color:#5A8DEE; cursor:pointer;"> Historique
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:1em; user-select:none; cursor:pointer;">
+                            <input type="checkbox" id="toggleHistoriqueBtn"
+                                style="width:18px; height:18px; accent-color:#5A8DEE; cursor:pointer;"> Historique
                         </label>
                     </div>
                     {% if nodes is defined and nodes|length > 0 %}
-                        <table class="collectif-table" id="planningTable">
-                            <thead>
-                                <tr>
-                                    {% for col in nodes[0].keys() %}
-                                        {% if col == "Date" %}
-                                            {# Ne rien afficher #}
-                                        {% elif col == "Date_Fr" %}
-                                            <th>Date</th>
-                                        {% else %}
-                                            <th>{{ col }}</th>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <th>F.R.</th>
-                                    <th>F.I.</th> <!-- Nouvelle colonne pour le second bouton -->
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for node in nodes %}
-                                <tr>
-                                    {% for col in node.keys() %}
-                                        {% if col == "Date" %}
-                                            {# Ne rien afficher #}
-                                        {% else %}
-                                            <td>{{ node[col] }}</td>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <td style="text-align:center;">
-                                        <button class="dots-btn" data-row='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <circle cx="5" cy="12" r="2" fill="#232946"/>
-                                                <circle cx="12" cy="12" r="2" fill="#232946"/>
-                                                <circle cx="19" cy="12" r="2" fill="#232946"/>
-                                            </svg>
-                                        </button>
-                                    </td>
-                                    <td style="text-align:center;">
-                                        <button class="dots-btn-alt" data-row-alt='{{ node | tojson | safe | escape }}' style="background:none; border:none; cursor:pointer; padding:4px;">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <circle cx="5" cy="12" r="2" fill="#232946"/>
-                                                <circle cx="12" cy="12" r="2" fill="#232946"/>
-                                                <circle cx="19" cy="12" r="2" fill="#232946"/>
-                                            </svg>
-                                        </button>
-                                    </td>
-                                </tr>
+                    <table class="collectif-table" id="planningTable">
+                        <thead>
+                            <tr>
+                                {% for col in nodes[0].keys() %}
+                                {% if col == "Date" %}
+                                {# Ne rien afficher #}
+                                
+                                {% elif col == "Date_Fr" %}
+                                <th>Date</th>
+                                {% else %}
+                                <th>{{ col }}</th>
+                                {% endif %}
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                                <th>F.R.</th>
+                                <th>F.I.</th> <!-- Nouvelle colonne pour le second bouton -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for node in nodes %}
+                            <tr>
+                                {% for col in node.keys() %}
+                                {% if col == "Date" %}
+                                {# Ne rien afficher #}
+                                {% elif col == "Fichier" %}
+                                <td style="text-align:center;">
+                                    {% if node[col] %}
+                                        <form method="POST"
+                                            action="{{ url_for('main.download_file') }}"
+                                            style="display:inline; margin:0; padding:0; border:0;">
+                                            <input type="hidden" name="file_path" value="{{ node[col] }}">
+                                            <button type="submit"
+                                                    style="display:inline-block;
+                                                            padding:6px 14px;
+                                                            border-radius:8px;
+                                                            background:#232946;
+                                                            color:white;
+                                                            border:none;
+                                                            cursor:pointer;
+                                                            font-size:13px;
+                                                            line-height:1;">
+                                                Télécharger
+                                            </button>
+                                        </form>
+                                            {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                {% else %}
+                                <td>{{ node[col] }}</td>
+                                {% endif %}
+                                {% endfor %}
+                                <td style="text-align:center;">
+                                    <button class="dots-btn" data-row='{{ node | tojson | safe | escape }}'
+                                        style="background:none; border:none; cursor:pointer; padding:4px;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="5" cy="12" r="2" fill="#232946" />
+                                            <circle cx="12" cy="12" r="2" fill="#232946" />
+                                            <circle cx="19" cy="12" r="2" fill="#232946" />
+                                        </svg>
+                                    </button>
+                                </td>
+                                <td style="text-align:center;">
+                                    <button class="dots-btn-alt" data-row-alt='{{ node | tojson | safe | escape }}'
+                                        style="background:none; border:none; cursor:pointer; padding:4px;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="5" cy="12" r="2" fill="#232946" />
+                                            <circle cx="12" cy="12" r="2" fill="#232946" />
+                                            <circle cx="19" cy="12" r="2" fill="#232946" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
 
-                        <script>
-                        // Récupérer la date sous forme de chaîne (format "YYYY-MM-DD")
-                        let naissanceStr = "{{ row['naissance'] }}";
 
-                        // Utiliser une expression régulière pour reformater la chaîne "YYYY-MM-DD" en "DD/MM/YYYY"
-                        let regex = /^(\d{4})-(\d{2})-(\d{2})$/;
-                        let formattedDate = naissanceStr.replace(regex, '$3/$2/$1');
+                    <!-- Pop-up modale pour la ligne -->
+                    <div id="rowPopupOverlay"
+                        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
+                        <div id="rowPopupContent"
+                            style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
+                            <button onclick="closeRowPopup()"
+                                style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:1.5em; color:#232946; cursor:pointer;">&times;</button>
+                            <button onclick="window.print()" title="Imprimer"
+                                style="position:absolute; top:10px; left:10px; background:none; border:none; cursor:pointer; padding:0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+                                    fill="none" stroke="#232946" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 9V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5" />
+                                    <rect x="6" y="13" width="12" height="7" rx="2" />
+                                    <path d="M6 17h12" />
+                                    <path d="M9 17v2" />
+                                    <path d="M15 17v2" />
+                                    <circle cx="17" cy="7" r="1" />
+                                </svg>
+                            </button>
+                            <div id="rowPopupInner">Chargement...</div>
 
-                        // Remplacer le contenu de la balise avec la date formatée
-                        document.getElementById('naissance').textContent = formattedDate;
-                    </script>
-                        <script>
-                        // Filtrage planning : n'affiche que les lignes dont la date >= aujourd'hui, sauf si historique activé
-                        function isDateInFuture(dateStr) {
-                            // Accepte formats AAAA-MM-JJ ou JJ/MM/AAAA
-                            if (!dateStr) return false;
-                            let d = null;
-                            if (/\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-                                d = new Date(dateStr);
-                            } else if (/\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
-                                const [j, m, a] = dateStr.split(/[\/ ]/);
-                                d = new Date(`${a}-${m}-${j}`);
-                            } else {
-                                return true; // si format inconnu, ne pas filtrer
-                            }
-                            const today = new Date();
-                            today.setHours(0,0,0,0);
-                            console.log(d);
-                            return d >= today;
-                        }
-                        function filterPlanningRows(showAll) {
-                            const table = document.getElementById('planningTable');
-                            if (!table) return;
-                            const ths = Array.from(table.querySelectorAll('thead th'));
-                            const dateColIdx = ths.findIndex(th => th.textContent.trim().toLowerCase().includes('date'));
-                            const rows = table.querySelectorAll('tbody tr');
-                            rows.forEach(row => {
-                                const tds = Array.from(row.children);
-                                const cellDate = dateColIdx !== -1 ? (tds[dateColIdx]?.textContent.trim() || '') : '';
-                                const isFuture = isDateInFuture(cellDate);
-                                if (showAll) {
-                                    row.style.display = '';
-                                    if (!isFuture) {
-                                        row.classList.add('past-row');
-                                    } else {
-                                        row.classList.remove('past-row');
-                                    }
-                                } else {
-                                    row.classList.remove('past-row');
-                                    if (isFuture) {
-                                        row.style.display = '';
-                                    } else {
-                                        row.style.display = 'none';
-                                    }
-                                }
-                            });
-                        }
-                        let historiqueMode = false;
-                        const historiqueCheckbox = document.getElementById('toggleHistoriqueBtn');
-                        historiqueCheckbox.addEventListener('change', function() {
-                            historiqueMode = this.checked;
-                            filterPlanningRows(historiqueMode);
-                        });
-                        window.addEventListener('DOMContentLoaded', function() {
-                            filterPlanningRows(false);
-                            // Gestionnaire pour les boutons ... du tableau
-                            document.querySelectorAll('.dots-btn[data-row]').forEach(btn => {
-                                btn.addEventListener('click', function(e) {
-                                    e.stopPropagation();
-                                    try {
-                                        const rowData = JSON.parse(this.getAttribute('data-row'));
-                                        openPDFPopup(rowData);
-                                    } catch (err) {
-                                        alert('Erreur lors de l\'ouverture de la fiche : données invalides.');
-                                    }
-                                });
-                            });
-                            // Gestionnaire pour les nouveaux boutons ...
-                            document.querySelectorAll('.dots-btn-alt[data-row-alt]').forEach(btn => {
-                                btn.addEventListener('click', function(e) {
-                                    e.stopPropagation();
-                                    try {
-                                        const rowData = JSON.parse(this.getAttribute('data-row-alt'));
-                                        openRowPopupAlt(rowData);
-                                    } catch (err) {
-                                        alert('Erreur lors de l\'ouverture de la fiche (alt) : données invalides.');
-                                    }
-                                });
-                            });
-                        });
-                        </script>
-                        <!-- Pop-up modale pour la ligne -->
-                        <div id="rowPopupOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
-                            <div id="rowPopupContent" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
-                                <button onclick="closeRowPopup()" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:1.5em; color:#232946; cursor:pointer;">&times;</button>
-                                <button onclick="window.print()" title="Imprimer" style="position:absolute; top:10px; left:10px; background:none; border:none; cursor:pointer; padding:0;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#232946" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M6 9V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/>
-                                        <rect x="6" y="13" width="12" height="7" rx="2"/>
-                                        <path d="M6 17h12"/>
-                                        <path d="M9 17v2"/>
-                                        <path d="M15 17v2"/>
-                                        <circle cx="17" cy="7" r="1"/>
-                                    </svg>
-                                </button>
-                                <div id="rowPopupInner">Chargement...</div>
-                        
+                        </div>
+                    </div>
+
+
+
+                    <!-- Pop-up modale pour la nouvelle colonne -->
+                    <div id="rowPopupOverlayAlt"
+                        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
+                        <div id="rowPopupInnerAlt"
+                            style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
+
+                            <!-- Bouton fixe -->
+                            <button onclick="closeRowPopupAlt()"
+                                style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:2em; color:#232946; cursor:pointer; line-height:1; z-index:999999;">
+                                &times;
+                            </button>
+
+                            <!-- Zone de contenu dynamique -->
+                            <div id="rowPopupContentAlt" style="margin-top:18px;">
+                                Chargement...
                             </div>
                         </div>
-                        <script>
-                        function openRowPopup(rowData) {
-                            // Récupère le nom, oxygen et diabete affichés sur la fiche-carte
-                            let nomResident = '';
-                            let oxygen = '';
-                            let diabete = '';
-                            const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
-                            if (carte) {
-                                const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
-                                if (titre) nomResident = titre.textContent.trim();
-                                // Oxygen
-                                const oxyDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('O₂'));
-                                if (oxyDiv) {
-                                    const match = oxyDiv.textContent.match(/O₂\s*:\s*(Oui|Non)/i);
-                                    if (match) oxygen = match[1];
-                                }
-                                // Diabete
-                                const diabDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('Diabète'));
-                                if (diabDiv) {
-                                    const match = diabDiv.textContent.match(/Diabète\s*:\s*(Oui|Non)/i);
-                                    if (match) diabete = match[1];
-                                }
-                            }
-                            // Ajoute nom, oxygen, diabete à l'objet envoyé
-                            const dataToSend = Object.assign({}, rowData, { nom_resident: nomResident, oxygen: oxygen, diabete: diabete });
-                            const popup = document.getElementById('rowPopupOverlay');
-                            const content = document.getElementById('rowPopupInner');
-                            content.innerHTML = 'Chargement...';
-                            popup.style.display = 'flex';
-                            fetch('/popup_row', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(dataToSend)
-                            })
-                            .then(r => r.text())
-                            .then(html => { content.innerHTML = html; })
-                            .catch(() => { content.innerHTML = '<div style=\"color:red;\">Erreur de chargement.</div>'; });
-                        }
-                        function closeRowPopup() {
-                            document.getElementById('rowPopupOverlay').style.display = 'none';
-                        }
-                        </script>
-                        <script>
-function openPDFPopup(rowData) {
-    // Récupère les infos du résident depuis la fiche
-    let nomResident = '';
-    let oxygen = '';
-    let diabete = '';
+                    </div>
 
-    const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
-    if (carte) {
-        const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
-        if (titre) nomResident = titre.textContent.trim();
 
-        // Oxygen
-        const oxyDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('O₂'));
-        if (oxyDiv) {
-            const match = oxyDiv.textContent.match(/O₂\s*:\s*(Oui|Non)/i);
-            if (match) oxygen = match[1];
-        }
-
-        // Diabète
-        const diabDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('Diabète'));
-        if (diabDiv) {
-            const match = diabDiv.textContent.match(/Diabète\s*:\s*(Oui|Non)/i);
-            if (match) diabete = match[1];
-        }
-    }
-
-    // Fusionne rowData avec les nouvelles infos
-    const dataToSend = Object.assign({}, rowData, {
-        nom_resident: nomResident,
-        oxygen: oxygen,
-        diabete: diabete
-    });
-
-    // Affiche la popup et charge le PDF
-    document.getElementById('impressionPopup').style.display = 'flex';
-    const iframe = document.getElementById('pdfIframe');
-
-    fetch('/popup_row_pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend)
-    })
-    .then(res => res.blob())
-    .then(blob => {
-        const url = URL.createObjectURL(blob);
-        iframe.src = url;
-    })
-    .catch(() => {
-        iframe.srcdoc = "<p style='color:red'>Erreur lors de la génération du PDF.</p>";
-    });
-}
-</script>
-
-                        <!-- Pop-up modale pour la nouvelle colonne -->
-                        <div id="rowPopupOverlayAlt" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:99999; justify-content:center; align-items:center;">
-                            <div id="rowPopupInnerAlt" style="background:#fff; padding:32px 24px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); min-width:320px; max-width:90vw; position:relative;">
-                                
-                                <!-- Bouton fixe -->
-                                <button onclick="closeRowPopupAlt()" 
-                                        style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:2em; color:#232946; cursor:pointer; line-height:1; z-index:999999;">
-                                    &times;
-                                </button>
-                                
-                                <!-- Zone de contenu dynamique -->
-                                <div id="rowPopupContentAlt" style="margin-top:18px;">
-                                    Chargement...
-                                </div>
-                            </div>
-                        </div>
-
-                        <script>
-                        function openRowPopupAlt(rowData) {
-                            // Récupère le nom, oxygen et diabete affichés sur la fiche-carte
-                            let nomResident = '';
-                            let oxygen = '';
-                            let diabete = '';
-                            const carte = document.querySelector('.fiche-carte .client-list') || document.querySelector('.fiche-carte');
-                            if (carte) {
-                                const titre = carte.querySelector('div[style*="font-size: 1.5em"]');
-                                if (titre) nomResident = titre.textContent.trim();
-                                // Oxygen
-                                const oxyDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('O₂'));
-                                if (oxyDiv) {
-                                    const match = oxyDiv.textContent.match(/O₂\s*:\s*(Oui|Non)/i);
-                                    if (match) oxygen = match[1];
-                                }
-                                // Diabete
-                                const diabDiv = Array.from(carte.querySelectorAll('div')).find(div => div.textContent && div.textContent.includes('Diabète'));
-                                if (diabDiv) {
-                                    const match = diabDiv.textContent.match(/Diabète\s*:\s*(Oui|Non)/i);
-                                    if (match) diabete = match[1];
-                                }
-                            }
-                            // Ajoute nom, oxygen, diabete à l'objet envoyé
-                            const dataToSend = Object.assign({}, rowData, { nom_resident: nomResident, oxygen: oxygen, diabete: diabete });
-                            const popup = document.getElementById('rowPopupOverlayAlt');
-                            const content = document.getElementById('rowPopupContentAlt'); // zone dynamique
-                            content.innerHTML = 'Chargement...';
-                            popup.style.display = 'flex';
-                            fetch('/popup_row_alt', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(dataToSend)
-                            })
-                            .then(r => r.text())
-                            .then(html => { content.innerHTML = html; })
-                            .catch(() => { content.innerHTML = '<div style="color:red;">Erreur de chargement.</div>'; });
-                        }
-
-                        function closeRowPopupAlt() {
-                            document.getElementById('rowPopupOverlayAlt').style.display = 'none';
-                        }
-                        </script>
                     {% else %}
-                        <p>Aucun résultat trouvé.</p>
+                    <p>Aucun résultat trouvé.</p>
                     {% endif %}
 
 
-                    
+
                 </div>
             </div>
             {% endif %}
 
             <div id="calendar" style="display: block;"></div>
-                
-                <script>
-                function toggleView(button) {
-                    const table = document.getElementById("fiche-planning_id");
-                    const calendar = document.getElementById("calendar");
 
-                    if (table.style.display === "none") {
-                        table.style.display = "block";
-                        calendar.style.display = "none";
-                        button.textContent = "Afficher le calendrier";
-                    } else {
-                        table.style.display = "none";
-                        calendar.style.display = "block";
-                        button.textContent = "Afficher la table";
-                    }
-                }
+
+            <!-- Client-side JS: minimal inline config (server-rendered), rest is in external file -->
+            <script>
+                window.clientFileConfig = window.clientFileConfig || {};
+                window.clientFileConfig.nodes = {{ nodes | tojson | default ('[]') | safe }};
+                window.clientFileConfig.naissance = "{{ row['naissance'] if (results is not none and results.shape[0] > 0 and 'naissance' in row) else '' }}";
             </script>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const calendarEl = document.getElementById('calendar');
-                        const rawEvents = {{ nodes | tojson }};
-                        // Vérifie les clés exactes de tes objets
-                        const events = rawEvents.map(ev => ({
-                            title: ev['Rendez-vous'] || 'Rendez-vous',
-                            start: ev.Date || null,
-                            description: ev['Note'] || '<Aucun commentaire>'
-                        }));
-                        console.log(events); // Debug
-                        const calendar = new FullCalendar.Calendar(calendarEl, {initialView: 'dayGridMonth',
-                locale: 'fr',
-                firstDay: 1,
-                slotMinTime: '07:00:00',
-                slotMaxTime: '23:50:00',
-                allDaySlot: false,
-                headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth'
-    },
-    buttonText: {
-        today: "Aujourd'hui",
-        month: 'Mois',
-    },
-                            events: events,
-                            eventDidMount: function (info) {
-                                // Tooltip personnalisé
-                                let tooltip;
-                                const desc = info.event.extendedProps.description;
-                                if (desc) {
-                                    info.el.addEventListener('mouseenter', function(e) {
-                                        tooltip = document.createElement('div');
-                                        tooltip.className = 'fc-event-custom-tooltip';
-                                        tooltip.innerText = desc;
-                                        document.body.appendChild(tooltip);
-                                        const rect = info.el.getBoundingClientRect();
-                                        tooltip.style.position = 'absolute';
-                                        tooltip.style.background = '#232946';
-                                        tooltip.style.color = '#fff';
-                                        tooltip.style.padding = '8px 14px';
-                                        tooltip.style.borderRadius = '8px';
-                                        tooltip.style.fontSize = '1em';
-                                        tooltip.style.boxShadow = '0 2px 8px rgba(35,41,70,0.18)';
-                                        tooltip.style.zIndex = '9999';
-                                        tooltip.style.pointerEvents = 'none';
-                                        tooltip.style.left = (rect.left + window.scrollX + rect.width/2 - 80) + 'px';
-                                        tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 12) + 'px';
-                                    });
-                                    info.el.addEventListener('mousemove', function(e) {
-                                        if (tooltip) {
-                                            tooltip.style.left = (e.pageX + 12) + 'px';
-                                            tooltip.style.top = (e.pageY - tooltip.offsetHeight - 12) + 'px';
-                                        }
-                                    });
-                                    info.el.addEventListener('mouseleave', function() {
-                                        if (tooltip) {
-                                            tooltip.remove();
-                                            tooltip = null;
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                        calendar.render();
-                    });
-                    </script>
+            <script src="{{ url_for('static', filename='js/client_file.js') }}"></script>
 
 </body>
+
 </html>
